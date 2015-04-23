@@ -66,7 +66,12 @@ public class Interpolation {
             }
             return;
          }
+         java.util.Arrays.fill(interpValues, Float.NaN);
+         
          for (int k=0; k<numSpatialPts; k++) {
+            if (!computed[k]) { // don't need to interp at these locations, at this time
+                continue;
+            }
             interpValues[k] = (float) cubic_poly(xt, solution[0][k], solution[1][k], solution[2][k], solution[3][k]);
          }
       }
