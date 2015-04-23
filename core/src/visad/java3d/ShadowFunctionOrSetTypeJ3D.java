@@ -1397,6 +1397,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      /* Get start points, use first spatial_set locs for now. 
         Eventually want to include a time for start */
      ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+     // start compute trajectories ------------------
      FlowInfo info = flowInfoList.get(0);
      Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
      int manifoldDim = spatial_set0.getManifoldDimension();
@@ -1455,7 +1456,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        }
      }
 
-     int numTrajectories = startPts[0].length;
      ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
 
     
@@ -1468,6 +1468,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         float[][] values2 = null;
         float[][] values3 = null;
         float[][] values0_last = null;
+        // end compute --------------
 
         double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
@@ -1491,6 +1492,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
           info = Range.getAdaptedShadowType().getFlowInfo().get(i);
+          // start compute -------
           color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
           manifoldDim = spatial_set.getManifoldDimension();
@@ -1511,7 +1513,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              trajectories = new ArrayList<Trajectory>();
              java.util.Arrays.fill(Trajectory.markGrid, false);
              if (direction > 0) {
-               switListen.allOffBelow.add(i);
+               switListen.allOffBelow.add(i); // needed always?
+               // compute/recompute only --------------
                Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs, spatialSetTraj);
              }
              else { //TODO: make this work eventually
@@ -1531,6 +1534,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           }
           */
 
+          // compute/recompute trajectories -----------------
           double x0 = (double) direction*i;
           double x1 = (double) direction*(i+direction*1);
           double x2 = (double) direction*(i+direction*2);
@@ -1592,7 +1596,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             }
           }
 
-          numTrajectories = trajectories.size();
+          int numTrajectories = trajectories.size();
           Trajectory.reset(numTrajectories*numIntrpPts, clrDim);
 
           for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
@@ -1604,6 +1608,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
             wInterp.interpolate(xt, intrpW);
+            
             float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpW}, timeStep);
 
             for (int t=0; t<numTrajectories; t++) {
@@ -1615,9 +1620,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           } // inner time loop (time interpolation)
 
+          // compute/recompute to above
 
+          // these two steps probably not needed if not compute/recompute
           VisADLineArray array = Trajectory.makeGeometry();
           trajectories = Trajectory.clean(trajectories, trajLifetime);
+          // ----------------------
           
           // something weird with this, everything being removed ?
           //array = (VisADLineArray) array.removeMissing();
@@ -1627,6 +1635,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           trcrArrays = new ArrayList<VisADGeometryArray>();
           achrArrays = new ArrayList<float[]>();
+          // only if tracerSize changes
           trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);
           
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
