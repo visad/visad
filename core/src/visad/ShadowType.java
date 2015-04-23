@@ -2445,8 +2445,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       for (int i=0; i<earth_locs.length; i++) {
         if (earth_locs[i] == null) {
           earth_locs[i] = new float[flen];
-          for (int j = 0; j < flen; j++)
-            earth_locs[i][j] = spatial_values[i][j];
+            System.arraycopy(spatial_values[i], 0, earth_locs[i], 0, flen);
         }
       }
     }
@@ -2713,6 +2712,13 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
       boolean[][] range_select, GraphicsModeControl mode, float constant_alpha, float[] constant_color,
       int valueArrayLength, int[] valueToMap,
       Vector MapVector, ArrayList flowInfoList) throws VisADException, RemoteException {
+      
+    // incoming spatial_set will be null (see assembleSpatial), so create from spatial_values.
+    if (spatialManifoldDimension == 3) {
+      SetType stype = new SetType(Display.DisplaySpatialCartesianTuple);
+      Set domain_set = ((FlatField)data).getDomainSet();
+      spatial_set = domain_set.makeSpatial(stype, spatial_values);
+    }
 
     Unit[] flowUnits = new Unit[3];
     Unit[][] dataUnits = ((FlatField)data).getRangeUnits();
@@ -2816,7 +2822,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
         if (dreal.equals(Display.RGB) || dreal.equals(Display.RGBA)) {
            colorMap = map;
-           rngIdxClr = k;
+           if (rngIdxClr < 0) {
+             rngIdxClr = k;
+           }
            cnt++;
         }
       }
@@ -2827,7 +2835,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     if (colorMap == null) {
       return null;
     }
-    System.out.println("range Color Index: "+rngIdxClr);
+    if (cnt > 1) {
+      System.out.println("Trajectory: more than one range type for color. Can only use the first found");
+    }
     float[] dspVals = colorMap.scaleValues(rangeValues[rngIdxClr]);
     float[][] fltClrs = ((BaseColorControl)colorMap.getControl()).lookupValues(dspVals);
     int clrDim = fltClrs.length;
