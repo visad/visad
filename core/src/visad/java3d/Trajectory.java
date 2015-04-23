@@ -137,9 +137,10 @@ public class Trajectory {
          float[][] pts = new float[3][];
          byte[][] clrs = new byte[startClrs.length][];
          
+         int skipZ = lenZ/3;
          int lenA = 0;
          
-         for (int k=0; k<lenZ-skip*2; k+=skip*2) {
+         for (int k=0; k<lenZ; k+=skipZ) {
              System.arraycopy(locs[0], k*len2D, locs2D[0], 0, len2D);
              System.arraycopy(locs[1], k*len2D, locs2D[1], 0, len2D);
              System.arraycopy(locs[2], k*len2D, locs2D[2], 0, len2D);
