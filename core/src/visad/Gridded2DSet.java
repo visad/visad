@@ -354,14 +354,14 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     }
     return value;
   }
-
-  // WLH 6 Dec 2001
-  //private int gx = -1;
-  //private int gy = -1;
+  
+  public float[][] valueToGrid(float[][] value) throws VisADException {
+    return valueToGrid(value, null);
+  }
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
-  public float[][] valueToGrid(float[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value, int[] guess) throws VisADException {
     float[][]mySamples = getMySamples();
     if (value.length < DomainDimension) {
       throw new SetException("Gridded2DSet.valueToGrid: value dimension " +
@@ -382,13 +382,12 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     // (gx, gy) is the current grid box guess
     int gx = (LengthX-1)/2;
     int gy = (LengthY-1)/2;
-/* WLH 6 Dec 2001
-    // use value from last call as first guess, if reasonable
-    if (gx < 0 || gx >= LengthX || gy < 0 || gy >= LengthY) {
-      gx = (LengthX-1)/2;
-      gy = (LengthY-1)/2;
+    
+    // TDR: special check if i==0 when a first value guess is supplied.
+    if (guess != null && guess[0] >= 0 && guess[1] >= 0) {
+      gx = guess[0];
+      gy = guess[1];
     }
-*/
 
     boolean lowertri = true;
     for (int i=0; i<length; i++) {
@@ -541,6 +540,11 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
         || (grid[0][i] <= -0.5) || (grid[1][i] <= -0.5) ) {
         grid[0][i] = grid[1][i] = Float.NaN;
       }
+    }
+    //TDR: use last found as guess for next locate request
+    if (guess != null) {
+      guess[0] = gx;
+      guess[1] = gy;
     }
     return grid;
   }
