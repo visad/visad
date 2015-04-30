@@ -1609,13 +1609,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             vInterp.interpolate(xt, intrpV);
             wInterp.interpolate(xt, intrpW);
             
-            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpW}, timeStep);
-
             for (int t=0; t<numTrajectories; t++) {
               Trajectory traj = trajectories.get(t);
               traj.currentTimeIndex = direction*i;
               traj.currentTime = direction*times[i];
-              traj.forward(flow_values, color_values, spatialSetTraj, direction);
+              traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, direction, timeStep);
             }
 
           } // inner time loop (time interpolation)

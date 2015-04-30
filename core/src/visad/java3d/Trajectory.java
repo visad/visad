@@ -59,7 +59,9 @@ public class Trajectory {
  
      public double initialTime = 0;
      public double currentTime = 0;
-
+     
+     int[] guess3D = new int[] {-1,-1,-1};
+     int[] guess2D = new int[] {-1,-1};
      float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
 
      public Trajectory(float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor) {
@@ -595,7 +597,7 @@ public class Trajectory {
      }
  
 
-     public void forward(float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, int direction)
+     public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, int direction, float timeStep)
            throws VisADException {
         if (offGrid) return;
 
@@ -609,15 +611,27 @@ public class Trajectory {
 
         indices[0] = startCell;
         weights[0] = cellWeights;
+        
+        float[][] flowLoc = new float[3][1];
+        float[][] flowVec = new float[3][1];
 
         if (indices[0] != null) {
            java.util.Arrays.fill(intrpFlow, 0f);
            java.util.Arrays.fill(intrpClr, 0);
            for (int j=0; j<indices[0].length; j++) {
               int idx = indices[0][j];
-              intrpFlow[0] += weights[0][j]*(direction)*flow_values[0][idx];
-              intrpFlow[1] += weights[0][j]*(direction)*flow_values[1][idx];
-              intrpFlow[2] += weights[0][j]*(direction)*flow_values[2][idx];
+              flowLoc[0][0] = info.spatial_values[0][idx];
+              flowLoc[1][0] = info.spatial_values[1][idx];
+              flowLoc[2][0] = info.spatial_values[2][idx];
+              
+              flowVec[0][0] = flow_values[0][idx];
+              flowVec[1][0] = flow_values[1][idx];
+              flowVec[2][0] = flow_values[2][idx];
+              
+              float[][] del = Trajectory.adjustFlow(info, flowLoc, flowVec, timeStep);
+              intrpFlow[0] += weights[0][j]*(direction)*del[0][0];
+              intrpFlow[1] += weights[0][j]*(direction)*del[1][0];
+              intrpFlow[2] += weights[0][j]*(direction)*del[2][0];              
 
               intrpClr[0] += weights[0][j]*color_values[0][idx];
               intrpClr[1] += weights[0][j]*color_values[1][idx];
@@ -661,13 +675,13 @@ public class Trajectory {
            if (manifoldDimension == 2) {
               startPts2D[0][0] = startPts[0];
               startPts2D[1][0] = startPts[1];
-              spatial_set.valueToInterp(startPts2D, indices, weights);
+              spatial_set.valueToInterp(startPts2D, indices, weights, guess2D);
            }
            else if (manifoldDimension == 3) {
               startPts3D[0][0] = startPts[0];
               startPts3D[1][0] = startPts[1];
               startPts3D[2][0] = startPts[2];
-              spatial_set.valueToInterp(startPts3D, indices, weights);
+              spatial_set.valueToInterp(startPts3D, indices, weights, guess3D);
            }
            
            startCell = indices[0];
@@ -707,9 +721,9 @@ public class Trajectory {
         }
      }
 
-     public static float[][] adjustFlow(FlowInfo info, float[][] flow_values, float timeStep) throws VisADException {
-        return ShadowType.adjustFlowToEarth(info.which, flow_values, info.spatial_values, info.flowScale,
-                               info.renderer, false, true, timeStep);
+     public static float[][] adjustFlow(FlowInfo info, float[][] spatial_values, float[][] flow_values, float timeStep) throws VisADException {
+        return ShadowType.adjustFlowToEarth(info.which, flow_values, spatial_values, info.flowScale,
+                                            info.renderer, false, true, timeStep);
      }
 
      public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2, TrajectoryParams.SmoothParams smoothParams) {
@@ -765,24 +779,25 @@ public class Trajectory {
 
 
      public static float[][] convertFlowUnit(float[][] values, Unit[] units) throws VisADException {
+       // Flow units must be convertible to m s-1 for trajectory computation
+       Unit meterPerSecond = CommonUnit.meterPerSecond;
 
        float[] valsX = values[0];
-       if (!CommonUnit.meterPerSecond.equals(units[0])) {
-         valsX = CommonUnit.meterPerSecond.toThis(values[0], units[0]);
+       if (Unit.canConvert(units[0], meterPerSecond)) {
+          valsX = meterPerSecond.toThis(values[0], units[0]);
        }
 
        float[] valsY = values[1];
-       if (!CommonUnit.meterPerSecond.equals(units[1])) {
-         valsY = CommonUnit.meterPerSecond.toThis(values[1], units[1]);
+       if (Unit.canConvert(units[1], meterPerSecond)) {
+          valsY = meterPerSecond.toThis(values[1], units[1]);
        }
 
-      /* 
-       * FlowZ will have to be meters/second: Application will have to convert
-       * or supply, maybe through a RangeCoordinateSystem, a transform to do this.
-       *
-       */
+       float[] valsZ = values[2];
+       if (Unit.canConvert(units[2], meterPerSecond)) {
+          valsZ = meterPerSecond.toThis(values[2], units[2]);
+       }
 
-       return new float[][] {valsX, valsY, values[2]};
+       return new float[][] {valsX, valsY, valsZ};
      }
      
      public static void updateInterpolators(ArrayList<Trajectory>trajectories, int numSpatialPts, Interpolation uInterp, Interpolation vInterp, Interpolation wInterp) {
