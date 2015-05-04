@@ -7,8 +7,10 @@ import visad.Data;
 import visad.FlowInfo;
 import visad.Gridded1DDoubleSet;
 import visad.Gridded1DSet;
+import visad.Gridded2DSet;
 import visad.Gridded3DSet;
 import visad.GriddedSet;
+import visad.RealTupleType;
 import visad.Set;
 import visad.ShadowType;
 import visad.TrajectoryParams;
@@ -115,6 +117,20 @@ public class Trajectory {
            traj.initialTime = time;
            trajectories.add(traj);
         }
+     }
+     
+     public static GriddedSet makeSpatialSetTraj(Gridded3DSet spatial_set) throws VisADException {
+       int manifoldDim = spatial_set.getManifoldDimension();
+       int[] lens = spatial_set.getLengths();
+       float[][] setLocs = spatial_set.getSamples(false);
+       GriddedSet spatialSetTraj;
+       if (manifoldDim == 2) {
+         spatialSetTraj = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
+                new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+       } else {
+         spatialSetTraj = spatial_set;
+       }
+       return spatialSetTraj;
      }
      
      public static void getStartPointsFromDomain(int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
