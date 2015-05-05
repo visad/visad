@@ -22,12 +22,8 @@ import visad.VisADTriangleArray;
 
 
 public class Trajectory {
-     float startX;
-     float startY;
-     float startZ;
-
+     /* Current location (spatial set) of massless tracer particle */
      float[] startPts = new float[3];
-     float[]  stopPts = new float[3];
      
      int[] startCell;
      float[] cellWeights;
@@ -35,6 +31,7 @@ public class Trajectory {
      byte[] startColor;
      byte[] stopColor;
 
+     float[] stopPts = new float[3];
      float[][] startPts2D = new float[2][1];
      float[][] startPts3D = new float[3][1];
 
@@ -67,10 +64,6 @@ public class Trajectory {
      float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
 
      public Trajectory(float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor) {
-        this.startX = startX;
-        this.startY = startY;
-        this.startZ = startZ;
-
         startPts[0] = startX;
         startPts[1] = startY;
         startPts[2] = startZ;
