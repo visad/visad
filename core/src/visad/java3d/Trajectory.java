@@ -25,8 +25,15 @@ public class Trajectory {
      /* Current location (spatial set) of massless tracer particle */
      float[] startPts = new float[3];
      
+     /* grid point neighbors and interp weights for current location */
      int[] startCell;
      float[] cellWeights;
+     
+     /* unit vector from last to current location*/
+     float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
+     
+     int[] guess3D = new int[] {-1,-1,-1};
+     int[] guess2D = new int[] {-1,-1};
 
      byte[] startColor;
      byte[] stopColor;
@@ -59,10 +66,7 @@ public class Trajectory {
      public double initialTime = 0;
      public double currentTime = 0;
      
-     int[] guess3D = new int[] {-1,-1,-1};
-     int[] guess2D = new int[] {-1,-1};
-     float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
-
+     
      public Trajectory(float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor) {
         startPts[0] = startX;
         startPts[1] = startY;
@@ -369,9 +373,9 @@ public class Trajectory {
              ArrayList<VisADGeometryArray> arrays, ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
        int numTrajs = trajectories.size();
        VisADGeometryArray array = null;
-       float[] coords = null;
-       byte[] colors = null;
-       float[] normals = null;
+       float[] coords;
+       byte[] colors;
+       float[] normals;
        int numPts;
        int numVerts;
 
