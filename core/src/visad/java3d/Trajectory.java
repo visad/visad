@@ -41,14 +41,22 @@ public class Trajectory {
      float[] stopPts = new float[3];
      float[][] startPts2D = new float[2][1];
      float[][] startPts3D = new float[3][1];
+     
+     /* first and current time and associated set indices */
+     public int initialTimeIndex = 0;
+     public int currentTimeIndex = 0;
+ 
+     public double initialTime = 0;
+     public double currentTime = 0;
+     
+     /* Flag indicating particle has moved out of the grid, or position 
+        cannot be determined - Trajectory obj will be removed from list.
+     */
+     boolean offGrid = false;
 
      static int coordCnt = 0;
      static int colorCnt = 0;
      static int vertCnt = 0;
-
-     int clrDim;
-
-     boolean offGrid = false;
 
      private static float[] coordinates = null;
      private static byte[] colors = null;
@@ -60,12 +68,6 @@ public class Trajectory {
      public static int[] o_j = new int[] {0, 0, 1, 1}; 
      public static int[] o_i = new int[] {0, 1, 0, 1}; 
 
-     public int initialTimeIndex = 0;
-     public int currentTimeIndex = 0;
- 
-     public double initialTime = 0;
-     public double currentTime = 0;
-     
      
      public Trajectory(float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor) {
         startPts[0] = startX;
@@ -74,7 +76,7 @@ public class Trajectory {
         this.startCell = startCell;
         this.cellWeights = cellWeights;
 
-        clrDim = startColor.length;
+        int clrDim = startColor.length;
         stopColor = new byte[clrDim];
 
         this.startColor = startColor;
