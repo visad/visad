@@ -58,6 +58,7 @@ public class TrajectoryParams {
   boolean doIntrp = true;
   float markerSize = 1f;
   boolean markerEnabled = false;
+  boolean manualIntrpPts = false;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -118,6 +119,19 @@ public class TrajectoryParams {
 
   public void setDoIntrp(boolean yesno) {
     this.doIntrp = yesno;
+  }
+  
+  public void setNumIntrpPts(int numIntrpPts) {
+    this.numIntrpPts = numIntrpPts;
+    this.manualIntrpPts = true;
+  }
+  
+  public void setManualIntrpPts(boolean isManual) {
+    this.manualIntrpPts = isManual;
+  }
+  
+  public boolean getManualIntrpPts() {
+    return this.manualIntrpPts;
   }
 
   public void setMarkerSize(float size) {
