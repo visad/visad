@@ -797,10 +797,8 @@ public class Trajectory {
          
        float[][] del = Trajectory.adjustFlow(info, new float[][] {{0f}, {0f}, {0f}}, new float[][] {{50f},{0f},{0f}}, (float)timeStep);
        double intrvl = (del[0][0]/0.10);
-       if (intrvl <= 1) {
-         numIntrpPts = 1;
-       }
-       else if (intrvl > 1 && intrvl < 2) {
+       
+       if (intrvl < 2) {
          numIntrpPts = 2;
        }
        else {
