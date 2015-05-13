@@ -212,7 +212,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajDoIntrp = trajParams.getDoIntrp();
             trcrSize = trajParams.getMarkerSize();
             trcrEnabled = trajParams.getMarkerEnabled();
-            trcrEnabled = true;
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
