@@ -7,8 +7,10 @@ import visad.Data;
 import visad.FlowInfo;
 import visad.Gridded1DDoubleSet;
 import visad.Gridded1DSet;
+import visad.Gridded2DSet;
 import visad.Gridded3DSet;
 import visad.GriddedSet;
+import visad.RealTupleType;
 import visad.Set;
 import visad.ShadowType;
 import visad.TrajectoryParams;
@@ -20,29 +22,41 @@ import visad.VisADTriangleArray;
 
 
 public class Trajectory {
-     float startX;
-     float startY;
-     float startZ;
-
+     /* Current location (spatial set) of massless tracer particle */
      float[] startPts = new float[3];
-     float[]  stopPts = new float[3];
      
+     /* grid point neighbors and interp weights for current location */
      int[] startCell;
      float[] cellWeights;
+     
+     /* unit vector from last to current location*/
+     float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
+     
+     int[] guess3D = new int[] {-1,-1,-1};
+     int[] guess2D = new int[] {-1,-1};
 
      byte[] startColor;
      byte[] stopColor;
 
+     float[] stopPts = new float[3];
      float[][] startPts2D = new float[2][1];
      float[][] startPts3D = new float[3][1];
+     
+     /* first and current time and associated set indices */
+     public int initialTimeIndex = 0;
+     public int currentTimeIndex = 0;
+ 
+     public double initialTime = 0;
+     public double currentTime = 0;
+     
+     /* Flag indicating particle has moved out of the grid, or position 
+        cannot be determined - Trajectory obj will be removed from list.
+     */
+     boolean offGrid = false;
 
      static int coordCnt = 0;
      static int colorCnt = 0;
      static int vertCnt = 0;
-
-     int clrDim;
-
-     boolean offGrid = false;
 
      private static float[] coordinates = null;
      private static byte[] colors = null;
@@ -54,28 +68,15 @@ public class Trajectory {
      public static int[] o_j = new int[] {0, 0, 1, 1}; 
      public static int[] o_i = new int[] {0, 1, 0, 1}; 
 
-     public int initialTimeIndex = 0;
-     public int currentTimeIndex = 0;
- 
-     public double initialTime = 0;
-     public double currentTime = 0;
      
-     int[] guess3D = new int[] {-1,-1,-1};
-     int[] guess2D = new int[] {-1,-1};
-     float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
-
      public Trajectory(float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor) {
-        this.startX = startX;
-        this.startY = startY;
-        this.startZ = startZ;
-
         startPts[0] = startX;
         startPts[1] = startY;
         startPts[2] = startZ;
         this.startCell = startCell;
         this.cellWeights = cellWeights;
 
-        clrDim = startColor.length;
+        int clrDim = startColor.length;
         stopColor = new byte[clrDim];
 
         this.startColor = startColor;
@@ -115,6 +116,20 @@ public class Trajectory {
            traj.initialTime = time;
            trajectories.add(traj);
         }
+     }
+     
+     public static GriddedSet makeSpatialSetTraj(Gridded3DSet spatial_set) throws VisADException {
+       int manifoldDim = spatial_set.getManifoldDimension();
+       int[] lens = spatial_set.getLengths();
+       float[][] setLocs = spatial_set.getSamples(false);
+       GriddedSet spatialSetTraj;
+       if (manifoldDim == 2) {
+         spatialSetTraj = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
+                new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+       } else {
+         spatialSetTraj = spatial_set;
+       }
+       return spatialSetTraj;
      }
      
      public static void getStartPointsFromDomain(int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
@@ -360,9 +375,9 @@ public class Trajectory {
              ArrayList<VisADGeometryArray> arrays, ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
        int numTrajs = trajectories.size();
        VisADGeometryArray array = null;
-       float[] coords = null;
-       byte[] colors = null;
-       float[] normals = null;
+       float[] coords;
+       byte[] colors;
+       float[] normals;
        int numPts;
        int numVerts;
 
@@ -775,6 +790,22 @@ public class Trajectory {
         Unit[] setUnits = timeSet.getSetUnits();
         timePts = CommonUnit.secondsSinceTheEpoch.toThis(timePts, setUnits[0]);
         return timePts;
+     }
+     
+     public static int getNumIntrpPts(FlowInfo info, float maxSpd, double timeStep) throws VisADException {
+       int numIntrpPts;
+         
+       float[][] del = Trajectory.adjustFlow(info, new float[][] {{0f}, {0f}, {0f}}, new float[][] {{50f},{0f},{0f}}, (float)timeStep);
+       double intrvl = (del[0][0]/0.10);
+       
+       if (intrvl < 2) {
+         numIntrpPts = 2;
+       }
+       else {
+         numIntrpPts = (int) intrvl;
+       }
+          
+       return numIntrpPts;
      }
 
 

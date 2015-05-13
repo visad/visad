@@ -64,14 +64,38 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
   double trajLifetime;
+  boolean manualIntrpPts;
   int numIntrpPts;
   int trajSkip;
   TrajectoryParams.SmoothParams smoothParams;
   int direction;
   float[][] startPts = null;
+  byte[][] startClrs = null;
+  int clrDim;
+  int numSpatialPts;
   boolean trajDoIntrp = true;
   float trcrSize = 1f;
+  boolean trcrEnabled;
   double[] dspScale = new double[3];
+  float[] intrpU;
+  float[] intrpV;
+  float[] intrpW;
+  Interpolation uInterp;
+  Interpolation vInterp;
+  Interpolation wInterp;
+  float[][] values0;
+  float[][] values1;
+  float[][] values2;
+  float[][] values3;
+  float[][] values0_last;
+  ArrayList<Trajectory> trajectories;
+  double timeAccum = 0;
+  VisADLineArray array;
+  VisADGeometryArray trcrArray;
+  ArrayList<VisADGeometryArray> trcrArrays;
+  ArrayList<float[]> achrArrays;
+  
+  public static ArrayList<VisADGeometryArray> trajArrays = new ArrayList<VisADGeometryArray>();
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -179,6 +203,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
             trajRefreshInterval = trajParams.getTrajRefreshInterval();
             trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
+            manualIntrpPts = trajParams.getManualIntrpPts();
             numIntrpPts = trajParams.getNumIntrpPts();
             trajSkip = trajParams.getStartSkip();
             smoothParams = trajParams.getSmoothParams();
@@ -186,6 +211,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             startPts = trajParams.getStartPoints();
             trajDoIntrp = trajParams.getDoIntrp();
             trcrSize = trajParams.getMarkerSize();
+            trcrEnabled = trajParams.getMarkerEnabled();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1394,118 +1420,167 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   }
 
   private void doTrajectory() throws VisADException, RemoteException {
-     /* Get start points, use first spatial_set locs for now. 
-        Eventually want to include a time for start */
-     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
-     // start compute trajectories ------------------
-     FlowInfo info = flowInfoList.get(0);
-     Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
-     int manifoldDim = spatial_set0.getManifoldDimension();
-     int[] lens = spatial_set0.getLengths();
-     float[][] setLocs = spatial_set0.getSamples(false);
-     GriddedSet spatialSetTraj = null;
-     if (manifoldDim == 2) {
-         spatialSetTraj = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
-                new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
-     } else {
-         spatialSetTraj = spatial_set0;
-     }
-
-     byte[][] color_values = info.color_values;
-     int clrDim = color_values.length;
-     if (info.trajColors != null) color_values = info.trajColors;
-
-     int numSpatialPts = spatial_set0.getLength();
-     Trajectory.markGrid = new boolean[numSpatialPts];
-     Trajectory.markGridTime = new int[numSpatialPts];
-     java.util.Arrays.fill(Trajectory.markGrid, false);
-     java.util.Arrays.fill(Trajectory.markGridTime, 0);
-     float[] intrpU = new float[numSpatialPts];
-     float[] intrpV = new float[numSpatialPts];
-     float[] intrpW = new float[numSpatialPts];
-
-     byte[][] startClrs = new byte[color_values.length][];
-     if (startPts == null) { //get from domain set
-       startPts = new float[3][];
-       Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs);
-     }
-     else {
-       /* TODO: assuming earth navigated display coordinate system*/
-       CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
-       float[][] fltVals = new float[startPts.length][startPts[0].length];
-       for (int i=0; i<fltVals.length; i++) System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
-       startPts = dspCoordSys.toReference(fltVals);
-       
-       int[] clrIdxs = null;
-       if (manifoldDim == 2) {
-           clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
-       } else {
-           clrIdxs = spatialSetTraj.valueToIndex(startPts);
-       }
-       int num = clrIdxs.length;
-       startClrs[0] = new byte[num];
-       startClrs[1] = new byte[num];
-       startClrs[2] = new byte[num];
-       if (clrDim == 4) startClrs[3] = new byte[num];
-       for (int i=0; i<num; i++) {
-         int clrIdx = clrIdxs[i];
-         startClrs[0][i] = color_values[0][clrIdx];
-         startClrs[1][i] = color_values[1][clrIdx];
-         startClrs[2][i] = color_values[2][clrIdx];
-         if (clrDim == 4) startClrs[3][i] = color_values[3][clrIdx];
-       }
-     }
-
-     ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
-
+    RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
+    ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
+    FixedSizeListener listener = new FixedSizeListener(pCntrl);
+        
+    Iterator<ControlListener> iter = renderer.getProjectionControlListeners().iterator();
+    while (iter.hasNext()) {
+      pCntrl.removeControlListener(iter.next());
+    }
+    pCntrl.addControlListener(listener);
     
-        Interpolation uInterp = new Interpolation(trajDoIntrp, numSpatialPts);
-        Interpolation vInterp = new Interpolation(trajDoIntrp, numSpatialPts);
-        Interpolation wInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+    initTrajectory();
+        
+    trajectories = new ArrayList<Trajectory>();
+     
+    intrpU = new float[numSpatialPts];
+    intrpV = new float[numSpatialPts];
+    intrpW = new float[numSpatialPts];
 
-        float[][] values0 = null;
-        float[][] values1 = null;
-        float[][] values2 = null;
-        float[][] values3 = null;
-        float[][] values0_last = null;
-        // end compute --------------
+    uInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+    vInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+    wInterp = new Interpolation(trajDoIntrp, numSpatialPts);
 
-        double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
-        double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
-        double timeAccum = 0;
-        
-        VisADGeometryArray trcrArray = null;
-        ArrayList<VisADGeometryArray> trcrArrays = null;
-        ArrayList<float[]> achrArrays = null;
-        
-        RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
-        ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
-        FixedSizeListener listener = new FixedSizeListener(pCntrl);
-        
-        Iterator<ControlListener> iter = renderer.getProjectionControlListeners().iterator();
-        while (iter.hasNext()) {
-            pCntrl.removeControlListener(iter.next());
+    values0 = null;
+    values1 = null;
+    values2 = null;
+    values3 = null;
+    values0_last = null;
+
+    double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
+    double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
+    timeAccum = 0;
+
+    ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+
+    for (int k=0; k<dataDomainLength-1; k++) {
+      int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
+
+      FlowInfo info = flowInfoList.get(i);
+      computeTrajectories(k, flowInfoList, times, timeSteps);
+      if (trcrEnabled) {
+        trcrArrays = new ArrayList<VisADGeometryArray>();
+        achrArrays = new ArrayList<float[]>();
+        trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);
+      }
+
+      GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
+      mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
+      //mode.setLineWidth(2f, false);
+
+      // something weird with this, everything being removed ?
+      //array = (VisADLineArray) array.removeMissing();
+
+      final BranchGroup branch = (BranchGroup) branches.get(i);
+      final BranchGroup node = (BranchGroup) swit.getChild(i);
+          
+      if (trcrEnabled) {
+        BranchGroup branchB = (BranchGroup) makeBranch();
+        for (int t=0; t<trcrArrays.size(); t++) {
+          TransformGroup tGroup = new TransformGroup();
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+          tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+          listener.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
+
+          addToGroup(tGroup, trcrArrays.get(t), mode, info.constant_alpha, info.constant_color);
+          branchB.addChild(tGroup);
         }
-        pCntrl.addControlListener(listener);
+        ((BranchGroup)switB.getChild(i)).addChild(branchB);
+      }
 
-        for (int k=0; k<dataDomainLength-1; k++) {
+      addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
+      node.addChild(branch);
+
+    } // domain length (time steps) outer time loop
+        
+    if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
+      int idx = dataDomainLength-1;
+      FlowInfo finfo = flowInfoList.get(idx);
+      GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
+
+      if (trcrEnabled) {
+        BranchGroup branchB = (BranchGroup) makeBranch();
+        for (int t=0; t<trcrArrays.size(); t++) {
+          TransformGroup tGroup = new TransformGroup();
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+          tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+          listener.FSTarray.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
+
+          addToGroup(tGroup, trcrArrays.get(t), mode, finfo.constant_alpha, finfo.constant_color);
+          branchB.addChild(tGroup);
+        }
+        ((BranchGroup)switB.getChild(idx)).addChild(branchB);
+      }
+    }
+  }
+  
+     private void initTrajectory() throws VisADException, RemoteException {
+         /* Get start points, use first spatial_set locs for now. 
+            Eventually want to include a time for start */
+         ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+         FlowInfo info = flowInfoList.get(0);
+         Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
+         GriddedSet spatialSetTraj = Trajectory.makeSpatialSetTraj(spatial_set0);
+
+         byte[][] color_values = info.color_values;
+         if (info.trajColors != null) color_values = info.trajColors;
+         clrDim = color_values.length;
+
+         numSpatialPts = spatial_set0.getLength();
+         Trajectory.markGrid = new boolean[numSpatialPts];
+         Trajectory.markGridTime = new int[numSpatialPts];
+         java.util.Arrays.fill(Trajectory.markGrid, false);
+         java.util.Arrays.fill(Trajectory.markGridTime, 0);
+
+         startClrs = new byte[color_values.length][];
+         if (startPts == null) { //get from domain set
+           startPts = new float[3][];
+           Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs);
+         }
+         else {
+           /* TODO: assuming earth navigated display coordinate system*/
+           CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
+           float[][] fltVals = new float[startPts.length][startPts[0].length];
+           for (int i=0; i<fltVals.length; i++) {
+             System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
+           }
+           startPts = dspCoordSys.toReference(fltVals);
+
+           int[] clrIdxs;
+           if (spatialSetTraj.getManifoldDimension() == 2) {
+               clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
+           } else {
+               clrIdxs = spatialSetTraj.valueToIndex(startPts);
+           }
+           int num = clrIdxs.length;
+           startClrs[0] = new byte[num];
+           startClrs[1] = new byte[num];
+           startClrs[2] = new byte[num];
+           if (clrDim == 4) startClrs[3] = new byte[num];
+           for (int i=0; i<num; i++) {
+             int clrIdx = clrIdxs[i];
+             startClrs[0][i] = color_values[0][clrIdx];
+             startClrs[1][i] = color_values[1][clrIdx];
+             startClrs[2][i] = color_values[2][clrIdx];
+             if (clrDim == 4) startClrs[3][i] = color_values[3][clrIdx];
+           }
+         }
+     }
+     
+     private void computeTrajectories(int k, ArrayList<FlowInfo> flowInfoList, double[] times, double[] timeSteps) throws VisADException, RemoteException {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
-          info = Range.getAdaptedShadowType().getFlowInfo().get(i);
-          // start compute -------
-          color_values = info.color_values;
+          FlowInfo info = flowInfoList.get(i);
+          byte[][] color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
-          manifoldDim = spatial_set.getManifoldDimension();
-          lens = spatial_set.getLengths();
-          setLocs = spatial_set.getSamples(false);
-          if (manifoldDim == 2) {
-              spatialSetTraj = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
-                    new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+          GriddedSet spatialSetTraj = Trajectory.makeSpatialSetTraj(spatial_set);
+          
+          if (!manualIntrpPts && trajDoIntrp) {
+            numIntrpPts = Trajectory.getNumIntrpPts(info, 50f, timeSteps[i]);
           }
-          else {
-              spatialSetTraj = spatial_set;
-          }
-
           
           float timeStep = (float) timeSteps[i]/numIntrpPts;
 
@@ -1513,8 +1588,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              trajectories = new ArrayList<Trajectory>();
              java.util.Arrays.fill(Trajectory.markGrid, false);
              if (direction > 0) {
-               switListen.allOffBelow.add(i); // needed always?
-               // compute/recompute only --------------
+               switListen.allOffBelow.add(i);
                Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs, spatialSetTraj);
              }
              else { //TODO: make this work eventually
@@ -1534,7 +1608,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           }
           */
 
-          // compute/recompute trajectories -----------------
           double x0 = (double) direction*i;
           double x1 = (double) direction*(i+direction*1);
           double x2 = (double) direction*(i+direction*2);
@@ -1618,64 +1691,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           } // inner time loop (time interpolation)
 
-          // compute/recompute to above
-
-          // these two steps probably not needed if not compute/recompute
-          VisADLineArray array = Trajectory.makeGeometry();
+          array = Trajectory.makeGeometry();
           trajectories = Trajectory.clean(trajectories, trajLifetime);
-          // ----------------------
-          
-          // something weird with this, everything being removed ?
-          //array = (VisADLineArray) array.removeMissing();
-
-          final BranchGroup branch = (BranchGroup) branches.get(i);
-          final BranchGroup node = (BranchGroup) swit.getChild(i);
-
-          trcrArrays = new ArrayList<VisADGeometryArray>();
-          achrArrays = new ArrayList<float[]>();
-          // only if tracerSize changes
-          trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);
-          
-          GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
-          mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
-          
-          BranchGroup branchB = (BranchGroup) makeBranch();
-          for (int t=0; t<trcrArrays.size(); t++) {
-             TransformGroup tGroup = new TransformGroup();
-             tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-             tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-             tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
-             listener.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
-             
-             addToGroup(tGroup, trcrArrays.get(t), mode, info.constant_alpha, info.constant_color);
-             branchB.addChild(tGroup);
-          }
-          ((BranchGroup)switB.getChild(i)).addChild(branchB);
-
-          addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
-          node.addChild(branch);
-
-        } // domain length (time steps) outer time loop
-        
-        if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
-            int idx = dataDomainLength-1;
-            FlowInfo finfo = flowInfoList.get(idx);
-            GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
-            
-            BranchGroup branchB = (BranchGroup) makeBranch();
-            for (int t=0; t<trcrArrays.size(); t++) {
-              TransformGroup tGroup = new TransformGroup();
-              tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-              tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-              tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
-              listener.FSTarray.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
-             
-              addToGroup(tGroup, trcrArrays.get(t), mode, info.constant_alpha, info.constant_color);
-              branchB.addChild(tGroup);
-            }
-            ((BranchGroup)switB.getChild(idx)).addChild(branchB);
-        }
+          trajArrays.add(array);
      }
+     
   }
 
 
