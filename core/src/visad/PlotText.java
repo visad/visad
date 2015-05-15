@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -33,9 +33,12 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.awt.*;
-import java.awt.font.*;
-import java.awt.geom.*;
+import java.awt.Font;
+import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
 import java.util.Vector;
 
 import visad.browser.Convert;
@@ -390,13 +393,8 @@ public class PlotText extends Object {
     up_scaled[1] = up[1] * scale;
     up_scaled[2] = up[2] * scale;
 
-    double[] temp;
     double cx, cy, cz;
-    double startx = 0.0;
-    double starty = 0.0;
-    double startz = 0.0;
-    double sw;
-    int i, j, k, v2, len;
+    int i, j, k, len;
 
     cx = start_off[0];
     cy = start_off[1];
@@ -414,7 +412,6 @@ public class PlotText extends Object {
     /* draw left justified text */
 
     for (i=0; i<len; i++) {
-      char cur_char = str.charAt(i);
 
       k = str.charAt(i) - 32;
       if (k < 0 || k > 127) continue; // invalid - just skip
@@ -753,9 +750,6 @@ public class PlotText extends Object {
     int maxChars = font.getCharactersInSet();
 
     double width = 0;
-    double startx = 0.0;
-    double starty = 0.0;
-    double startz = 0.0;
 
     double cx = start_off[0];
     double cy = start_off[1];
@@ -786,8 +780,6 @@ public class PlotText extends Object {
     double angle = Math.toRadians(-characRotation);
     float angle2 = (float) (angle + Math.PI/2.0);
     for (int i=0; i<len; i++) {
-
-      char cur_char = str.charAt(i);
 
       int k = str.charAt(i) - (int) ' ';
       if (k < 0 || k > maxChars) continue; // invalid - just skip

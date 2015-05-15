@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -27,21 +27,49 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   DisplayInterruptException is an exception for interrupting
-   data transformation.<P>
-*/
+ * {@code DisplayInterruptException} is an exception for interrupting data
+ * transformation.
+ */
 public class DisplayInterruptException extends DisplayException {
 
   /**
-   * construct a DisplayInterruptException with no message
+   * Constructs a {@code DisplayInterruptException} with no specified detail 
+   * message.
    */
-  public DisplayInterruptException() { super(); }
+  public DisplayInterruptException() {
+    super();
+  }
 
   /**
-   * construct a DisplayInterruptException with given message
-   * @param s - message String
+   * Constructs a {@code DisplayInterruptException} with the specified detail 
+   * message.
+   *
+   * @param message Detail message.
    */
-  public DisplayInterruptException(String s) { super(s); }
+  public DisplayInterruptException(String message) {
+    super(message);
+  }
 
+  /**
+   * Constructs a {@code DisplayInterruptException} with the specified detail 
+   * message and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public DisplayInterruptException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code DisplayInterruptException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public DisplayInterruptException(Throwable cause) {
+    super(cause);
+  }
 }
 

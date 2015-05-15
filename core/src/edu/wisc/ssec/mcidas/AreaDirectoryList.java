@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -123,7 +123,7 @@ public class AreaDirectoryList
       }
       catch (Exception e) 
       {
-        throw new AreaFileException("Error opening AreaFile: " + e);
+        throw new AreaFileException("Error opening AreaFile", e);
       }
       if (url.getProtocol().equalsIgnoreCase("adde")) isADDE = true;
     }
@@ -151,7 +151,7 @@ public class AreaDirectoryList
     } 
     catch (IOException e) 
     {
-      throw new AreaFileException("Error opening URL for AreaFile:"+e);
+      throw new AreaFileException("Error opening URL for AreaFile", e);
     }
     readDirectory();
   }
@@ -349,7 +349,7 @@ public class AreaDirectoryList
       catch (IOException e) {
         status = -1;
         throw new AreaFileException(
-          "Error reading Area directory:" + e);
+          "Error reading Area directory:", e);
       }
       status = 1;
       numDirs++;

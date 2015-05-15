@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -47,7 +47,7 @@ C
 public class GEOSnav extends AREAnav {
 
   private static final long serialVersionUID = 1L;
-  final int loff, coff, lfac, cfac, plon;
+  final int loff, coff, lfac, cfac, plon, bres;
   final double radpol = 6356.5838;
   final double radeq = 6378.1690;
   final double X42 = 42164.0;
@@ -64,7 +64,15 @@ public class GEOSnav extends AREAnav {
     lfac = iparms[3];
     cfac = iparms[4];
     plon = iparms[5];
-   
+    //System.err.println("iparms.length: " + iparms.length);
+    if ( iparms.length > 6 && iparms[6] > 0 ) {
+    	bres = iparms[6];
+    	//System.err.println("Using bres from iparms: " + bres);
+    } else {
+    	bres = 1;
+    	//System.err.println("Using default bres of 1. iparms contained: " + iparms[6]);
+    }
+    
   }
 
 
@@ -73,7 +81,7 @@ public class GEOSnav extends AREAnav {
   */
 
   public double[][] toLinEle(double[][] latlon) {
-    double xlat, xlon, xlin, xele;
+    double xlat, xlon, xlin, xele, rlin, rele;
     double c_lat, cosc_lat, rn, r1, r2, r3, rl;
     double x,y;
     double lat,lon,splon;
@@ -123,14 +131,17 @@ public class GEOSnav extends AREAnav {
 
         xele = coff/10. + x / Math.pow(2,16) * cfac/10.;
         xlin = loff/10. + y / Math.pow(2,16) * lfac/10.;
+        
+        rlin = (xlin*bres)-(bres-1);
+        rele = (xele*bres)-(bres-1);
       } else {
 
-        xlin=Double.NaN;
-        xele=Double.NaN;
+        rlin=Double.NaN;
+        rele=Double.NaN;
       }
 
-      linele[indexLine][point] = xlin;
-      linele[indexEle][point] = xele;
+      linele[indexLine][point] = rlin;
+      linele[indexEle][point] = rele;
     }
 
     return imageCoordToAreaCoord(linele, linele);
@@ -140,7 +151,7 @@ public class GEOSnav extends AREAnav {
   public double[][] toLatLon(double[][] linele) {
 
 
-    double xlat, xlon, xlin, xele;
+    double xlat, xlon, xlin, xele, rlin, rele;
     double x,y;
     double s1, s2, s3, sxy, sn, sd, sdd;
     double aux, aux2;
@@ -157,8 +168,12 @@ public class GEOSnav extends AREAnav {
 
     for (int point=0; point < number; point++ ) {
 
-      xlin = imglinele[indexLine][point];
-      xele = imglinele[indexEle][point];
+      rlin = imglinele[indexLine][point];
+      rele = imglinele[indexEle][point];
+      
+      // use bres to adjust the coordinates
+      xlin = (rlin + (bres-1)) / bres;
+      xele = (rele + (bres-1)) / bres;
 
       // --- Intermediate coordinates
       x = (xele - coff/10.) * Math.pow(2,16) / (cfac/10.);

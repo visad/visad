@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -27,15 +27,47 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   VisADException is the superclass of all exceptions defined within the
-   VisAD package.<P>
+ * {@code VisADException} is the superclass of all exceptions defined within 
+ * the VisAD package.
 */
 public class VisADException extends Exception {
 
-  public VisADException() { super(); }
-  public VisADException(String s) { super(s); }
-  public VisADException(String s, Throwable cause) { super(s, cause); }
-  public VisADException(Throwable cause) { super(cause); }
+  /**
+   * Constructs a {@code VisADException} with no specified detail message.
+   */
+  public VisADException() {
+    super();
+  }
 
+  /**
+   * Constructs a {@code VisADException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public VisADException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code VisADException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public VisADException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code VisADException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public VisADException(Throwable cause) {
+    super(cause);
+  }
 }
 

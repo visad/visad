@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -96,7 +96,7 @@ public class GridDirectoryList
     } 
     catch (IOException e) 
     {
-      throw new McIDASException("Error opening URL for grids:"+e);
+      throw new McIDASException("Error opening URL for grids", e);
     }
     readDirectory();
   }
@@ -122,7 +122,7 @@ public class GridDirectoryList
     } 
     catch (IOException e) 
     {
-      throw new McIDASException("Error opening URL for grids:"+e);
+      throw new McIDASException("Error opening URL for grids", e);
     }
     readDirectory();
   }
@@ -205,7 +205,7 @@ public class GridDirectoryList
     catch (IOException e) 
     {
       status = -1;
-      throw new McIDASException("Error reading grid directory:" + e);
+      throw new McIDASException("Error reading grid directory", e);
     }
     status = 1;
     numDirs++;

@@ -20,18 +20,51 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+package visad.bom;
+
 /**
- * RadarFileException class is to handle exceptions when dealing
- * with Australian Bureau of Meteorology Radar files
+ * {@code RadarFileException} class is to handle exceptions when dealing with
+ * Australian Bureau of Meteorology Radar files
  *
  * @author James Kelly
  */
-
-package visad.bom;
-
 public class RadarFileException extends Exception {
 
-  public RadarFileException() {super(); }
-  public RadarFileException(String s) {super(s); }
+  /** 
+   * Constructs a {@code RadarFileException} with no specified detail message.
+   */
+  public RadarFileException() {
+    super();
+  }
 
+  /**
+   * Constructs a {@code RadarFileException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public RadarFileException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code RadarFileException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public RadarFileException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code RadarFileException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public RadarFileException(Throwable cause) {
+    super(cause);
+  }
 }

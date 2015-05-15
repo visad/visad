@@ -5,7 +5,7 @@
   remove dependencies on the charts package and have it be a stand-alone
   scene graph renderer for visad Displays
 
-Copyright (C) 2011 Australian Bureau of Meteorology.
+Copyright (C) 2015 Australian Bureau of Meteorology.
 
 This library is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the

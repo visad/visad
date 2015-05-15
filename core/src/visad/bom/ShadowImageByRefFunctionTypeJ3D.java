@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -2300,41 +2300,55 @@ class Mosaic {
 
   Mosaic(int lenY, int limitY, int lenX, int limitX) {
 
-    int y_sub_len = limitY;
-    n_y_sub = lenY/y_sub_len;
-    if (n_y_sub == 0) n_y_sub++;
-    if ((lenY - n_y_sub*y_sub_len) > 4) n_y_sub += 1;
-
-    int[][] y_start_stop = new int[n_y_sub][2];
-    for (int k = 0; k < n_y_sub-1; k++) {
-       y_start_stop[k][0] = k*y_sub_len - k;
-       y_start_stop[k][1] = ((k+1)*y_sub_len - 1) - k;
-       // check that we don't exceed limit
-       if ( ((y_start_stop[k][1]-y_start_stop[k][0])+1) > limitY) {
-         y_start_stop[k][1] -= 1; //too big, take away gap fill
-       }
+    int[][] y_start_stop = null;
+    n_y_sub = lenY/limitY;
+    if (n_y_sub == 0 || lenY%limitY==0 ) {
+      n_y_sub = 1;
+      y_start_stop = new int[n_y_sub][2];
+      y_start_stop[0][0] = 0;
+      y_start_stop[0][1] = lenY-1;
     }
-    int k = n_y_sub-1;
-    y_start_stop[k][0] = k*y_sub_len - k;
-    y_start_stop[k][1] = lenY - 1 - k;
-
-    int x_sub_len = limitX;
-    n_x_sub = lenX/x_sub_len;
-    if (n_x_sub == 0) n_x_sub++;
-    if ((lenX - n_x_sub*x_sub_len) > 4) n_x_sub += 1;
-
-    int[][] x_start_stop = new int[n_x_sub][2];
-    for (k = 0; k < n_x_sub-1; k++) {
-      x_start_stop[k][0] = k*x_sub_len - k;
-      x_start_stop[k][1] = ((k+1)*x_sub_len - 1) - k;
-      // check that we don't exceed limit
-      if ( ((x_start_stop[k][1]-x_start_stop[k][0])+1) > limitX) {
-        x_start_stop[k][1] -= 1; //too big, take away gap fill
+    else {
+      n_y_sub += 1;
+      int tLenY = limitY;
+      int rem = lenY % limitY;
+      if (rem < limitY/4) {
+        tLenY = lenY/n_y_sub;
       }
+      y_start_stop = new int[n_y_sub][2];
+      for (int k=0; k<n_y_sub-1; k++) {
+        y_start_stop[k][0] = k*tLenY - k;
+        y_start_stop[k][1] = (y_start_stop[k][0] + tLenY - 1);
+      }
+      int k = n_y_sub-1;
+      y_start_stop[k][0] = y_start_stop[k-1][1];
+      y_start_stop[k][1] = lenY - 1;
     }
-    k = n_x_sub-1; 
-    x_start_stop[k][0] = k*x_sub_len - k;
-    x_start_stop[k][1] = lenX - 1 - k;
+
+    int[][] x_start_stop = null;
+    n_x_sub = lenX/limitX;
+    if (n_x_sub == 0  || lenX%limitX==0) {
+      n_x_sub = 1;
+      x_start_stop = new int[n_x_sub][2];
+      x_start_stop[0][0] = 0;
+      x_start_stop[0][1] = lenX-1;
+    }
+    else {
+      n_x_sub += 1;
+      int tLenX = limitX;
+      int rem = lenX % limitX;
+      if (rem < limitX/4) {
+        tLenX = lenX/n_x_sub;
+      }
+      x_start_stop = new int[n_x_sub][2];
+      for (int k=0; k<n_x_sub-1; k++) {
+        x_start_stop[k][0] = k*tLenX - k;
+        x_start_stop[k][1] = (x_start_stop[k][0] + tLenX - 1);
+      }
+      int k = n_x_sub-1;
+      x_start_stop[k][0] = x_start_stop[k-1][1];
+      x_start_stop[k][1] = lenX - 1;
+    }
 
     tiles = new Tile[n_y_sub][n_x_sub];
 
