@@ -339,7 +339,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    */
   public void postProcess(Object group) throws VisADException {
   }
-
+  
   /* helpers for doTransform */
 
   /**
