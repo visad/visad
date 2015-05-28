@@ -98,6 +98,11 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
   /** for depth buffer enabling */
   private boolean depthBufferEnable = true;
+  
+  /** for automatic push back in the z-buffer */
+  public boolean autoDepthOffsetEnable = true;
+  public float maxDepthOffset = 88f;
+  public float depthOffsetInc = -8f;
 
   /**
    * Construct a GraphicsModeControlJ3D associated with the input display
@@ -638,6 +643,40 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public boolean getDepthBufferEnable() {
     return depthBufferEnable;
   }
+  
+  public void setAutoDepthOffsetEnable(boolean enable) throws VisADException, RemoteException {
+    this.autoDepthOffsetEnable = enable;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+  
+  public boolean getAutoDepthOffsetEnable() {
+    return autoDepthOffsetEnable;
+  }
+  
+  public void setMaximumDepthOffset(float maxDepthOffset, boolean noChange) throws VisADException, RemoteException {
+    this.maxDepthOffset = maxDepthOffset;
+    if (!noChange) {
+      changeControl(true);
+      getDisplay().reDisplayAll();
+    }
+  }
+  
+  public float getMaximumDepthOffset() {
+    return maxDepthOffset;
+  }
+  
+  public void setDepthOffsetIncrement(float inc, boolean noChange) throws VisADException, RemoteException {
+    this.depthOffsetInc = inc;
+    if (!noChange) {
+      changeControl(true);
+      getDisplay().reDisplayAll();
+    }  
+  }
+  
+  public float getDepthOffsetIncrement() {
+    return this.depthOffsetInc;
+  }
 
   /**
    * See whether missing values are rendered as transparent or not.
@@ -788,6 +827,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.cacheAppearances = cacheAppearances;
     mode.mergeGeometries = mergeGeometries;
     mode.depthBufferEnable = depthBufferEnable;
+    mode.autoDepthOffsetEnable = autoDepthOffsetEnable;
+    mode.maxDepthOffset = maxDepthOffset;
+    mode.depthOffsetInc = depthOffsetInc;
     return mode;
   }
 
@@ -907,7 +949,22 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       changed = true;
       polygonOffsetFactor = rmtCtl.polygonOffsetFactor;
     }
+    
+    if (autoDepthOffsetEnable != rmtCtl.autoDepthOffsetEnable) {
+      changed = true;
+      autoDepthOffsetEnable = rmtCtl.autoDepthOffsetEnable;
+    }
+    
+    if (!Util.isApproximatelyEqual(maxDepthOffset, rmtCtl.maxDepthOffset)) {
+      changed = true;
+      maxDepthOffset = rmtCtl.maxDepthOffset;
+    }
 
+    if (!Util.isApproximatelyEqual(depthOffsetInc, rmtCtl.depthOffsetInc)) {
+      changed = true;
+      depthOffsetInc = rmtCtl.depthOffsetInc;
+    }
+        
     if (anti_alias_flag != rmtCtl.anti_alias_flag) {
       changed = true;
       anti_alias_flag = rmtCtl.anti_alias_flag;
@@ -1010,6 +1067,18 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       return false;
     }
 
+    if (autoDepthOffsetEnable != gmc.autoDepthOffsetEnable) {
+      return false; 
+    }
+    
+    if (!Util.isApproximatelyEqual(maxDepthOffset, gmc.maxDepthOffset)) {
+      return false;
+    }
+
+    if (!Util.isApproximatelyEqual(depthOffsetInc, gmc.depthOffsetInc)) {
+      return false;
+    }
+    
     if (adjustProjectionSeam != gmc.adjustProjectionSeam) {
       return false;
     }

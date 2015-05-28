@@ -92,6 +92,9 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.ShadowFunctionTypeJ3D;
 import visad.java3d.VisADImageNode;
 import visad.java3d.VisADImageTile;
+import visad.java3d.RendererJ3D;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.GraphicsModeControlJ3D;
 
 /**
    The ShadowImageFunctionTypeJ3D class shadows the FunctionType class for
@@ -662,6 +665,30 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     GraphicsModeControl mode = (GraphicsModeControl)
           display.getGraphicsModeControl().clone();
+    
+    RendererJ3D rendererJ3D = (RendererJ3D)renderer;
+    DisplayImplJ3D displayJ3D = (DisplayImplJ3D)display;
+    GraphicsModeControlJ3D mode3D = (GraphicsModeControlJ3D) mode;
+    
+    float depthOffsetInc = mode3D.getDepthOffsetIncrement();
+    float maxDepthOffset = mode3D.getMaximumDepthOffset();
+    
+    if (mode3D.getAutoDepthOffsetEnable()) {
+      if (!rendererJ3D.hasPolygonOffset) {
+        rendererJ3D.polygonOffset = displayJ3D.getOffsetDepthMinimum(maxDepthOffset) + depthOffsetInc;
+        rendererJ3D.hasPolygonOffset = true;          
+      }
+    }
+    else if (rendererJ3D.hasPolygonOffset) { /* autoDepth disabled so reset renderer */
+      rendererJ3D.polygonOffset = 0f;  
+      rendererJ3D.hasPolygonOffset = false;
+    }
+    mode.setPolygonOffset(rendererJ3D.polygonOffset, false);
+    /* Doesn't help with successive images: as z-slope increases polygonOffset becomes small
+       compared to factor*DZ so the final offset for adjacent image planes isn't sufficient
+       to resolve coplanar amibiguity as the plane is tilted from observer. */
+    //mode.setPolygonOffsetFactor(1f, false);
+    
 
     // get some precomputed values useful for transform
     // mapping from ValueArray to MapVector
