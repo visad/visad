@@ -39,6 +39,7 @@ import java.util.Vector;
 import java.rmi.*;
 
 import java.awt.image.*;
+import java.util.Arrays;
 
 
 /**
@@ -63,13 +64,38 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
   double trajLifetime;
+  boolean manualIntrpPts;
   int numIntrpPts;
   int trajSkip;
   TrajectoryParams.SmoothParams smoothParams;
   int direction;
   float[][] startPts = null;
+  byte[][] startClrs = null;
+  int clrDim;
+  int numSpatialPts;
   boolean trajDoIntrp = true;
   float trcrSize = 1f;
+  boolean trcrEnabled;
+  double[] dspScale = new double[3];
+  float[] intrpU;
+  float[] intrpV;
+  float[] intrpW;
+  Interpolation uInterp;
+  Interpolation vInterp;
+  Interpolation wInterp;
+  float[][] values0;
+  float[][] values1;
+  float[][] values2;
+  float[][] values3;
+  float[][] values0_last;
+  ArrayList<Trajectory> trajectories;
+  double timeAccum = 0;
+  VisADLineArray array;
+  VisADGeometryArray trcrArray;
+  ArrayList<VisADGeometryArray> trcrArrays;
+  ArrayList<float[]> achrArrays;
+  
+  public static ArrayList<VisADGeometryArray> trajArrays = new ArrayList<VisADGeometryArray>();
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -127,8 +153,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                              final float[] default_values, final DataRenderer renderer)
          throws VisADException, RemoteException {
 
-    //boolean post = true; // FIXME what value for animation?
-    //boolean isAnimation1d = false;
+      
     boolean isTerminal = adaptedShadowType.getIsTerminal();
     
     ScalarMap timeMap = null; // used in the animation case to get control
@@ -160,7 +185,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         // animation domain
         timeMap = (ScalarMap) scalarMaps.elementAt(ani_map_idx);
       }
-
+      
+      double[] mat = renderer.getDisplay().getProjectionControl().getMatrix();
+      MouseBehaviorJ3D.unmake_matrix(new double[3], dspScale, new double[3], mat);
+      
       // check for trajectory
       for (int kk=0; kk<scalarMaps.size(); kk++) {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
@@ -175,6 +203,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
             trajRefreshInterval = trajParams.getTrajRefreshInterval();
             trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
+            manualIntrpPts = trajParams.getManualIntrpPts();
             numIntrpPts = trajParams.getNumIntrpPts();
             trajSkip = trajParams.getStartSkip();
             smoothParams = trajParams.getSmoothParams();
@@ -182,6 +211,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             startPts = trajParams.getStartPoints();
             trajDoIntrp = trajParams.getDoIntrp();
             trcrSize = trajParams.getMarkerSize();
+            trcrEnabled = trajParams.getMarkerEnabled();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -276,7 +306,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
 
       if (doTrajectory) {
-        post = false;
+        post = true;
         threadManager.runSequentially();
       }
       else {
@@ -1365,6 +1395,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
   public void postProcess(Object group) throws VisADException {
+    if (doTrajectory) {
+      postProcessTraj(group);
+      return;
+    }
+    
     if (((ShadowFunctionOrSetType) adaptedShadowType).getFlat()) {
       int LevelOfDifficulty = getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
@@ -1385,82 +1420,168 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   }
 
   private void doTrajectory() throws VisADException, RemoteException {
-     /* Get start points, use first spatial_set locs for now. 
-        Eventually want to include a time for start */
-     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().flowInfoList;
-     FlowInfo info = flowInfoList.get(0);
-     Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
-     int[] lens = spatial_set0.getLengths();
-     float[][] setLocs = spatial_set0.getSamples(false);
-     Gridded2DSet spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
-                new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
-
-     byte[][] color_values = info.color_values;
-     int clrDim = color_values.length;
-     if (info.trajColors != null) color_values = info.trajColors;
-
-     Trajectory.markGrid = new boolean[spatial_set0.getLength()];
-     Trajectory.markGridTime = new int[spatial_set0.getLength()];
-     java.util.Arrays.fill(Trajectory.markGrid, false);
-     java.util.Arrays.fill(Trajectory.markGridTime, 0);
-
-     byte[][] startClrs = new byte[color_values.length][];
-     if (startPts == null) { //get from domain set
-       startPts = new float[3][];
-       Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs);
-     }
-     else {
-       /* TODO: assuming earth navigated display coordinate system*/
-       CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
-       float[][] fltVals = new float[startPts.length][startPts[0].length];
-       for (int i=0; i<fltVals.length; i++) System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
-       startPts = dspCoordSys.toReference(fltVals);
-
-       int[] clrIdxs = spatial_set2D.valueToIndex(new float[][] {startPts[0], startPts[1]});
-       int num = clrIdxs.length;
-       startClrs[0] = new byte[num];
-       startClrs[1] = new byte[num];
-       startClrs[2] = new byte[num];
-       if (clrDim == 4) startClrs[3] = new byte[num];
-       for (int i=0; i<num; i++) {
-         int clrIdx = clrIdxs[i];
-         startClrs[0][i] = color_values[0][clrIdx];
-         startClrs[1][i] = color_values[1][clrIdx];
-         startClrs[2][i] = color_values[2][clrIdx];
-         if (clrDim == 4) startClrs[3][i] = color_values[3][clrIdx];
-       }
-     }
-
-     int numTrajectories = startPts[0].length;
-     ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
-
+    RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
+    ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
+    FixedSizeListener listener = new FixedSizeListener(pCntrl);
+        
+    Iterator<ControlListener> iter = renderer.getProjectionControlListeners().iterator();
+    while (iter.hasNext()) {
+      pCntrl.removeControlListener(iter.next());
+    }
+    pCntrl.addControlListener(listener);
     
-        Interpolation uInterp = new Interpolation(trajDoIntrp);
-        Interpolation vInterp = new Interpolation(trajDoIntrp);
-        Interpolation wInterp = new Interpolation(trajDoIntrp);
+    initTrajectory();
+        
+    trajectories = new ArrayList<Trajectory>();
+     
+    intrpU = new float[numSpatialPts];
+    intrpV = new float[numSpatialPts];
+    intrpW = new float[numSpatialPts];
 
-        float[][] values0 = null;
-        float[][] values1 = null;
-        float[][] values2 = null;
-        float[][] values3 = null;
-        float[][] values0_last = null;
+    uInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+    vInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+    wInterp = new Interpolation(trajDoIntrp, numSpatialPts);
 
-        double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
-        double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
-        double timeAccum = 0;
+    values0 = null;
+    values1 = null;
+    values2 = null;
+    values3 = null;
+    values0_last = null;
 
-        for (int k=0; k<dataDomainLength-3; k++) {
+    double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
+    double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
+    timeAccum = 0;
+
+    ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+
+    for (int k=0; k<dataDomainLength-1; k++) {
+      int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
+
+      FlowInfo info = flowInfoList.get(i);
+      computeTrajectories(k, flowInfoList, times, timeSteps);
+      if (trcrEnabled) {
+        trcrArrays = new ArrayList<VisADGeometryArray>();
+        achrArrays = new ArrayList<float[]>();
+        trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);
+      }
+
+      GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
+      mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
+      //mode.setLineWidth(2f, false);
+
+      // something weird with this, everything being removed ?
+      //array = (VisADLineArray) array.removeMissing();
+
+      final BranchGroup branch = (BranchGroup) branches.get(i);
+      final BranchGroup node = (BranchGroup) swit.getChild(i);
+          
+      if (trcrEnabled) {
+        BranchGroup branchB = (BranchGroup) makeBranch();
+        for (int t=0; t<trcrArrays.size(); t++) {
+          TransformGroup tGroup = new TransformGroup();
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+          tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+          listener.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
+
+          addToGroup(tGroup, trcrArrays.get(t), mode, info.constant_alpha, info.constant_color);
+          branchB.addChild(tGroup);
+        }
+        ((BranchGroup)switB.getChild(i)).addChild(branchB);
+      }
+
+      addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
+      node.addChild(branch);
+
+    } // domain length (time steps) outer time loop
+        
+    if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
+      int idx = dataDomainLength-1;
+      FlowInfo finfo = flowInfoList.get(idx);
+      GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
+
+      if (trcrEnabled) {
+        BranchGroup branchB = (BranchGroup) makeBranch();
+        for (int t=0; t<trcrArrays.size(); t++) {
+          TransformGroup tGroup = new TransformGroup();
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+          tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+          listener.FSTarray.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
+
+          addToGroup(tGroup, trcrArrays.get(t), mode, finfo.constant_alpha, finfo.constant_color);
+          branchB.addChild(tGroup);
+        }
+        ((BranchGroup)switB.getChild(idx)).addChild(branchB);
+      }
+    }
+  }
+  
+     private void initTrajectory() throws VisADException, RemoteException {
+         /* Get start points, use first spatial_set locs for now. 
+            Eventually want to include a time for start */
+         ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+         FlowInfo info = flowInfoList.get(0);
+         Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
+         GriddedSet spatialSetTraj = Trajectory.makeSpatialSetTraj(spatial_set0);
+
+         byte[][] color_values = info.color_values;
+         if (info.trajColors != null) color_values = info.trajColors;
+         clrDim = color_values.length;
+
+         numSpatialPts = spatial_set0.getLength();
+         Trajectory.markGrid = new boolean[numSpatialPts];
+         Trajectory.markGridTime = new int[numSpatialPts];
+         java.util.Arrays.fill(Trajectory.markGrid, false);
+         java.util.Arrays.fill(Trajectory.markGridTime, 0);
+
+         startClrs = new byte[color_values.length][];
+         if (startPts == null) { //get from domain set
+           startPts = new float[3][];
+           Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs);
+         }
+         else {
+           /* TODO: assuming earth navigated display coordinate system*/
+           CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
+           float[][] fltVals = new float[startPts.length][startPts[0].length];
+           for (int i=0; i<fltVals.length; i++) {
+             System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
+           }
+           startPts = dspCoordSys.toReference(fltVals);
+
+           int[] clrIdxs;
+           if (spatialSetTraj.getManifoldDimension() == 2) {
+               clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
+           } else {
+               clrIdxs = spatialSetTraj.valueToIndex(startPts);
+           }
+           int num = clrIdxs.length;
+           startClrs[0] = new byte[num];
+           startClrs[1] = new byte[num];
+           startClrs[2] = new byte[num];
+           if (clrDim == 4) startClrs[3] = new byte[num];
+           for (int i=0; i<num; i++) {
+             int clrIdx = clrIdxs[i];
+             startClrs[0][i] = color_values[0][clrIdx];
+             startClrs[1][i] = color_values[1][clrIdx];
+             startClrs[2][i] = color_values[2][clrIdx];
+             if (clrDim == 4) startClrs[3][i] = color_values[3][clrIdx];
+           }
+         }
+     }
+     
+     private void computeTrajectories(int k, ArrayList<FlowInfo> flowInfoList, double[] times, double[] timeSteps) throws VisADException, RemoteException {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
-          info = Range.getAdaptedShadowType().flowInfoList.get(i);
-          color_values = info.color_values;
+          FlowInfo info = flowInfoList.get(i);
+          byte[][] color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
-          lens = spatial_set.getLengths();
-          setLocs = spatial_set.getSamples(false);
-          spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
-                  new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
-
-
+          GriddedSet spatialSetTraj = Trajectory.makeSpatialSetTraj(spatial_set);
+          
+          if (!manualIntrpPts && trajDoIntrp) {
+            numIntrpPts = Trajectory.getNumIntrpPts(info, 50f, timeSteps[i]);
+          }
+          
           float timeStep = (float) timeSteps[i]/numIntrpPts;
 
           if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
@@ -1468,7 +1589,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              java.util.Arrays.fill(Trajectory.markGrid, false);
              if (direction > 0) {
                switListen.allOffBelow.add(i);
-               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs);
+               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs, spatialSetTraj);
              }
              else { //TODO: make this work eventually
                //switListen.allOffAbove.add(i);
@@ -1492,6 +1613,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           double x2 = (double) direction*(i+direction*2);
 
 
+          // Even time steps: access fields, update interpolator and compute.
+          // Odd time steps: just compute for second half of 3 point (2 gap) interval.
           if ((k % 2) == 0) {
             FlowInfo flwInfo;
 
@@ -1505,676 +1628,76 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
             }
 
-            flwInfo = flowInfoList.get(i+direction*2);
-            values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            // make sure we don't access more data than we have, but keep iterating and 
+            // computing to the end to use the data we've already pulled in.
+            if (k < dataDomainLength-3) {
+                flwInfo = flowInfoList.get(i+direction*2);
+                values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
-            // smoothing done here
-            flwInfo = flowInfoList.get(i+direction*3);
-            values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-            
-            if (values0_last != null) {
-              values0 = Trajectory.smooth(values0_last, values0, values1, smoothParams);
+                // smoothing done here -----------------------
+                flwInfo = flowInfoList.get(i+direction*3);
+                values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+
+                if (values0_last != null) {
+                  values0 = Trajectory.smooth(values0_last, values0, values1, smoothParams);
+                }
+                values1 = Trajectory.smooth(values0, values1, values2, smoothParams);
+                values2 = Trajectory.smooth(values1, values2, values3, smoothParams);
+                // ------- end smoothing
+
+                // update interpolator 
+                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
             }
-            values1 = Trajectory.smooth(values0, values1, values2, smoothParams);
-            values2 = Trajectory.smooth(values1, values2, values3, smoothParams);
-            // end smoothing
-
-            values0_last = values0;
-
-            uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-            vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+            
+            if (k == dataDomainLength-3) { // make sure we smoothly handle the last three time steps
+                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+            }
           }
           else {
             values0_last = values1;
             values0 = values2;
             values1 = values3;
+            
+            if (k == dataDomainLength-3) { // make sure we smootly handle the last three time steps
+                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+            }
           }
 
-          numTrajectories = trajectories.size();
+          int numTrajectories = trajectories.size();
           Trajectory.reset(numTrajectories*numIntrpPts, clrDim);
 
           for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
             double dst = (x1 - x0)/numIntrpPts;
             double xt = x0 + dst*ti;
              
-            float[] intrpU = new float[uInterp.numSpatialPts];
-            float[] intrpV = new float[uInterp.numSpatialPts];
-            float[] intrpZ = new float[uInterp.numSpatialPts];
+            Trajectory.updateInterpolators(trajectories, numSpatialPts, uInterp, vInterp, wInterp);
+            
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
-            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpZ}, timeStep);
-
+            wInterp.interpolate(xt, intrpW);
+            
             for (int t=0; t<numTrajectories; t++) {
               Trajectory traj = trajectories.get(t);
               traj.currentTimeIndex = direction*i;
               traj.currentTime = direction*times[i];
-              traj.forward(flow_values, color_values, spatial_set2D, direction);
+              traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, direction, timeStep);
             }
 
           } // inner time loop (time interpolation)
 
-
-          VisADLineArray array = Trajectory.makeGeometry();
+          array = Trajectory.makeGeometry();
           trajectories = Trajectory.clean(trajectories, trajLifetime);
-          
-          // something weird with this, everything being removed ?
-          //array = (VisADLineArray) array.removeMissing();
-
-          final BranchGroup branch = (BranchGroup) branches.get(i);
-          final BranchGroup node = (BranchGroup) swit.getChild(i);
-
-          VisADGeometryArray p_array = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize);
-          GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
-          mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
-          BranchGroup branchB = new BranchGroup();
-          branch.setCapability(BranchGroup.ALLOW_DETACH);
-          branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-          addToGroup(branchB, p_array, mode, info.constant_alpha, info.constant_color);
-          ((BranchGroup)switB.getChild(i)).addChild(branchB);
-
-
-          addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
-          node.addChild(branch);
-
-        } // domain length (time steps) outer time loop
+          trajArrays.add(array);
      }
-  }
-
-  class Trajectory {
-     float startX;
-     float startY;
-     float startZ;
-
-     float[] startPts = new float[3];
-     float[]  stopPts = new float[3];
-
-     byte[] startColor;
-     byte[] stopColor;
-
-     float[][] startPts2D = new float[2][1];
-     float[][] startPts3D = new float[3][1];
-
-     static int coordCnt = 0;
-     static int colorCnt = 0;
-     static int vertCnt = 0;
-
-     int clrDim;
-
-     boolean offGrid = false;
-
-     private static float[] coordinates = null;
-     private static byte[] colors = null;
      
-     public static boolean[] markGrid;
-     public static int[] markGridTime;
-
-     public static int cnt=0;
-     public static int[] o_j = new int[] {0, 0, 1, 1}; 
-     public static int[] o_i = new int[] {0, 1, 0, 1}; 
-
-     public int initialTimeIndex = 0;
-     public int currentTimeIndex = 0;
- 
-     public double initialTime = 0;
-     public double currentTime = 0;
-
-     float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
-
-     public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
-        this.startX = startX;
-        this.startY = startY;
-        this.startZ = startZ;
-
-        startPts[0] = startX;
-        startPts[1] = startY;
-        startPts[2] = startZ;
-
-        clrDim = startColor.length;
-        stopColor = new byte[clrDim];
-
-        this.startColor = startColor;
-     }
-
-     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, float[][] startPts, byte[][] color_values) {
-        int num = startPts[0].length;
-        int clrDim = color_values.length;
-
-        for (int k=0; k<num; k++) {
-           // initialize a new trajectory
-           float startX = startPts[0][k];
-           float startY = startPts[1][k];
-           float startZ = startPts[2][k];
-
-           byte[] startColor = new byte[clrDim];
-           startColor[0] = color_values[0][k];
-           startColor[1] = color_values[1][k];
-           startColor[2] = color_values[2][k];
-           if (clrDim == 4) {
-              startColor[3] = color_values[3][k];
-           }
-
-           Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
-           traj.initialTime = time;
-           trajectories.add(traj);
-        }
-     }
-
-     public static void getStartPointsFromDomain(int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
-        int[] lens = spatial_set.getLengths();
-        int lenX = lens[0];
-        int lenY = lens[1];
-
-        float[][] setLocs = spatial_set.getSamples(false);
-
-        int clrDim = color_values.length;
-        int m = cnt % 4;
-        cnt++;
-
-        int jA = 1+o_j[m]*(skip/2);
-        int jB = lenY-skip;
-        int iA = 1+o_i[m]*(skip/2);
-        int iB = lenX-skip;
-
-        int numJ = 1 + ((jB-1)-jA)/skip;
-        int numI = 1 + ((iB-1)-iA)/skip;
-        int num = numJ*numI;
-
-        startPts[0] = new float[num];
-        startPts[1] = new float[num];
-        startPts[2] = new float[num];
-
-        startClrs[0] = new byte[num];
-        startClrs[1] = new byte[num];
-        startClrs[2] = new byte[num];
-        if (clrDim == 4) {
-           startClrs[3] = new byte[num];
-        }
-
-        num = 0;
-        for (int j=1+o_j[m]*(skip/2); j<lenY-skip; j+=skip) {
-          for (int i=1+o_i[m]*(skip/2); i<lenX-skip; i+=skip) {
-
-            int k = j*lenX + i;
-
-            if (!markGrid[k]) {
-              startPts[0][num] = setLocs[0][k];
-              startPts[1][num] = setLocs[1][k];
-              startPts[2][num] = setLocs[2][k];
-
-              startClrs[0][num] = color_values[0][k];
-              startClrs[1][num] = color_values[1][k];
-              startClrs[2][num] = color_values[2][k];
-              if (clrDim == 4) {
-                startClrs[3][num] = color_values[3][k];
-              }
-            }
-          
-            num++;
-          }
-        }
-
-        /*
-        for (int k=0; k<markGrid.length; k++) {
-           markGrid[k] = false;
-        }
-        */
-     }
-
-     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, int skip, byte[][] color_values, float[][] startPts, int[] setLens) {
-        int lenX = setLens[0];
-        int lenY = setLens[1];
-
-        int clrDim = color_values.length;
-        int m = cnt % 4;
-        cnt++;
-
-        for (int j=1+o_j[m]*(skip/2); j<lenY-skip; j+=skip) {
-          for (int i=1+o_i[m]*(skip/2); i<lenX-skip; i+=skip) {
-
-            int k = j*lenX + i;
-
-            if (!markGrid[k]) {
-              // initialize a new trajectory
-              float startX = startPts[0][k];
-              float startY = startPts[1][k];
-              float startZ = startPts[2][k];
-
-              byte[] startColor = new byte[clrDim];
-              startColor[0] = color_values[0][k];
-              startColor[1] = color_values[1][k];
-              startColor[2] = color_values[2][k];
-              if (clrDim == 4) {
-                startColor[3] = color_values[3][k];
-              }
-
-              Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
-              traj.initialTime = time;
-              trajectories.add(traj);
-            }
-
-          }
-        }
-
-        /*
-        for (int k=0; k<markGrid.length; k++) {
-           markGrid[k] = false;
-        }
-        */
-     }
-
-     /* For steady-state trajectories (animated streamlines) only */
-     public static void checkTime(int timeIdx) {
-       for (int k=0; k<markGridTime.length; k++) {
-         if ((timeIdx - markGridTime[k]) > 4) {
-           markGridTime[k] = timeIdx;
-           markGrid[k] = false;
-         }
-       }
-     }
-
-     /* Remove trajectories from list:
-          (1) That have left the grid (marked offGrid).
-          (2) That have time length (duration) greater than some threshold.
-      */
-     public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories, double threshold) {
-       ArrayList<Trajectory> newList = new ArrayList<Trajectory>();
-       Iterator<Trajectory> iter = trajectories.iterator();
-       while (iter.hasNext() ) {
-         Trajectory traj = iter.next();
-         if (!traj.offGrid && ((traj.currentTime - traj.initialTime) < threshold)) {
-           newList.add(traj);
-         }
-       }
-       return newList;
-     }
-
-     public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories) {
-        return Trajectory.clean(trajectories, -1.0);
-     }
-
-     /* Set internal counters to zero. Replace internal arrays and initialize to NaN. */
-     public static void reset(int maxNumVerts, int clrDim) {
-        coordCnt = 0; 
-        colorCnt = 0;
-        vertCnt = 0;
-        maxNumVerts *= 2; // one each for start and stop
-        coordinates = new float[3*maxNumVerts];
-        colors = new byte[clrDim*maxNumVerts];
-        java.util.Arrays.fill(coordinates, Float.NaN);
-     }
-
-     public static VisADLineArray makeGeometry() {
-       VisADLineArray array = new VisADLineArray();
-       float[] newCoords = new float[coordCnt];
-       byte[] newColors = new byte[colorCnt];
-       System.arraycopy(coordinates, 0, newCoords, 0, newCoords.length);
-       System.arraycopy(colors, 0, newColors, 0, newColors.length);
-       array.coordinates = newCoords;
-       array.colors = newColors;
-       array.vertexCount = vertCnt;
-
-       return array;
-     }
-
-     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction, float trcrSize) {
-       int numTrajs = trajectories.size();
-       VisADGeometryArray array = null;
-
-       // make simple arrow -----------------------
-       array = new VisADLineArray();
-       int numPts = 4*numTrajs;
-       float[] coords =  new float[3*numPts];
-       byte[] colors = new byte[3*numPts];
-
-       double barblen = trcrSize*0.034;
-
-       float[] norm = new float[] {0, 0, 1f};
-       float[] trj_u = new float[3];
-
-       for (int k=0; k<numTrajs; k++) {
-         Trajectory traj = trajectories.get(k);
-         trj_u[0] = traj.uVecPath[0];
-         trj_u[1] = traj.uVecPath[1];
-         trj_u[2] = traj.uVecPath[2];
-
-         float[] endPt = new float[3];
-         endPt[0] = traj.startPts[0];
-         endPt[1] = traj.startPts[1];
-         endPt[2] = traj.startPts[2];
-
-         float[] norm_x_trj = new float[] {
-                    norm[1] * trj_u[2] - norm[2] * trj_u[1],
-                  -(norm[0] * trj_u[2] - norm[2] * trj_u[0]),
-                    norm[0] * trj_u[1] - norm[1] * trj_u[0] };
-
-         float mag = (float) Math.sqrt(norm_x_trj[0] * norm_x_trj[0] +
-                                       norm_x_trj[1] * norm_x_trj[1] +
-		                       norm_x_trj[2] * norm_x_trj[2]);
-
-	 // - normalize vector
-         norm_x_trj[0] /= mag;
-         norm_x_trj[1] /= mag;
-         norm_x_trj[2] /= mag;
-        
-         float[] ptOnPath = new float[3];
-         
-         float len = (float) (barblen*Math.cos(Data.DEGREES_TO_RADIANS*22.0));
-         ptOnPath[0] = -len*trj_u[0];
-         ptOnPath[1] = -len*trj_u[1];
-         ptOnPath[2] = -len*trj_u[2];
-         
-         ptOnPath[0] += endPt[0];
-         ptOnPath[1] += endPt[1];
-         ptOnPath[2] += endPt[2];
-         
-         float[] barbPtA = new float[3];
-         float[] barbPtB = new float[3];
-         len = (float) (barblen*Math.sin(Data.DEGREES_TO_RADIANS*22.0));
-         
-         barbPtA[0] = len*norm_x_trj[0];
-         barbPtA[1] = len*norm_x_trj[1];
-         barbPtA[2] = len*norm_x_trj[2];
-         
-         barbPtB[0] = -len*norm_x_trj[0];
-         barbPtB[1] = -len*norm_x_trj[1];
-         barbPtB[2] = -len*norm_x_trj[2];
-         
-         barbPtA[0] += ptOnPath[0];
-         barbPtA[1] += ptOnPath[1]; 
-         barbPtA[2] += ptOnPath[2]; 
-         
-         barbPtB[0] += ptOnPath[0];
-         barbPtB[1] += ptOnPath[1];
-         barbPtB[2] += ptOnPath[2];
-         
-         	  
-         int t = k*12;
-         int c = k*12;
-         if (direction > 0) {
-           coords[t] = traj.startPts[0];
-           coords[t+=1] = traj.startPts[1];
-           coords[t+=1] = traj.startPts[2];
-         	     
-           coords[t+=1] = barbPtA[0];
-           coords[t+=1] = barbPtA[1];
-           coords[t+=1] = barbPtA[2];
-         
-           coords[t+=1] = traj.startPts[0];
-           coords[t+=1] = traj.startPts[1];
-           coords[t+=1] = traj.startPts[2];
-         
-           coords[t+=1] = barbPtB[0];
-           coords[t+=1] = barbPtB[1];
-           coords[t+=1] = barbPtB[2];
-         }
-         else {// TODO: finish this
-           coords[k*3] = traj.startX;
-           coords[k*3 + 1] = traj.startY;
-           coords[k*3 + 2] = traj.startZ;
-         }
-         
-         colors[c] = traj.startColor[0];
-         colors[c+=1] = traj.startColor[1];
-         colors[c+=1] = traj.startColor[2];
-         
-         colors[c+=1] = traj.startColor[0];
-         colors[c+=1] = traj.startColor[1];
-         colors[c+=1] = traj.startColor[2];
-
-         colors[c+=1] = traj.startColor[0];
-         colors[c+=1] = traj.startColor[1];
-         colors[c+=1] = traj.startColor[2];
-         
-         colors[c+=1] = traj.startColor[0];
-         colors[c+=1] = traj.startColor[1];
-         colors[c+=1] = traj.startColor[2];
-       }
-
-       /*  point marker -----------------------------
-       array = new VisADPointArray();
-       numPts = numTrajs;
-       float[] coords =  new float[3*numPts];
-       byte[] colors = new byte[3*numPts];
-	
-       for (int k=0; k<numTrajs; k++) {
-         Trajectory traj = trajectories.get(k);
-         if (direction > 0) {
-           coords[k*3] = traj.startPts[0];
-           coords[k*3 + 1] = traj.startPts[1];
-           coords[k*3 + 2] = traj.startPts[2];
-         }
-         else {
-           coords[k*3] = traj.startX;
-           coords[k*3 + 1] = traj.startY;
-           coords[k*3 + 2] = traj.startZ;
-         }
-         
-         colors[k*3] = traj.startColor[0];
-         colors[k*3 + 1] = traj.startColor[1];
-         colors[k*3 + 2] = traj.startColor[2];
-       }
-       -------------------------------------------*/
-
-       array.vertexCount = numPts;
-       array.coordinates = coords;
-       array.colors = colors;
-
-       for (int k=0; k<trajectories.size(); k++) {
-         Trajectory traj = trajectories.get(k);
-         traj.startX = traj.startPts[0];
-         traj.startY = traj.startPts[1];
-         traj.startZ = traj.startPts[2];
-       }
-
-       return array;
-     }
- 
-
-     public void forward(float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, int direction)
-           throws VisADException {
-        if (offGrid) return;
-
-        int[][] indices = new int[1][];
-        float[][] weights = new float[1][];
-        float[] intrpFlow = new float[3];
-
-        int manifoldDimension = spatial_set.getManifoldDimension();
-
-        if (manifoldDimension == 2) {
-          startPts2D[0][0] = startPts[0];
-          startPts2D[1][0] = startPts[1];
-          spatial_set.valueToInterp(startPts2D, indices, weights);
-        }
-        else if (manifoldDimension == 3) {
-          startPts3D[0][0] = startPts[0];
-          startPts3D[1][0] = startPts[1];
-          startPts3D[2][0] = startPts[2];
-          spatial_set.valueToInterp(startPts3D, indices, weights);
-        }
-
-
-        int clrDim = color_values.length;
-        float[] intrpClr = new float[clrDim];
-
-        intrpFlow[0] = 0f;
-        intrpFlow[1] = 0f;
-        intrpFlow[2] = 0f;
-
-        intrpClr[0] = 0f;
-        intrpClr[1] = 0f;
-        intrpClr[2] = 0f;
-        if (clrDim == 4) {
-          intrpClr[3] = 0f;
-        }
-
-        if (indices[0] != null) {
-           for (int j=0; j<indices[0].length; j++) {
-              int idx = indices[0][j];
-              intrpFlow[0] += weights[0][j]*(direction)*flow_values[0][idx];
-              intrpFlow[1] += weights[0][j]*(direction)*flow_values[1][idx];
-              intrpFlow[2] += weights[0][j]*(direction)*flow_values[2][idx];
-
-              intrpClr[0] += weights[0][j]*color_values[0][idx];
-              intrpClr[1] += weights[0][j]*color_values[1][idx];
-              intrpClr[2] += weights[0][j]*color_values[2][idx];
-              if (clrDim == 4) {
-                intrpClr[3] += weights[0][j]*color_values[3][idx];
-              }
-              
-              //markGrid[idx] = true;
-              markGridTime[idx] = currentTimeIndex;
-           }
-
-           stopPts[0] = startPts[0] + intrpFlow[0];
-           stopPts[1] = startPts[1] + intrpFlow[1];
-           stopPts[2] = startPts[2] + intrpFlow[2];
-
-           stopColor[0] = (byte) intrpClr[0];
-           stopColor[1] = (byte) intrpClr[1];
-           stopColor[2] = (byte) intrpClr[2];
-           if (clrDim == 4) {
-             stopColor[3] = (byte) intrpClr[3];
-           }
-
-           //addPair(startPts, stopPts, startColor, stopColor); // Just use first color for now.
-           addPair(startPts, stopPts, startColor, startColor);
-
-           uVecPath[0] = stopPts[0] - startPts[0];
-           uVecPath[1] = stopPts[1] - startPts[1];
-           uVecPath[2] = stopPts[2] - startPts[2];
-
-           float mag = (float) Math.sqrt(uVecPath[0]*uVecPath[0] + uVecPath[1]*uVecPath[1] + uVecPath[2]*uVecPath[2]);
-           uVecPath[0] /= mag;
-           uVecPath[1] /= mag;
-           uVecPath[2] /= mag;
-
-           startPts[0] = stopPts[0];
-           startPts[1] = stopPts[1];
-           startPts[2] = stopPts[2];
-          
-           /* problem with colors.  Just use first color for now
-           startColor[0] = stopColor[0];
-           startColor[1] = stopColor[1];
-           startColor[2] = stopColor[2];
-           if (clrDim == 4) {
-             startColor[3] = stopColor[3];
-           }
-           */
-        }
-        else {
-           intrpFlow[0] = Float.NaN;
-           intrpFlow[1] = Float.NaN;
-           intrpFlow[2] = Float.NaN;
-           offGrid = true;
-        }
-     }
-
-     private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
-        coordinates[coordCnt++] = startPt[0];
-        coordinates[coordCnt++] = startPt[1];
-        coordinates[coordCnt++] = startPt[2];
-        vertCnt++;
-
-        coordinates[coordCnt++] =  stopPt[0];
-        coordinates[coordCnt++] =  stopPt[1];
-        coordinates[coordCnt++] =  stopPt[2];
-        vertCnt++;
-
-        int clrDim = startColor.length;
-
-        colors[colorCnt++] = startColor[0];
-        colors[colorCnt++] = startColor[1];
-        colors[colorCnt++] = startColor[2];
-        if (clrDim == 4) {
-          colors[colorCnt++] = startColor[3];
-        }
-
-        colors[colorCnt++] = stopColor[0];
-        colors[colorCnt++] = stopColor[1];
-        colors[colorCnt++] = stopColor[2];
-        if (clrDim == 4) {
-          colors[colorCnt++] = stopColor[3];
-        }
-     }
-
-     public static float[][] adjustFlow(FlowInfo info, float[][] flow_values, float timeStep) throws VisADException {
-        return ShadowType.adjustFlowToEarth(info.which, flow_values, info.spatial_values, info.flowScale,
-                               info.renderer, false, true, timeStep);
-     }
-
-     public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2, TrajectoryParams.SmoothParams smoothParams) {
-
-       float w0 = smoothParams.w0;
-       float w1 = smoothParams.w1;
-       float w2 = smoothParams.w2;
-
-       int numPts = values0[0].length;
-       float[][] new_values = new float[3][numPts];
-
-       for (int k=0; k<numPts; k++) {
-         new_values[0][k] = w0*values0[0][k] + w1*values1[0][k] + w2*values2[0][k];
-         new_values[1][k] = w0*values0[1][k] + w1*values1[1][k] + w2*values2[1][k];
-         new_values[2][k] = w0*values0[2][k] + w1*values1[2][k] + w2*values2[2][k];
-       }
-
-       return new_values;
-     }
-
-     public static double[] getTimeSteps(Gridded1DSet timeSet) throws VisADException {
-        double[] timePts;
-        if (timeSet instanceof Gridded1DDoubleSet) {
-           timePts = (timeSet.getDoubles())[0];
-        }
-        else {
-           timePts = (Set.floatToDouble(timeSet.getSamples()))[0];
-        }
-
-        double[] timeSteps = new double[timePts.length];
-        Unit[] setUnits = timeSet.getSetUnits();
-        timePts = CommonUnit.secondsSinceTheEpoch.toThis(timePts, setUnits[0]);
-        for (int t=0; t<timePts.length-1; t++) { 
-           timeSteps[t] = timePts[t+1]-timePts[t];
-        }
-        timeSteps[timePts.length-1] = timeSteps[timePts.length-2];
-        return timeSteps;
-     }
-
-     public static double[] getTimes(Gridded1DSet timeSet) throws VisADException {
-        double[] timePts;
-        if (timeSet instanceof Gridded1DDoubleSet) {
-           timePts = (timeSet.getDoubles())[0];
-        }
-        else {
-           timePts = (Set.floatToDouble(timeSet.getSamples()))[0];
-        }
-
-        Unit[] setUnits = timeSet.getSetUnits();
-        timePts = CommonUnit.secondsSinceTheEpoch.toThis(timePts, setUnits[0]);
-        return timePts;
-     }
-
-
-     public static float[][] convertFlowUnit(float[][] values, Unit[] units) throws VisADException {
-
-       float[] valsX = values[0];
-       if (!CommonUnit.meterPerSecond.equals(units[0])) {
-         valsX = CommonUnit.meterPerSecond.toThis(values[0], units[0]);
-       }
-
-       float[] valsY = values[1];
-       if (!CommonUnit.meterPerSecond.equals(units[1])) {
-         valsY = CommonUnit.meterPerSecond.toThis(values[1], units[1]);
-       }
-
-      /* 
-       * FlowZ will have to be meters/second: Application will have to convert
-       * or supply, maybe through a RangeCoordinateSystem, a transform to do this.
-       *
-       */
-
-       return new float[][] {valsX, valsY, values[2]};
-     }
   }
+
 
   class SwitchListener extends Switch {
     int numChildren;

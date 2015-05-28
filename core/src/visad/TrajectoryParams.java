@@ -57,6 +57,8 @@ public class TrajectoryParams {
   int direction = 1;  //1: forward, -1: backward
   boolean doIntrp = true;
   float markerSize = 1f;
+  boolean markerEnabled = false;
+  boolean manualIntrpPts = false;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -118,9 +120,26 @@ public class TrajectoryParams {
   public void setDoIntrp(boolean yesno) {
     this.doIntrp = yesno;
   }
+  
+  public void setNumIntrpPts(int numIntrpPts) {
+    this.numIntrpPts = numIntrpPts;
+    this.manualIntrpPts = true;
+  }
+  
+  public void setManualIntrpPts(boolean isManual) {
+    this.manualIntrpPts = isManual;
+  }
+  
+  public boolean getManualIntrpPts() {
+    return this.manualIntrpPts;
+  }
 
   public void setMarkerSize(float size) {
     this.markerSize = size;
+  }
+  
+  public void setMarkerEnabled(boolean yesno) {
+    this.markerEnabled = yesno;
   }
 
   public double getTrajVisibilityTimeWindow() {
@@ -154,7 +173,10 @@ public class TrajectoryParams {
   public float getMarkerSize() {
     return this.markerSize;
   }
-
+  
+  public boolean getMarkerEnabled() {
+    return this.markerEnabled;
+  }
 
   public void setStartPoints(RealTupleType startType, float[][] startPts) {
     this.startType = startType;
