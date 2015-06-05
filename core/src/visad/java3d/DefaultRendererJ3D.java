@@ -144,6 +144,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
       }
       if (post_process) type.postProcess(branch);
     }
+    
     link.clearData();
     return branch;
   }

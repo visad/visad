@@ -2116,6 +2116,12 @@ if (range_select[0] != null) {
               }
             }
           }
+          else if (trajectory1) {
+            shadow_api.makeTrajFlow(0, flow1_values, data, flowScale[0],
+                               spatial_values, spatial_set, spatialManifoldDimension, color_values, range_select,
+                                     mode, constant_alpha, constant_color, valueArrayLength,
+                                          valueToMap, MapVector, flowInfoList);
+          }
           else {
             visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow1");
             arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
@@ -2129,6 +2135,7 @@ if (range_select[0] != null) {
                 }
               }
             }
+            
             visad.util.Trace.call2("ShadowFunctionOrSetType:makeFlow flow1");
           }
           anyFlowCreated = true;
@@ -2149,6 +2156,12 @@ if (range_select[0] != null) {
                 arrays[i] = null;
               }
             }
+          }
+          else if (trajectory2) {
+            shadow_api.makeTrajFlow(1, flow2_values, data, flowScale[1],
+                              spatial_values, spatial_set, spatialManifoldDimension, color_values, range_select, 
+                              mode, constant_alpha, constant_color, valueArrayLength,
+                                  valueToMap, MapVector, flowInfoList);
           }
           else {
             visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow2");

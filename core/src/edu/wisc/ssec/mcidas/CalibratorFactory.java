@@ -110,6 +110,18 @@ public final class CalibratorFactory {
 	    	  calibrator.setCalType(srcType);
 	    	  break;
 
+		  case Calibrator.SENSOR_GOES14_IMGR:
+		  case Calibrator.SENSOR_GOES14_SNDR:
+			  calibrator = new CalibratorGvarG14(id, cal);
+			  calibrator.setCalType(srcType);
+			  break;
+
+		  case Calibrator.SENSOR_GOES15_IMGR:
+		  case Calibrator.SENSOR_GOES15_SNDR:
+			  calibrator = new CalibratorGvarG15(id, cal);
+			  calibrator.setCalType(srcType);
+			  break;
+
 	      default:
 	        throw new CalibratorException(
 	            "Unknown or unimplemented sensor id: " + id
@@ -130,6 +142,10 @@ public final class CalibratorFactory {
    */
   public final static boolean hasCalibrator(int id) {
     switch (id) {
+	  case Calibrator.SENSOR_GOES15_IMGR:
+	  case Calibrator.SENSOR_GOES15_SNDR:
+	  case Calibrator.SENSOR_GOES14_IMGR:
+	  case Calibrator.SENSOR_GOES14_SNDR:
       case Calibrator.SENSOR_GOES13_IMGR:
       case Calibrator.SENSOR_GOES13_SNDR:
       case Calibrator.SENSOR_GOES12_IMGR:
