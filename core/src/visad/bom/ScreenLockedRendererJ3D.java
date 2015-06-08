@@ -36,6 +36,7 @@ import javax.media.j3d.*;
 // VisAD
 import visad.ConstantMap;
 import visad.DataReferenceImpl;
+import visad.DataRenderer;
 import visad.DelaunayCustom;
 import visad.Display;
 import visad.FunctionType;
@@ -89,43 +90,12 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
       displayRenderer.addLockedSceneGraphComponent(branch);
     }
   }
-
-
-  /**
-   * This is used for function types of the form:
-   * ((latitude, longitude)->(text))
-   */
-/*
-  public ShadowType makeShadowFunctionType(FunctionType type, 
-    DataDisplayLink link, ShadowType parent) 
-    throws RemoteException, VisADException
-  {
-    return new ShadowScreenLockedFunctionTypeJ3D(type, link, parent);
-  }
-*/
-
-  /**
-   * This is used for tuples of the form:
-   * (latitude, longitude, text)
-   */
-/*
-  public ShadowType makeShadowTupleType(TupleType type, DataDisplayLink link,
-    ShadowType parent) 
-    throws RemoteException, VisADException 
-  { 
-    return new ShadowScreenLockedTupleTypeJ3D(type, link, parent);
-  }
-*/
   
-  
-/*
-  public ShadowType makeShadowSetType(SetType type, DataDisplayLink link,
-    ShadowType parent)
-    throws RemoteException, VisADException 
-  {
-    return new ShadowScreenLockedSetTypeJ3D(type, link, parent);
+  public void addSwitch(DisplayRendererJ3D displayRenderer,
+                        BranchGroup branch, DataRenderer renderer, double orderPriority) {
+    displayRenderer.addLockedSceneGraphComponent(branch);
   }
-*/
+
 
   /**
    * Used for testing.
