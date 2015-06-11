@@ -59,7 +59,7 @@ public abstract class RendererJ3D extends DataRenderer {
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
 
-  private double renderOrderPriority = 10.0;
+  private double renderOrderPriority = 1000.0;
 
   public RendererJ3D() {
     super();
