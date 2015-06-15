@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -1049,17 +1049,17 @@ public class Gridded3DSet extends GriddedSet {
     }
     return new float[][]{value};
   }
-
-  // WLH 6 Dec 2001
-  //private int gx = -1;
-  //private int gy = -1;
-  //private int gz = -1;
+  
+  @Override
+  public float[][] valueToGrid(float[][] value) throws VisADException {
+      return valueToGrid(value, null);
+  }
 
   /**
    * transform an array of values in R^DomainDimension to an array of
    * non-integer grid coordinates
    */
-  public float[][] valueToGrid(float[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value, int[] guess) throws VisADException {
 
     float[][]mySamples = getMySamples();
     if (value.length < DomainDimension) {
@@ -1084,15 +1084,6 @@ public class Gridded3DSet extends GriddedSet {
     int gy = (LengthY-1)/2; 
     int gz = (LengthZ-1)/2;
 
-    /* WLH 6 Dec 2001 
-    // use value from last call as first guess, if reasonable
-    if (gx < 0 || gx >= LengthX || gy < 0 || gy >= LengthY || gz < 0
-        || gz >= LengthZ) {
-      gx = (LengthX - 1) / 2;
-      gy = (LengthY - 1) / 2;
-      gz = (LengthZ - 1) / 2;
-    }
-     */
 
     float[] A = new float[3];
     float[] B = new float[3];
@@ -1151,13 +1142,21 @@ public class Gridded3DSet extends GriddedSet {
       //GHANSHAM: Added this if condition. It tries to get start point
       //when i = 0 (first time) or when the last guess is not a valid value
       if (i == 0 || ((i != 0) && grid[0][i - 1] != grid[0][i - 1])) {
-        if (Math.abs(v_x-sx) > 0.4 *Math.abs(mySamples[0][0] - mySamples[0][ii]) ||
-            Math.abs(v_y-sy) > 0.4 *Math.abs(mySamples[1][0] - mySamples[1][ii]) ||
-            Math.abs(v_z-sz) > 0.4 *Math.abs(mySamples[2][0] - mySamples[2][ii])) {
-          float[] ginit = getStartPoint(value[0][i], value[1][i], value[2][i]);
-          gx = (int) ginit[0];
-          gy = (int) ginit[1];
-          gz = (int) ginit[2];
+        // TDR: special check if i==0 when a first value guess is supplied.
+        if (i == 0 && guess != null && guess[0] >= 0 && guess[1] >= 0 && guess[2] >= 0) {
+          gx = guess[0];
+          gy = guess[1];
+          gz = guess[2];
+        }
+        else {
+          if (Math.abs(v_x-sx) > 0.4 *Math.abs(mySamples[0][0] - mySamples[0][ii]) ||
+              Math.abs(v_y-sy) > 0.4 *Math.abs(mySamples[1][0] - mySamples[1][ii]) ||
+              Math.abs(v_z-sz) > 0.4 *Math.abs(mySamples[2][0] - mySamples[2][ii])) {
+            float[] ginit = getStartPoint(value[0][i], value[1][i], value[2][i]);
+            gx = (int) ginit[0];
+            gy = (int) ginit[1];
+            gz = (int) ginit[2];
+          }
         }
       } else { //GHANSHAM: Use the last guest other wise
           gx = (int) grid[0][i-1];
@@ -2289,6 +2288,13 @@ public class Gridded3DSet extends GriddedSet {
       }
     }
 
+    // TDR: use last found as guess for next locate request
+    if (guess != null) {
+      guess[0] = gx;
+      guess[1] = gy;
+      guess[2] = gz;
+    }
+    
     return grid;
   }
 

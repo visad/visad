@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import visad.util.HersheyFont;
 
@@ -168,6 +169,11 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   float reduction1;
   float reduction2;
   // ---------------------
+
+  /** trajectory flags */
+  public boolean trajectory1 = false;
+  public boolean trajectory2 = false;
+  protected ArrayList<FlowInfo> flowInfoList = new ArrayList<FlowInfo>();
 
   /** makeContour, manifoldDimension == 2 */
   int[] cnt = { 0 };
@@ -1065,6 +1071,10 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
     for (int i = 0; i < ValueIndices.length; i++)
       ii[i] = ValueIndices[i];
     return ii;
+  }
+  
+  public ArrayList<FlowInfo> getFlowInfo() {
+      return this.flowInfoList;
   }
 
   /**
@@ -2136,6 +2146,11 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight1 = pp[0];
               n_pass1 = (int) pp[1];
               reduction1 = control.getStreamlineReduction();
+              trajectory1 = control.trajectoryEnabled();
+              if (trajectory1) {
+                 ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
+                 flowScale[k] = 1f;
+              }
             }
             if (k == 1) {
               streamline2 = control.streamlinesEnabled();
@@ -2147,6 +2162,11 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight2 = pp[0];
               n_pass2 = (int) pp[1];
               reduction2 = control.getStreamlineReduction();
+              trajectory2 = control.trajectoryEnabled();
+              if (trajectory2) {
+                 ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
+                 flowScale[k] = 1f;
+              }
             }
           }
         }
@@ -2245,6 +2265,14 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
       float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force)
       throws VisADException {
+    return adjustFlowToEarth(which, flow_values, spatial_values, flowScale, renderer, force, false, 3600f);
+  }
+
+
+  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+      float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force, 
+          boolean isTraj, float timeStep)
+      throws VisADException {
     // System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
     // + " " + renderer.getRealVectorTypes(which)); // IDV
 	// Move this down into the check for shouldAdjust
@@ -2253,7 +2281,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
     //  return flow_values;
     //}
 
-
+      
     FlowControl fcontrol = null;
     DisplayImpl display = null;
     boolean shouldAdjust = true;
@@ -2293,6 +2321,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
         }
       }
     }
+
     if (!shouldAdjust)
       return flow_values;
 
@@ -2355,11 +2384,22 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       // assume meters even if other_meters == false
       float factor_lat = (float) (inv_scale * 1000.0f * Data.DEGREES_TO_RADIANS / METERS_PER_DEGREE);
       float factor_vert = inv_scale * 1000.0f;
-      for (int j = 0; j < flen; j++) {
-        earth_locs[2][j] += factor_vert * flow_values[2][j];
-        earth_locs[1][j] += factor_lat * flow_values[0][j]
-            / ((float) Math.cos(earth_locs[0][j]));
-        earth_locs[0][j] += factor_lat * flow_values[1][j];
+      if (!isTraj) {
+        for (int j = 0; j < flen; j++) {
+          earth_locs[2][j] += factor_vert * flow_values[2][j];
+          earth_locs[1][j] += factor_lat * flow_values[0][j]
+              / ((float) Math.cos(earth_locs[0][j]));
+          earth_locs[0][j] += factor_lat * flow_values[1][j];
+        }
+      }
+      else {
+        for (int j = 0; j < flen; j++) {
+          earth_locs[2][j] += flow_values[2][j] * timeStep;
+
+          earth_locs[1][j] += ((flow_values[0][j] * timeStep * (1f/METERS_PER_DEGREE)) / ((float)Math.cos(earth_locs[0][j])) ) * Data.DEGREES_TO_RADIANS;
+
+          earth_locs[0][j] += flow_values[1][j] * timeStep * (1f/METERS_PER_DEGREE) * Data.DEGREES_TO_RADIANS;
+        }
       }
     } else {
       float factor_lat = 0.00001f * inv_scale
@@ -2405,8 +2445,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       for (int i=0; i<earth_locs.length; i++) {
         if (earth_locs[i] == null) {
           earth_locs[i] = new float[flen];
-          for (int j = 0; j < flen; j++)
-            earth_locs[i][j] = spatial_values[i][j];
+            System.arraycopy(spatial_values[i], 0, earth_locs[i], 0, flen);
         }
       }
     }
@@ -2433,9 +2472,16 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
           + earth_locs[1][j] * earth_locs[1][j] + earth_locs[2][j]
           * earth_locs[2][j]);
       float ratio = mag / new_mag;
-      flow_values[0][j] = ratio * earth_locs[0][j];
-      flow_values[1][j] = ratio * earth_locs[1][j];
-      flow_values[2][j] = ratio * earth_locs[2][j];
+      if (!isTraj) {
+        flow_values[0][j] = ratio * earth_locs[0][j];
+        flow_values[1][j] = ratio * earth_locs[1][j];
+        flow_values[2][j] = ratio * earth_locs[2][j];
+      }
+      else {
+        flow_values[0][j] = earth_locs[0][j];
+        flow_values[1][j] = earth_locs[1][j];
+        flow_values[2][j] = earth_locs[2][j];
+      }
     }
 /*
 System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
@@ -2661,6 +2707,149 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     }
   }
 
+  public void makeTrajFlow(int which, float[][] flow_values, Data data,
+      float flowScale, float[][] spatial_values, Set spatial_set, int spatialManifoldDimension, byte[][] color_values,
+      boolean[][] range_select, GraphicsModeControl mode, float constant_alpha, float[] constant_color,
+      int valueArrayLength, int[] valueToMap,
+      Vector MapVector, ArrayList flowInfoList) throws VisADException, RemoteException {
+      
+    // incoming spatial_set will be null (see assembleSpatial), so create from spatial_values.
+    if (spatialManifoldDimension == 3) {
+      SetType stype = new SetType(Display.DisplaySpatialCartesianTuple);
+      Set domain_set = ((FlatField)data).getDomainSet();
+      spatial_set = domain_set.makeSpatial(stype, spatial_values);
+    }
+
+    Unit[] flowUnits = new Unit[3];
+    Unit[][] dataUnits = ((FlatField)data).getRangeUnits();
+    float[][] rangeValues = ((Field)data).getFloats(false);
+    
+    if (flow_values[0] == null)
+      return;
+    if (spatial_values[0] == null)
+      return;
+
+    VisADLineArray array = new VisADLineArray();
+
+    int len = spatial_values[0].length;
+    int flen = flow_values[0].length;
+    int rlen = 0; // number of non-missing values
+    if (range_select[0] == null) {
+      rlen = len;
+    } else {
+      for (int j = 0; j < range_select[0].length; j++) {
+        if (range_select[0][j])
+          rlen++;
+      }
+    }
+    if (rlen == 0)
+      return;
+
+    DataRenderer renderer = getLink().getRenderer();
+
+    FunctionType ftype = (FunctionType) Type;
+    RealTupleType rtt = ftype.getFlatRange();
+    RealType[] range_reals = rtt.getRealComponents();
+
+    for (int k = 0; k < range_reals.length; k++) {
+      for (int i = 0; i < valueArrayLength; i++) {
+        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+        DisplayRealType dreal = map.getDisplayScalar();
+        ScalarType scalar = map.getScalar();
+        if (!scalar.equals(range_reals[k]))
+          continue;
+
+        if ( dreal.equals(Display.Flow1Elevation) || dreal.equals(Display.Flow2Elevation) ||
+             dreal.equals(Display.Flow1Azimuth) || dreal.equals(Display.Flow2Azimuth) ||
+             dreal.equals(Display.Flow1Radial) || dreal.equals(Display.Flow2Radial) )  {
+           throw new VisADException("Elevation, Azimuth, Radial not supported for Trajectory");
+        }
+
+        if (dreal.equals(Display.Flow1X) || dreal.equals(Display.Flow2X)) {
+          flowUnits[0] = dataUnits[k][0];
+        }
+        if (dreal.equals(Display.Flow1Y) || dreal.equals(Display.Flow2Y)) {
+          flowUnits[1] = dataUnits[k][0];
+        }
+        if (dreal.equals(Display.Flow1Z) || dreal.equals(Display.Flow2Z)) {
+          flowUnits[2] = dataUnits[k][0];
+        }
+      }
+    }
+    
+    byte[][] trajColors = makeTrajColor(rangeValues, valueArrayLength,
+                                   valueToMap, MapVector);
+
+    FlowInfo flwInfo = new FlowInfo();
+    flwInfo.flow_values = flow_values;
+    flwInfo.flow_units = flowUnits;
+    flwInfo.flowScale = flowScale;
+    flwInfo.spatial_values = spatial_values;
+    flwInfo.spatial_set = spatial_set;
+    flwInfo.spatialManifoldDimension = spatialManifoldDimension;
+    flwInfo.color_values = color_values;
+    flwInfo.range_select = range_select;
+    flwInfo.mode = mode;
+    flwInfo.constant_alpha = constant_alpha;
+    flwInfo.constant_color = constant_color;
+    flwInfo.renderer = renderer;
+    flwInfo.which = which;
+    flwInfo.trajColors = trajColors;
+    flowInfoList.add(flwInfo);
+
+    return;
+  }
+
+  /* TODO: How, or should this be integrated with assembleColor? */
+  public byte[][] makeTrajColor(float[][] rangeValues, int valueArrayLength, int[] valueToMap,
+      Vector MapVector) throws VisADException, RemoteException {
+
+    FunctionType ftype = (FunctionType) Type;
+    RealTupleType rtt = ftype.getFlatRange();
+    RealType[] range_reals = rtt.getRealComponents();
+
+    ScalarMap colorMap = null;
+    int rngIdxClr = -1;
+
+    int cnt = 0;
+    for (int k = 0; k < range_reals.length; k++) {
+      for (int i = 0; i < valueArrayLength; i++) {
+        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+        DisplayRealType dreal = map.getDisplayScalar();
+        ScalarType scalar = map.getScalar();
+        if (!scalar.equals(range_reals[k]))
+          continue;
+
+        if (dreal.equals(Display.RGB) || dreal.equals(Display.RGBA)) {
+           colorMap = map;
+           if (rngIdxClr < 0) {
+             rngIdxClr = k;
+           }
+           cnt++;
+        }
+      }
+    }
+
+    byte[][] color_values = null;
+
+    if (colorMap == null) {
+      return null;
+    }
+    if (cnt > 1) {
+      System.out.println("Trajectory: more than one range type for color. Can only use the first found");
+    }
+    float[] dspVals = colorMap.scaleValues(rangeValues[rngIdxClr]);
+    float[][] fltClrs = ((BaseColorControl)colorMap.getControl()).lookupValues(dspVals);
+    int clrDim = fltClrs.length;
+    color_values = new byte[clrDim][fltClrs[0].length];
+    for (int d=0; d<clrDim; d++) {
+      for (int t=0; t<color_values[0].length; t++) {
+        color_values[d][t] = (byte) (fltClrs[d][t]*255.0);
+      }
+    }
+    return color_values;
+  }
+
   private static final float BACK_SCALE = -0.15f;
   private static final float PERP_SCALE = 0.15f;
 
@@ -2688,6 +2877,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     }
     if (rlen == 0)
       return null;
+
 
     DataRenderer renderer = getLink().getRenderer();
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,

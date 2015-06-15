@@ -4,7 +4,7 @@
 
 /*
 
-The software in this file is Copyright(C) 2011 by Tom Whittaker.
+The software in this file is Copyright(C) 2015 by Tom Whittaker.
 It is designed to be used with the VisAD system for interactive
 analysis and visualization of numerical data.
 
@@ -392,7 +392,7 @@ public class AreaAdapter {
       }
       
     } catch (McIDASException afe) {
-         throw new VisADException("Problem with McIDAS AREA file: " + afe);
+         throw new VisADException("Problem with McIDAS AREA file", afe);
     } finally {
       if (af != null) {
         af.close();
@@ -422,7 +422,7 @@ public class AreaAdapter {
       aux = af.getAux();
     } catch (Exception rmd) {
         throw new VisADException(
-            "Problem getting Area file directory or navigation: " + rmd);
+            "Problem getting Area file directory or navigation", rmd);
     }
 
     // extract the size of each dimension from the directory
@@ -571,7 +571,7 @@ public class AreaAdapter {
     try {
       flt_samples = af.getFloatData();
     } catch (McIDASException samp) {
-      throw new VisADException("Problem reading AREA file: "+samp);
+      throw new VisADException("Problem reading AREA file", samp);
     }
 
     // for each band, create a sample array for the FlatField
@@ -611,7 +611,7 @@ public class AreaAdapter {
       field.setSamples(samples, false);
 
     } catch (RemoteException e) {
-        throw new VisADException("Couldn't finish image initialization");
+        throw new VisADException("Couldn't finish image initialization", e);
     }
 
   }
@@ -729,7 +729,7 @@ public class AreaAdapter {
                                   getNominalTime(),
                                   "McIDAS Image", false);
       } catch (RemoteException excp) {
-        throw new VisADException("AreaAdapter.getImage(): RemoteException");
+        throw new VisADException("AreaAdapter.getImage(): RemoteException", excp);
       }
 
     } else {

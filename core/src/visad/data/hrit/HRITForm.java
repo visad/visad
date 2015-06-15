@@ -3,7 +3,7 @@
 //
 
 /*
-The software in this file is Copyright(C) 2011 by Tommy Jasmin.
+The software in this file is Copyright(C) 2015 by Tommy Jasmin.
 It is designed to be used with the VisAD system for interactive
 analysis and visualization of numerical data.
 

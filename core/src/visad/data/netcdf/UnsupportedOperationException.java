@@ -8,29 +8,27 @@
 
 package visad.data.netcdf;
 
-
 /**
- * The UnsupportedOperationException provides a way to flag methods that
- * are not implemented.
+ * The {@code UnsupportedOperationException} provides a way to flag methods 
+ * that are not implemented.
  */
-public class
-UnsupportedOperationException
-    extends NoSuchMethodError
-{
-    public
-    UnsupportedOperationException()
-    {
-	super();
-    }
+public class UnsupportedOperationException extends NoSuchMethodError {
 
-    /**
-     * Construct from a message.
-     *
-     * @param msg	The message.
-     */
-    public
-    UnsupportedOperationException(String msg)
-    {
-	super(msg);
-    }
+  /**
+   * Constructs a {@code UnsupportedOperationException} with no specified 
+   * detail message.
+   */
+  public UnsupportedOperationException() {
+    super();
+  }
+
+  /**
+   * Constructs a {@code UnsupportedOperationException} with the specified 
+   * detail message.
+   *
+   * @param message Detail message.
+   */
+  public UnsupportedOperationException(String message) {
+    super(message);
+  }
 }

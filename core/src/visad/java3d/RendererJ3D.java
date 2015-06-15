@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -59,7 +59,8 @@ public abstract class RendererJ3D extends DataRenderer {
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
 
-  private double renderOrderPriority = 10.0;
+  private double renderOrderPriority = 1000.0;
+  private int orderedGroupIndex = 0;
 
   public RendererJ3D() {
     super();
@@ -88,6 +89,24 @@ public abstract class RendererJ3D extends DataRenderer {
         break;
       }
     }
+    
+    Vector rendVec = d.getRendererVector();
+    double[] priority = new double[rendVec.size()];
+    for (int k=0; k<priority.length; k++) {
+      priority[k] = ((RendererJ3D) rendVec.get(k)).getRenderOrderPriority();
+    }
+    java.util.Arrays.sort(priority);
+    int index = 0;
+    for (int k=0; k<priority.length; k++) {
+      if (renderOrderPriority < priority[k]) {
+        index = k;
+        break;
+      }
+      else {
+        index = k+1;
+      }
+    }
+    orderedGroupIndex = index;
 
     // set up switch logic for clean BranchGroup replacement
     Switch swt = new Switch(); // J3D
@@ -102,7 +121,7 @@ public abstract class RendererJ3D extends DataRenderer {
     swParent.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     swParent.addChild(swt);
     // make it 'live'
-    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent, this, renderOrderPriority);
+    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
 
     branches = new BranchGroup[3];
     for (int i=0; i<3; i++) {
@@ -164,12 +183,13 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
   public double getRenderOrderPriority() {
     return renderOrderPriority;
   }
+  
+  public int getOrderedGroupIndex() {
+    return orderedGroupIndex;
+  }
 
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
                           BranchGroup branch);
-
-  abstract void addSwitch(DisplayRendererJ3D displayRenderer,
-                          BranchGroup branch, DataRenderer renderer, double orderPriority);
 
   /** re-transform if needed;
       return false if not done */

@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -88,7 +88,7 @@ public class EnhancementTable
             catch (Exception e2)
             {
                 throw new McIDASException(
-                    "Unable to open enhancement table " + source);
+                    "Unable to open enhancement table " + source, e2);
             }
         }
         readRGBValues();
@@ -114,7 +114,7 @@ public class EnhancementTable
         catch (Exception e)
         {
             throw new McIDASException(
-                "Unable to open enhancement table " + file);
+                "Unable to open enhancement table " + file, e);
         }
         readRGBValues();
     }
@@ -138,7 +138,7 @@ public class EnhancementTable
         catch (Exception e)
         {
             throw new McIDASException(
-                "Unable to open enhancement table at URL" + url);
+                "Unable to open enhancement table at URL" + url, e);
         }
         readRGBValues();
     }
@@ -161,7 +161,7 @@ public class EnhancementTable
         }
         catch (Exception e)
         {
-            throw new McIDASException("Invalid enhancement table");
+            throw new McIDASException("Invalid enhancement table", e);
         }
     }
 

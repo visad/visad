@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -342,9 +342,13 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     throw new UnimplementedException("GriddedSet.gridToValue");
   }
 
-  /** transform an array of values in R^DomainDimension to an array
-      of non-integer grid coordinates */
-  public float[][] valueToGrid(float[][] value) throws VisADException {
+  /** Transform an array of values in R^DomainDimension to an array
+      of non-integer grid coordinates. 
+      A guess for for the first value may be supplied: useful when making
+      repeated calls with one value on this set if the resulting grid coords are
+      in proximity with one another. The last determined grid location becomes the guess.
+      */
+  public float[][] valueToGrid(float[][] value, int[] guess) throws VisADException {
     if (Length > 1) {
       for (int j=0; j<DomainDimension; j++) {
         if (Lengths[j] < 2) {
@@ -355,12 +359,25 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     }
     throw new UnimplementedException("GriddedSet.valueToGrid");
   }
-
+  
+  /** transform an array of values in R^DomainDimension to an array
+      of non-integer grid coordinates */
+  public float[][] valueToGrid(float[][] value) throws VisADException {
+    return valueToGrid(value, null);
+  }
+  
   /** for each of an array of values in R^DomainDimension, compute an array
       of 1-D indices and an array of weights, to be used for interpolation;
       indices[i] and weights[i] are null if i-th value is outside grid
-      (i.e., if no interpolation is possible) */
+      (i.e., if no interpolation is possible) 
+      A guess for the first value may be supplied */
+  
   public void valueToInterp(float[][] value, int[][] indices, float[][] weights)
+              throws VisADException {
+    valueToInterp(value, indices, weights, null);
+  }
+  
+  public void valueToInterp(float[][] value, int[][] indices, float[][] weights, int[] guess)
               throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("GriddedSet.valueToInterp: value dimension " +
@@ -380,7 +397,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
                              " doesn't match value[0] length " +
                              value[0].length);
     }
-    float[][] grid = valueToGrid(value); // convert value array to grid coord array
+    float[][] grid = valueToGrid(value, guess); // convert value array to grid coord array
 
     int i, j, k; // loop indices
     int lis; // temporary length of is & cs

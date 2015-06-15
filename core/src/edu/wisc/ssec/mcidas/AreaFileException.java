@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -26,26 +26,49 @@ MA 02111-1307, USA
 
 package edu.wisc.ssec.mcidas;
 
-
 /**
- * AreaFileException class is to handle exceptions when dealing
- * with McIDAS 'area' files.
+ * {@code AreaFileException} class is to handle exceptions when dealing
+ * with McIDAS {@literal "AREA"} files.
  *
  * @author Tom Whittaker SSEC
  */
-
 public class AreaFileException extends McIDASException {
 
   /**
-   * Constructs an AreaFileException with no specified detail message.
+   * Constructs an {@code AreaFileException} with no specified detail message.
    */
-  public AreaFileException() {super(); }
+  public AreaFileException() {
+    super();
+  }
 
   /**
-   * Constructs an AreaFileException with the specified detail message.
+   * Constructs an {@code AreaFileException} with the specified detail message.
    *
-   * @param  s  the detail message.
+   * @param message Detail message.
    */
-  public AreaFileException(String s) {super(s); }
+  public AreaFileException(String message) {
+    super(message);
+  }
 
+  /**
+   * Constructs a {@code AreaFileException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public AreaFileException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+    /**
+     * Constructs a {@code McIDASException} with the specified cause.
+     *
+     * @param cause Cause of the exception. {@code null} indicates that the
+     * cause is nonexistent or unknown.
+     */
+  public AreaFileException(Throwable cause) {
+    super(cause);
+  }
 }

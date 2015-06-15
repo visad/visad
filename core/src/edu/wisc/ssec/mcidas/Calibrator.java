@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -84,6 +84,18 @@ public static final int CAL_NONE = -1;
   public static final int SENSOR_GOES13_IMGR = 180;
   /** GOES 13 sounder. */
   public static final int SENSOR_GOES13_SNDR = 181;
+  /** GOES 14 imager. */
+  public static final int SENSOR_GOES14_IMGR = 182;
+  /** GOES 14 sounder. */
+  public static final int SENSOR_GOES14_SNDR = 183;
+  /** GOES 15 imager. */
+  public static final int SENSOR_GOES15_IMGR = 184;
+  /** GOES 15 sounder. */
+  public static final int SENSOR_GOES15_SNDR = 185;
+  /** GOES 16 imager. */
+  public static final int SENSOR_GOES16_IMGR = 186;
+  /** GOES 16 sounder. */
+  public static final int SENSOR_GOES16_SNDR = 187;
   
   public int setCalType (
     int calType

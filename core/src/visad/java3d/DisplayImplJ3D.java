@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -741,8 +741,8 @@ public class DisplayImplJ3D extends DisplayImpl {
    * @param order      The new order in the scene.
    * @throws VisADException  Renderers must match those in Display.
    */
-  public void reorderRenderers(DataRenderer[] renderers, int[] order) throws VisADException {
-    ((DisplayRendererJ3D)getDisplayRenderer()).reorderRenderers(renderers, order);
+  public void reorderRenderers(int[] order) throws VisADException {
+    ((DisplayRendererJ3D)getDisplayRenderer()).reorderRenderers(order);
   }
 
   /** resets the indirection specified in reorderRenderers */

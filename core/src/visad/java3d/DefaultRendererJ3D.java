@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -144,20 +144,16 @@ public class DefaultRendererJ3D extends RendererJ3D {
       }
       if (post_process) type.postProcess(branch);
     }
+    
     link.clearData();
     return branch;
   }
 
   public void addSwitch(DisplayRendererJ3D displayRenderer,
                         BranchGroup branch) {
-    displayRenderer.addSceneGraphComponent(branch);
+    displayRenderer.addSceneGraphComponent(branch, getOrderedGroupIndex());
   }
-
-  public void addSwitch(DisplayRendererJ3D displayRenderer,
-                        BranchGroup branch, DataRenderer renderer, double orderPriority) {
-    displayRenderer.addSceneGraphComponent(branch, renderer, orderPriority);
-  }
-
+  
   public DataDisplayLink getLink() {
     return link;
   }

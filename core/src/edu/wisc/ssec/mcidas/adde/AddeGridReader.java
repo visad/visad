@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -160,10 +160,10 @@ public class AddeGridReader {
             InputStream is = urlc.getInputStream();
             dis = new DataInputStream(new BufferedInputStream(is));
         } catch (AddeURLException ae) {
-            throw new AddeURLException("Dataset not found: "+ae);
+            throw new AddeURLException("Dataset not found", ae);
         }
         catch (Exception e) {
-            throw new AddeURLException("Error opening connection: " + e);
+            throw new AddeURLException("Error opening connection", e);
         }
 
         int numBytes = ((AddeURLConnection) urlc).getInitialRecordSize();
@@ -246,10 +246,10 @@ public class AddeGridReader {
             InputStream is = urlc.getInputStream();
             dis = new DataInputStream(new BufferedInputStream(is));
         } catch (AddeURLException ae) {
-            throw new AddeURLException("Dataset not found: "+ae);
+            throw new AddeURLException("Dataset not found", ae);
         }
         catch (Exception e) {
-            throw new AddeURLException("Error opening connection: " + e);
+            throw new AddeURLException("Error opening connection", e);
         }
 
         int numBytes = ((AddeURLConnection) urlc).getInitialRecordSize();

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -36,6 +36,7 @@ import javax.media.j3d.*;
 // VisAD
 import visad.ConstantMap;
 import visad.DataReferenceImpl;
+import visad.DataRenderer;
 import visad.DelaunayCustom;
 import visad.Display;
 import visad.FunctionType;
@@ -82,50 +83,9 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
 
   public void addSwitch(DisplayRendererJ3D displayRenderer,
                          BranchGroup branch) {
-    if (initWithProj) {
-      displayRenderer.addLockedSceneGraphComponent(branch, initWithProj);
-    }
-    else {
-      displayRenderer.addLockedSceneGraphComponent(branch);
-    }
+    displayRenderer.addLockedSceneGraphComponent(branch, initWithProj);
   }
-
-
-  /**
-   * This is used for function types of the form:
-   * ((latitude, longitude)->(text))
-   */
-/*
-  public ShadowType makeShadowFunctionType(FunctionType type, 
-    DataDisplayLink link, ShadowType parent) 
-    throws RemoteException, VisADException
-  {
-    return new ShadowScreenLockedFunctionTypeJ3D(type, link, parent);
-  }
-*/
-
-  /**
-   * This is used for tuples of the form:
-   * (latitude, longitude, text)
-   */
-/*
-  public ShadowType makeShadowTupleType(TupleType type, DataDisplayLink link,
-    ShadowType parent) 
-    throws RemoteException, VisADException 
-  { 
-    return new ShadowScreenLockedTupleTypeJ3D(type, link, parent);
-  }
-*/
   
-  
-/*
-  public ShadowType makeShadowSetType(SetType type, DataDisplayLink link,
-    ShadowType parent)
-    throws RemoteException, VisADException 
-  {
-    return new ShadowScreenLockedSetTypeJ3D(type, link, parent);
-  }
-*/
 
   /**
    * Used for testing.

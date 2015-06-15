@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2015 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -368,7 +368,7 @@ public class CalibratorMsg implements Calibrator {
      * Get cal block coefs, converting from bytes to strings.
      *
      * @return array of cal coefs by band.
-     * @throws CalibratorExcpetion when unable to parse calibration block.
+     * @throws CalibratorException when unable to parse calibration block.
      */
     private double[][] getCalCoefs() throws CalibratorException {
 
@@ -393,7 +393,8 @@ public class CalibratorMsg implements Calibrator {
             } catch (NumberFormatException e) {
                 throw new CalibratorException(
                   "Unable to parse values from calibration block for band "
-                    + (i + 1)
+                   + (i + 1),
+                  e
                 );
             }
         }

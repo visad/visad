@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -77,7 +77,7 @@ public class GRIDCoordinateSystem
     }
     catch (McIDASException excp)
     {
-      throw new VisADException( "Grid cannot be navigated");
+      throw new VisADException("Grid cannot be navigated", excp);
     }
     this.dirBlock = dirBlock;
   }
