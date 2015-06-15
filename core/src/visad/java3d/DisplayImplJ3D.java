@@ -741,8 +741,8 @@ public class DisplayImplJ3D extends DisplayImpl {
    * @param order      The new order in the scene.
    * @throws VisADException  Renderers must match those in Display.
    */
-  public void reorderRenderers(DataRenderer[] renderers, int[] order) throws VisADException {
-    ((DisplayRendererJ3D)getDisplayRenderer()).reorderRenderers(renderers, order);
+  public void reorderRenderers(int[] order) throws VisADException {
+    ((DisplayRendererJ3D)getDisplayRenderer()).reorderRenderers(order);
   }
 
   /** resets the indirection specified in reorderRenderers */

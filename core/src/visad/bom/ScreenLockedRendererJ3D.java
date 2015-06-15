@@ -83,19 +83,9 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
 
   public void addSwitch(DisplayRendererJ3D displayRenderer,
                          BranchGroup branch) {
-    if (initWithProj) {
-      displayRenderer.addLockedSceneGraphComponent(branch, initWithProj);
-    }
-    else {
-      displayRenderer.addLockedSceneGraphComponent(branch);
-    }
+    displayRenderer.addLockedSceneGraphComponent(branch, initWithProj);
   }
   
-  public void addSwitch(DisplayRendererJ3D displayRenderer,
-                        BranchGroup branch, DataRenderer renderer, double orderPriority) {
-    displayRenderer.addLockedSceneGraphComponent(branch);
-  }
-
 
   /**
    * Used for testing.
