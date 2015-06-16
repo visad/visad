@@ -347,7 +347,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
       A guess for for the first value may be supplied: useful when making
       repeated calls with one value on this set if the resulting grid coords are
       in proximity with one another. The last determined grid location becomes the guess.
-      */
+  */   
   public float[][] valueToGrid(float[][] value, int[] guess) throws VisADException {
     if (Length > 1) {
       for (int j=0; j<DomainDimension; j++) {
@@ -357,13 +357,21 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
         }
       }
     }
-    throw new UnimplementedException("GriddedSet.valueToGrid");
+    throw new UnimplementedException("GriddedSet.valueToGrid with supplied guess");
   }
   
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
-    return valueToGrid(value, null);
+    if (Length > 1) {
+      for (int j=0; j<DomainDimension; j++) {
+        if (Lengths[j] < 2) {
+          throw new SetException("GriddedSet.valueToGrid: requires all grid " +
+                                 "dimensions to be > 1");
+        }
+      }
+    }
+    throw new UnimplementedException("GriddedSet.valueToGrid");      
   }
   
   /** for each of an array of values in R^DomainDimension, compute an array
@@ -397,8 +405,22 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
                              " doesn't match value[0] length " +
                              value[0].length);
     }
-    float[][] grid = valueToGrid(value, guess); // convert value array to grid coord array
-
+    if (guess != null && guess.length != length) {
+      throw new SetException("GriddedSet.valueToInterp: guess length " +
+                             guess.length +
+                             " not equal to Domain dimension " +
+                             DomainDimension);
+    }
+    
+    float[][] grid;
+    // convert value array to grid coord array
+    if (guess != null) {
+      grid = valueToGrid(value, guess);
+    }
+    else {
+      grid = valueToGrid(value);
+    }
+    
     int i, j, k; // loop indices
     int lis; // temporary length of is & cs
     int length_is; // final length of is & cs, varies by i
