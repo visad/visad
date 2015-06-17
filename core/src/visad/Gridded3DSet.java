@@ -1074,6 +1074,10 @@ public class Gridded3DSet extends GriddedSet {
       throw new SetException("Gridded3DSet.valueToGrid: requires all grid "
           + "dimensions to be > 1");
     }
+    if (guess != null && guess.length != 3) {
+      throw new SetException("Gridded3DSet.valueToGrid: guess length " 
+          + guess.length + " must equal 3");
+    }
     // Avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int length = Math.min(value[0].length, value[1].length);
     length = Math.min(length, value[2].length);
@@ -1083,7 +1087,13 @@ public class Gridded3DSet extends GriddedSet {
     int gx = (LengthX-1)/2; 
     int gy = (LengthY-1)/2; 
     int gz = (LengthZ-1)/2;
-
+    
+    // TDR: special check if i==0 when a first value guess is supplied.
+    if (guess != null && guess[0] >= 0 && guess[1] >= 0 && guess[2] >= 0) {
+      gx = guess[0];
+      gy = guess[1];
+      gz = guess[2];
+    }
 
     float[] A = new float[3];
     float[] B = new float[3];
