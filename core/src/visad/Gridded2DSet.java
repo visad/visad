@@ -376,6 +376,10 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       throw new SetException("Gridded2DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
+    if (guess != null && guess.length != 2) {
+      throw new SetException("Gridded2DSet.valueToGrid: guess length " 
+          + guess.length + " must equal 2");
+    }
     int length = Math.min(value[0].length, value[1].length);
     float[][] grid = new float[ManifoldDimension][length];
 
