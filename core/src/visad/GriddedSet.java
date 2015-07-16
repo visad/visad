@@ -405,7 +405,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
                              " doesn't match value[0] length " +
                              value[0].length);
     }
-    if (guess != null && guess.length != length) {
+    if (guess != null && guess.length != DomainDimension) {
       throw new SetException("GriddedSet.valueToInterp: guess length " +
                              guess.length +
                              " not equal to Domain dimension " +
