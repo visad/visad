@@ -59,9 +59,7 @@ public abstract class RendererJ3D extends DataRenderer {
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
 
-  public boolean hasPolygonOffset = false;
-  public float polygonOffset = 0f;
-
+  
   public RendererJ3D() {
     super();
   }
