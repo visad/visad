@@ -84,7 +84,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /** for undersampling of curved texture maps @serial */
   private int curvedSize = 10;
 
-  /** true to adjust projection seam */
+   /** true to adjust projection seam */
   private boolean adjustProjectionSeam;
 
   /** mode for Texture3D */
@@ -101,8 +101,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   
   /** for automatic push back in the z-buffer */
   public boolean autoDepthOffsetEnable = true;
-  public float maxDepthOffset = 88f;
-  public float depthOffsetInc = -8f;
+  public float maxDepthOffset = 14f;
+  public float depthOffsetInc = -1f;
 
   /**
    * Construct a GraphicsModeControlJ3D associated with the input display
@@ -657,6 +657,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public void setMaximumDepthOffset(float maxDepthOffset, boolean noChange) throws VisADException, RemoteException {
     this.maxDepthOffset = maxDepthOffset;
     if (!noChange) {
+      getDisplay().resetDepthBufferOffsets();
       changeControl(true);
       getDisplay().reDisplayAll();
     }
@@ -669,6 +670,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public void setDepthOffsetIncrement(float inc, boolean noChange) throws VisADException, RemoteException {
     this.depthOffsetInc = inc;
     if (!noChange) {
+      getDisplay().resetDepthBufferOffsets();
       changeControl(true);
       getDisplay().reDisplayAll();
     }  
@@ -676,6 +678,12 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   
   public float getDepthOffsetIncrement() {
     return this.depthOffsetInc;
+  }
+  
+  public void resetDepthBufferOffsets() throws VisADException, RemoteException {
+    getDisplay().resetDepthBufferOffsets();
+    changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   /**
