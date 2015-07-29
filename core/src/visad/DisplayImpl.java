@@ -196,7 +196,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** has this display been destroyed           */
   private boolean destroyed = false;
-
+  
   /**
    * construct a DisplayImpl with given name and DisplayRenderer
    * @param name String name for DisplayImpl (used for debugging)
@@ -3304,5 +3304,75 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
 
   }
+  
+    public float getOffsetDepthMinimum(float depthOffsetMax) {
+      Vector rendVec = getRendererVector();
+      Iterator<DataRenderer> iter = rendVec.iterator();
+      float offsetMin = depthOffsetMax;
+      while (iter.hasNext()) {
+        DataRenderer rend = iter.next();
+          if (rend.hasPolygonOffset()) {
+            if (rend.getPolygonOffset() < offsetMin) {
+              offsetMin = rend.getPolygonOffset();  
+            }
+          }
+      }
+      return offsetMin;
+    }
+    
+   public int getNumRenderersWithZoffset() {
+     Vector rendVec = getRendererVector();
+     Iterator<DataRenderer> iter = rendVec.iterator();
+     int num = 0;
+     while (iter.hasNext()) {
+       DataRenderer rend = iter.next();
+       if (rend.hasPolygonOffset()) {
+         num++;
+       }
+     }
+     return num;
+   }
+   
+   public void setDepthBufferOffset(DataRenderer renderer, GraphicsModeControl mode) {
+     if (mode.getAutoDepthOffsetEnable()) {
+       float depthOffsetInc = mode.getDepthOffsetIncrement();
+       float maxDepthOffset = mode.getMaximumDepthOffset();
+       int numLayers = (int) (maxDepthOffset/-1*depthOffsetInc);
+       if (!renderer.hasPolygonOffset()) {
+         int cnt = getNumRenderersWithZoffset();
+         if (cnt < numLayers) {
+           renderer.setPolygonOffset(getOffsetDepthMinimum(maxDepthOffset) + depthOffsetInc);
+           renderer.setPolygonOffsetFactor((numLayers-cnt)*0.4f);
+           renderer.setHasPolygonOffset(true);  
+         }
+         else {
+           renderer.setPolygonOffset(0f);  
+           renderer.setPolygonOffsetFactor(0f);
+           renderer.setHasPolygonOffset(false);
+         }
+       }
+     }
+     else if (renderer.hasPolygonOffset()) { /* autoDepth disabled so reset renderer */
+       renderer.setPolygonOffset(0f);  
+       renderer.setPolygonOffsetFactor(0f);
+       renderer.setHasPolygonOffset(false);
+     }
+     
+     mode.setPolygonOffset(renderer.getPolygonOffset(), false);
+     mode.setPolygonOffsetFactor(renderer.getPolygonOffsetFactor(), false);
+   }
+   
+   public void resetDepthBufferOffsets() {
+     Vector rendVec = getRendererVector();
+     Iterator<DataRenderer> iter = rendVec.iterator();
+     while (iter.hasNext()) {
+       DataRenderer rend = iter.next();
+       if (rend.hasPolygonOffset()) {
+         rend.setHasPolygonOffset(false);
+         rend.setPolygonOffset(0f);
+         rend.setPolygonOffsetFactor(0f);
+       }
+     }
+   }
 }
 

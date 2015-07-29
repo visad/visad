@@ -758,23 +758,5 @@ public class DisplayImplJ3D extends DisplayImpl {
     mode = null;
   }
   
-  public float getOffsetDepthMinimum(float depthOffsetMax) {
-    java.util.Vector rendVec = getRendererVector();
-    java.util.Iterator iter = rendVec.iterator();
-    float offsetMin = depthOffsetMax;
-    RendererJ3D rendj3d;
-    while (iter.hasNext()) {
-      Object rend = iter.next();
-      if (rend instanceof RendererJ3D) {
-        rendj3d = (RendererJ3D)rend;
-        if (rendj3d.hasPolygonOffset) {
-          if (rendj3d.polygonOffset < offsetMin) {
-            offsetMin = rendj3d.polygonOffset;  
-          }
-        }
-      }
-    }
-    return offsetMin;
-  }
 }
 
