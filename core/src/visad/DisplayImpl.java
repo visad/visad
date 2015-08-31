@@ -3337,12 +3337,13 @@ System.out.println("initialize = " + initialize + " go = " + go +
      if (mode.getAutoDepthOffsetEnable()) {
        float depthOffsetInc = mode.getDepthOffsetIncrement();
        float maxDepthOffset = mode.getMaximumDepthOffset();
-       int numLayers = (int) (maxDepthOffset/-1*depthOffsetInc);
+       int numLayers = (int) (maxDepthOffset/-depthOffsetInc);
        if (!renderer.hasPolygonOffset()) {
          int cnt = getNumRenderersWithZoffset();
          if (cnt < numLayers) {
            renderer.setPolygonOffset(getOffsetDepthMinimum(maxDepthOffset) + depthOffsetInc);
-           renderer.setPolygonOffsetFactor((numLayers-cnt)*0.4f);
+           //renderer.setPolygonOffsetFactor((numLayers-cnt)*0.4f);
+           renderer.setPolygonOffsetFactor(0f);
            renderer.setHasPolygonOffset(true);  
          }
          else {
