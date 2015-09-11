@@ -139,11 +139,30 @@ public class AreaDirectory implements java.io.Serializable
                 "GOES 12 sounder",
                 "ERBE",
                 "",
+                
+                // Some notes on naming for JMA satellites:
+                // 1. Himawari is the new naming for the 3rd generation of JMA's (Japanese Meteorological
+                // Agency) GMS series of satellites.  We originally reserved Sensor numbers 82 through 86
+                // for GMS-4 to GMS-8.  Meanwhile, JMA renamed to MTSAT for 2nd gen, and Himawari for
+                // 3rd gen.  So, a mapping to keep track of the naming history might look like:
+                //
+                // 1st Gen
+                // GMS-4 -> Himawari-4
+                // GMS-5 -> Himawari-5
+                //
+                // 2nd Gen
+                // (MTSAT-1 - launch failure)
+                // GMS-6 -> MTSAT-1R -> Himawari-6
+                // GMS-7 -> MTSAT-2 -> Himawari-7
+                //
+                // 3rd Gen
+                // GMS-8 -> Himawari-8
+                
                 "GMS-4",
                 "GMS-5",
-                "GMS-6",
-                "GMS-7",
-                "GMS-8",
+                "MTSAT-1R",
+                "MTSAT-2",
+                "Himawari-8",
                 "DMSP F-8",
                 "DMSP F-9",
                 "DMSP F-10",
@@ -209,18 +228,27 @@ public class AreaDirectory implements java.io.Serializable
                 "","","","","","","","","", // 220
                 "","","","","","","","","",
                 "Kalpana-1", // 230
-                "","","","","","","","","",
+                "INSAT-3D Imager", // 231
+                "INSAT-3D Sounder", // 232
+                "","","","","","","",
                 "MetOp-A", // 240
                 "MetOp-B",
                 "MetOp-C",
                 "","","","","","","",
                 "COMS-1", // 250
-                "","","","","","","","","","",
-                "","","","","","","","","","",
+                "","","","","","","","","","", // 260
+                "Landsat 1",
+                "Landsat 2",
+                "Landsat 3",
+                "Landsat 4",
+                "Landsat 5",
+                "Landsat 6",
+                "Landsat 7",
+                "Landsat 8","","", // 270
                 "","","","","","","","","","",
                 "","","","","","","","","","",
                 "","","","","","","","","",
-                "NPP-VIIRS", // 300
+                "Suomi NPP-VIIRS", // 300
                 "","","","","","","","","","",
                 "","","","","","","","","","",
                 "","","","","","","","","","",
@@ -247,6 +275,7 @@ public class AreaDirectory implements java.io.Serializable
    *
    * @exception  AreaFileException   not a valid directory
    */
+  
   public AreaDirectory(int[] dirblock)
     throws AreaFileException
   {
@@ -619,4 +648,26 @@ public class AreaDirectory implements java.io.Serializable
     for (int i = 0; i < bands.length; i++) buf.append(bands[i]);
     return buf.toString();
   }
+  
+  /**
+   * Used for unit testing - for now just prints Sensor ID list
+   * This provides an easy way to make sure list is current before
+   * releases.
+   */
+  
+  public static void main(String[] args) {
+	  int[] dirBlock = new int[AreaFile.AD_DIRSIZE];
+	  dirBlock[AreaFile.AD_VERSION] = AreaFile.VERSION_NUMBER;
+	  AreaDirectory ad;
+	  try {
+		  ad = new AreaDirectory(dirBlock);
+		  for (int i = 0; i < ad.sensors.length; i++) {
+			  System.err.println("Sensor ID " + i + ": " + ad.sensors[i]);
+		  }
+	  } catch (AreaFileException e) {
+		  e.printStackTrace();
+	  }
+
+  }
+  
 }
