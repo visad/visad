@@ -3354,8 +3354,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
        }
      }
      else if (renderer.hasPolygonOffset()) { /* autoDepth disabled so reset renderer */
-       renderer.setPolygonOffset(0f);  
-       renderer.setPolygonOffsetFactor(0f);
+       renderer.setPolygonOffset(mode.getPolygonOffset());  
+       renderer.setPolygonOffsetFactor(mode.getPolygonOffsetFactor());
        renderer.setHasPolygonOffset(false);
      }
      
