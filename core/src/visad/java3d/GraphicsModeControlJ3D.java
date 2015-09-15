@@ -100,9 +100,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   private boolean depthBufferEnable = true;
   
   /** for automatic push back in the z-buffer */
-  public boolean autoDepthOffsetEnable = true;
-  public float maxDepthOffset = 10f;
-  public float depthOffsetInc = -2f;
+  private boolean autoDepthOffsetEnable = true;
+  private float depthOffsetInc = -2f;
+  private int maxNumWithOffset = 6;
 
   /**
    * Construct a GraphicsModeControlJ3D associated with the input display
@@ -646,16 +646,21 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   
   public void setAutoDepthOffsetEnable(boolean enable) throws VisADException, RemoteException {
     this.autoDepthOffsetEnable = enable;
+    getDisplay().resetDepthBufferOffsets();
     changeControl(true);
     getDisplay().reDisplayAll();
+  }
+  
+  public void setAutoDepthOffsetEnable(boolean enable, boolean noChange) throws VisADException, RemoteException {
+    this.autoDepthOffsetEnable = enable;
   }
   
   public boolean getAutoDepthOffsetEnable() {
     return autoDepthOffsetEnable;
   }
   
-  public void setMaximumDepthOffset(float maxDepthOffset, boolean noChange) throws VisADException, RemoteException {
-    this.maxDepthOffset = maxDepthOffset;
+  public void setNumRenderersWithDepthOffset(int numWith, boolean noChange) throws VisADException, RemoteException {
+    this.maxNumWithOffset = numWith;
     if (!noChange) {
       getDisplay().resetDepthBufferOffsets();
       changeControl(true);
@@ -663,8 +668,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     }
   }
   
-  public float getMaximumDepthOffset() {
-    return maxDepthOffset;
+  public int getNumRenderersWithDepthOffset() {
+    return maxNumWithOffset;
   }
   
   public void setDepthOffsetIncrement(float inc, boolean noChange) throws VisADException, RemoteException {
@@ -680,12 +685,6 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return this.depthOffsetInc;
   }
   
-  public void resetDepthBufferOffsets() throws VisADException, RemoteException {
-    getDisplay().resetDepthBufferOffsets();
-    changeControl(true);
-    getDisplay().reDisplayAll();
-  }
-
   /**
    * See whether missing values are rendered as transparent or not.
    *
@@ -836,8 +835,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.mergeGeometries = mergeGeometries;
     mode.depthBufferEnable = depthBufferEnable;
     mode.autoDepthOffsetEnable = autoDepthOffsetEnable;
-    mode.maxDepthOffset = maxDepthOffset;
     mode.depthOffsetInc = depthOffsetInc;
+    mode.maxNumWithOffset = maxNumWithOffset;
     return mode;
   }
 
@@ -963,9 +962,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       autoDepthOffsetEnable = rmtCtl.autoDepthOffsetEnable;
     }
     
-    if (!Util.isApproximatelyEqual(maxDepthOffset, rmtCtl.maxDepthOffset)) {
+    if (!Util.isApproximatelyEqual(maxNumWithOffset, rmtCtl.maxNumWithOffset)) {
       changed = true;
-      maxDepthOffset = rmtCtl.maxDepthOffset;
+      maxNumWithOffset = rmtCtl.maxNumWithOffset;
     }
 
     if (!Util.isApproximatelyEqual(depthOffsetInc, rmtCtl.depthOffsetInc)) {
@@ -1079,7 +1078,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       return false; 
     }
     
-    if (!Util.isApproximatelyEqual(maxDepthOffset, gmc.maxDepthOffset)) {
+    if (!Util.isApproximatelyEqual(maxNumWithOffset, gmc.maxNumWithOffset)) {
       return false;
     }
 

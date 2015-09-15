@@ -3336,8 +3336,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
    public void setDepthBufferOffset(DataRenderer renderer, GraphicsModeControl mode) {
      if (mode.getAutoDepthOffsetEnable()) {
        float depthOffsetInc = mode.getDepthOffsetIncrement();
-       float maxDepthOffset = mode.getMaximumDepthOffset();
-       int numLayers = (int) (maxDepthOffset/-depthOffsetInc);
+       int numLayers = mode.getNumRenderersWithDepthOffset();
+       float maxDepthOffset = numLayers*(-depthOffsetInc);
+       
        if (!renderer.hasPolygonOffset()) {
          int cnt = getNumRenderersWithZoffset();
          if (cnt < numLayers) {
@@ -3352,15 +3353,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
            renderer.setHasPolygonOffset(false);
          }
        }
+       mode.setPolygonOffset(renderer.getPolygonOffset(), false);
+       mode.setPolygonOffsetFactor(renderer.getPolygonOffsetFactor(), false);
      }
-     else if (renderer.hasPolygonOffset()) { /* autoDepth disabled so reset renderer */
-       renderer.setPolygonOffset(mode.getPolygonOffset());  
-       renderer.setPolygonOffsetFactor(mode.getPolygonOffsetFactor());
-       renderer.setHasPolygonOffset(false);
-     }
-     
-     mode.setPolygonOffset(renderer.getPolygonOffset(), false);
-     mode.setPolygonOffsetFactor(renderer.getPolygonOffsetFactor(), false);
    }
    
    public void resetDepthBufferOffsets() {
