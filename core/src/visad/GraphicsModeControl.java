@@ -376,25 +376,24 @@ public abstract class GraphicsModeControl extends Control implements Cloneable {
    */
   public abstract float getPolygonOffsetFactor();
   
-  public void setAutoDepthOffsetEnable(boolean enable) throws VisADException, RemoteException {
+  public abstract void setAutoDepthOffsetEnable(boolean enable) throws VisADException, RemoteException;
+  
+  public abstract void setAutoDepthOffsetEnable(boolean enable, boolean noChange) throws VisADException, RemoteException;
+  
+  public abstract boolean getAutoDepthOffsetEnable();
+  
+  public void setNumRenderersWithDepthOffset(int numWith) throws VisADException, RemoteException {
   }
   
-  public boolean getAutoDepthOffsetEnable() {
-    return false;
-  }
-  
-  public void setMaximumDepthOffset(float maxDepthOffset, boolean noChange) throws VisADException, RemoteException {
-  }
-  
-  public float getMaximumDepthOffset() {
-    return Float.NaN;
+  public int getNumRenderersWithDepthOffset() {
+    return 0;
   }
   
   public void setDepthOffsetIncrement(float inc, boolean noChange) throws VisADException, RemoteException {
   }
   
   public float getDepthOffsetIncrement() {
-      return Float.NaN;
+    return 0f;
   }
 
   /**
