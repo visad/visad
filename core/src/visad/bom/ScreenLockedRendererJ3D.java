@@ -36,7 +36,6 @@ import javax.media.j3d.*;
 // VisAD
 import visad.ConstantMap;
 import visad.DataReferenceImpl;
-import visad.DataRenderer;
 import visad.DelaunayCustom;
 import visad.Display;
 import visad.FunctionType;
@@ -83,7 +82,12 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
 
   public void addSwitch(DisplayRendererJ3D displayRenderer,
                          BranchGroup branch) {
-    displayRenderer.addLockedSceneGraphComponent(branch, initWithProj);
+    if (initWithProj) {
+      displayRenderer.addLockedSceneGraphComponent(branch, initWithProj);
+    }
+    else {
+      displayRenderer.addLockedSceneGraphComponent(branch);
+    }
   }
   
 

@@ -906,6 +906,11 @@ public abstract class DisplayRendererJ3D
     }
     non_direct.setChildIndexOrder(chldIdxOrder);   
   }
+  
+  public void addLockedSceneGraphComponent(Group group) {
+    if (not_destroyed == null || screen_locked == null) return;
+    screen_locked.addChild(group);
+  }
 
   public void addLockedSceneGraphComponent(Group group, boolean initWithProj) {
     if (not_destroyed == null || screen_locked == null) return;
