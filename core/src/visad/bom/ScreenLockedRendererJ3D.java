@@ -73,6 +73,7 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
   public ScreenLockedRendererJ3D()
   {
     super();
+    renderOrderPriority = -1;
   }
 
   public ScreenLockedRendererJ3D(boolean initWithProj) {
