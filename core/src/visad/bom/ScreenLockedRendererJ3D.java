@@ -36,7 +36,6 @@ import javax.media.j3d.*;
 // VisAD
 import visad.ConstantMap;
 import visad.DataReferenceImpl;
-import visad.DataRenderer;
 import visad.DelaunayCustom;
 import visad.Display;
 import visad.FunctionType;
