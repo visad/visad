@@ -90,43 +90,7 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
     }
   }
 
-
-  /**
-   * This is used for function types of the form:
-   * ((latitude, longitude)->(text))
-   */
-/*
-  public ShadowType makeShadowFunctionType(FunctionType type, 
-    DataDisplayLink link, ShadowType parent) 
-    throws RemoteException, VisADException
-  {
-    return new ShadowScreenLockedFunctionTypeJ3D(type, link, parent);
-  }
-*/
-
-  /**
-   * This is used for tuples of the form:
-   * (latitude, longitude, text)
-   */
-/*
-  public ShadowType makeShadowTupleType(TupleType type, DataDisplayLink link,
-    ShadowType parent) 
-    throws RemoteException, VisADException 
-  { 
-    return new ShadowScreenLockedTupleTypeJ3D(type, link, parent);
-  }
-*/
   
-  
-/*
-  public ShadowType makeShadowSetType(SetType type, DataDisplayLink link,
-    ShadowType parent)
-    throws RemoteException, VisADException 
-  {
-    return new ShadowScreenLockedSetTypeJ3D(type, link, parent);
-  }
-*/
-
   /**
    * Used for testing.
    * Creates a display with a red square and labels at each

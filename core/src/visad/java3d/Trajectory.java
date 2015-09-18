@@ -64,6 +64,7 @@ public class Trajectory {
      public static boolean[] markGrid;
      public static int[] markGridTime;
 
+     public static boolean doStartOffset = false;
      public static int cnt=0;
      public static int[] o_j = new int[] {0, 0, 1, 1}; 
      public static int[] o_i = new int[] {0, 1, 0, 1}; 
@@ -209,8 +210,11 @@ public class Trajectory {
 
      public static void getStartPointsFromDomain2D(int skip, float[][] setLocs, int lenX, int lenY, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
         int clrDim = color_values.length;
-        int m = cnt % 4;
-        cnt++;
+        int m = 0;
+        if (doStartOffset) {
+          m = cnt % 4;
+          cnt++;
+        }
 
         int jA = 1+o_j[m]*(skip/2);
         int jB = lenY-skip;
