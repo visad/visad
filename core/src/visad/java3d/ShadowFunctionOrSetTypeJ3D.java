@@ -90,7 +90,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   float[][] values0_last;
   ArrayList<Trajectory> trajectories;
   double timeAccum = 0;
-  VisADLineArray array;
+  VisADGeometryArray array;
   VisADGeometryArray trcrArray;
   ArrayList<VisADGeometryArray> trcrArrays;
   ArrayList<float[]> achrArrays;
