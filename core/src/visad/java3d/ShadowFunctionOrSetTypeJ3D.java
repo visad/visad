@@ -90,12 +90,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   float[][] values0_last;
   ArrayList<Trajectory> trajectories;
   double timeAccum = 0;
-  VisADLineArray array;
+  VisADGeometryArray array;
   VisADGeometryArray trcrArray;
   ArrayList<VisADGeometryArray> trcrArrays;
   ArrayList<float[]> achrArrays;
   
-  public static ArrayList<VisADGeometryArray> trajArrays = new ArrayList<VisADGeometryArray>();
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -1693,7 +1692,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           array = Trajectory.makeGeometry();
           trajectories = Trajectory.clean(trajectories, trajLifetime);
-          trajArrays.add(array);
      }
      
   }

@@ -358,7 +358,7 @@ public class Trajectory {
         }
      }
 
-     public static VisADLineArray makeGeometry() {
+     public static VisADGeometryArray makeGeometry() {
        VisADLineArray array = new VisADLineArray();
        float[] newCoords = new float[coordCnt];
        byte[] newColors = new byte[colorCnt];
