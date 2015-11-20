@@ -171,16 +171,16 @@ public class ConversionUtility
     *
     */
 
-    // set up munging bytes
-    byte0 = (inVal & 0x000000FF);
-    byte1 = ((inVal >> 8) & 0x000000FF);
-    byte2 = ((inVal >> 16) & 0x000000FF);
-
     sign = 1;
     if ((inVal & 0x80000000) != 0) {
       sign = -1;
       inVal = -inVal;
     }
+
+    // set up munging bytes
+    byte0 = (short)(inVal & 0x000000FF);
+    byte1 = (short)((inVal >> 8) & 0x000000FF);
+    byte2 = (short)((inVal >> 16) & 0x000000FF);
 
     exponent = ((inVal & 0x7F000000) >> 24);
     if (exponent == 0) {
