@@ -712,7 +712,8 @@ public class AreaFile implements java.io.Serializable {
           throw new AreaFileException("Error reading AreaFile calibration", e);
         }
       }
-      // if (flipwords) flipcal(cal);
+      if (flipwords) //flipcal(cal);
+        McIDASUtil.flip(cal, 0, cal.length-1);
       position = calLoc + calbytes;
     }
 
