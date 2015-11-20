@@ -28,6 +28,7 @@ package edu.wisc.ssec.mcidas;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * CalibratorGvar creates a Calibrator object designed specifically
@@ -57,6 +58,9 @@ public abstract class CalibratorGvar implements Calibrator {
   protected float [] visBiasCoef  = new float [NUM_VIS_DETECTORS];
   protected float [] visGain1Coef = new float [NUM_VIS_DETECTORS];
   protected float [] visGain2Coef = new float [NUM_VIS_DETECTORS];
+  protected float    visBiasCoefAVG = 0.f;
+  protected float    visGain1CoefAVG = 0.f;
+  protected float    visGain2CoefAVG = 0.f;
   protected float visRadToAlb = 0.0f;
   protected float [][] irBiasCoef = new float [NUM_IR_DETECTORS][NUM_IR_BANDS];
   protected float [][] irGainCoef = new float [NUM_IR_DETECTORS][NUM_IR_BANDS];
@@ -84,16 +88,24 @@ public abstract class CalibratorGvar implements Calibrator {
   public CalibratorGvar (
     DataInputStream dis, 
     AncillaryData ad, 
-    int [] calBlock
-  ) 
-    throws IOException
-
-  {
-	  this(ad.getSensorId(), calBlock);
+    int [] calBlock)  throws IOException {
+    sid = ad.getSensorId();
+    if(calBlock != null)
+      initGvar(ad.getSensorId(), calBlock);
   }
-	  
-	  
-  public CalibratorGvar(final int sensorId, int[] calBlock) {
+
+  public CalibratorGvar (
+          int sensorId,
+          int [] calBlock)
+  {
+    sid = sensorId;
+    if(calBlock != null)
+      initGvar(sensorId, calBlock);
+  }
+
+
+
+  public void initGvar(final int sensorId, int[] calBlock) {
 
     int calIndex = 0;
     sid = sensorId;
@@ -118,20 +130,26 @@ public abstract class CalibratorGvar implements Calibrator {
       for (int i = 0; i < NUM_VIS_DETECTORS; i++) {
         visBiasCoef[i] = (float) 
           ConversionUtility.GouldToNative(calBlock[calIndex]);
+        visBiasCoefAVG = visBiasCoefAVG + visBiasCoef[i];
         calIndex++;
       }
+      visBiasCoefAVG = visBiasCoefAVG/NUM_VIS_DETECTORS;
 
       for (int i = 0; i < NUM_VIS_DETECTORS; i++) {
         visGain1Coef[i] = (float) 
           ConversionUtility.GouldToNative(calBlock[calIndex]);
+        visGain1CoefAVG = visGain1CoefAVG + visGain1Coef[i];
         calIndex++;
       }
+      visGain1CoefAVG = visGain1CoefAVG/NUM_VIS_DETECTORS;
 
       for (int i = 0; i < NUM_VIS_DETECTORS; i++) {
         visGain2Coef[i] = (float) 
           ConversionUtility.GouldToNative(calBlock[calIndex]);
+        visGain2CoefAVG = visGain2CoefAVG + visGain2Coef[i];
         calIndex++;
       }
+      visGain2CoefAVG= visGain2CoefAVG/NUM_VIS_DETECTORS;
 
       visRadToAlb = (float) ConversionUtility.GouldToNative(calBlock[calIndex]);
       calIndex++;
@@ -174,20 +192,26 @@ public abstract class CalibratorGvar implements Calibrator {
       for (int i = 0; i < NUM_VIS_DETECTORS / 2; i++) {
         visBiasCoef[i] = (float) 
           ConversionUtility.GouldToNative(calBlock[calIndex]);
+        visBiasCoefAVG = visBiasCoefAVG + visBiasCoef[i];
         calIndex++;
       }
+      visBiasCoefAVG = visBiasCoefAVG/(NUM_VIS_DETECTORS/2);
 
       for (int i = 0; i < NUM_VIS_DETECTORS / 2; i++) {
         visGain1Coef[i] = (float) 
           ConversionUtility.GouldToNative(calBlock[calIndex]);
+        visGain1CoefAVG = visGain1CoefAVG + visGain1Coef[i];
         calIndex++;
       }
+      visGain1CoefAVG = visGain1CoefAVG/(NUM_VIS_DETECTORS/2);
 
       for (int i = 0; i < NUM_VIS_DETECTORS / 2; i++) {
         visGain2Coef[i] = (float) 
           ConversionUtility.GouldToNative(calBlock[calIndex]);
+        visGain2CoefAVG = visGain2CoefAVG + visGain2Coef[i];
         calIndex++;
       }
+      visGain2CoefAVG= visGain2CoefAVG/(NUM_VIS_DETECTORS/2);
 
       visRadToAlb = (float) ConversionUtility.GouldToNative(calBlock[calIndex]);
       calIndex++;
@@ -327,9 +351,9 @@ public abstract class CalibratorGvar implements Calibrator {
     }
     //System.out.println("xxx band = "+band+" index = "+index+" scale="+scale+ " inputPixel"+inputPixel);
 
-    if (!(Float.isNaN(lookupTable[band - 1][index]))) {
-      return (lookupTable[band - 1][index]);
-    }
+    //if (!(Float.isNaN(lookupTable[band - 1][index]))) {
+    //  return (lookupTable[band - 1][index]);
+   // }
 
     // validate, then calibrate for each combination starting with cur type
     switch (curCalType) {
@@ -343,37 +367,68 @@ public abstract class CalibratorGvar implements Calibrator {
           break;
         }
 
-        // convert to radiance 
-        if ((sid % 2) == 0) {
-          outputData = inputPixel / scale;
-        }
-        outputData = (outputData - bias) / gain;
+        if(band == 1 || band == 19){
 
-        // if they want radiance we are done
-        if (calTypeOut == CAL_RAD) {
-          break;
-        }
+          // convert to albedo
+          //int tmp = (int)inputPixel;
+          //int tmp1 = tmp >> 4;
+          float f = (inputPixel)/scale;
+          //float f = tmp1;
 
-        // otherwise, convert to temperature
-        outputData = radToTemp(outputData, band, sid);
+          float G2TERM = 1.0f;
+          if(Math.abs(visGain2CoefAVG) > 0.0001){
+            G2TERM = (float)Math.pow(f, visGain2CoefAVG);
+          }
 
-        // if they want temperature, break here 
-        if (calTypeOut == CAL_TEMP) {
-          break;
-        }
+          outputData = (G2TERM + (f * visGain1CoefAVG) + visBiasCoefAVG) * visRadToAlb;
+          if(outputData < 0.0)
+            outputData = 0.0f;
 
-        // compute brightness from temperature
-        if (outputData >= 242.0f) {
-          outputData = Math.max(660 - (int) (outputData * 2), 0);
+
+          if (calTypeOut == CAL_ALB) {
+            outputData = outputData * 100.0f;
+            break;
+          }
+
+          // convert to brightness
+          outputData = Math.round(Math.sqrt(100.0 * outputData) * 25.5);
+
+          if (calTypeOut == CAL_BRIT) {
+            break;
+          }
+          //
         } else {
-          outputData = Math.min(418 - (int) outputData, 255);
-        }
+          // convert to radiance
+          if ((sid % 2) == 0) {
+            outputData = inputPixel / scale;
+          }
+          outputData = (outputData - bias) / gain;
 
-        // if they want brightness, break here 
-        if (calTypeOut == CAL_BRIT) {
-          break;
-        }
+          // if they want radiance we are done
+          if (calTypeOut == CAL_RAD) {
+            break;
+          }
 
+          // otherwise, convert to temperature
+          outputData = radToTemp(outputData, band, sid);
+
+          // if they want temperature, break here
+          if (calTypeOut == CAL_TEMP) {
+            break;
+          }
+
+          // compute brightness from temperature
+          if (outputData >= 242.0f) {
+            outputData = Math.max(660 - (int) (outputData * 2), 0);
+          } else {
+            outputData = Math.min(418 - (int) outputData, 255);
+          }
+
+          // if they want brightness, break here
+          if (calTypeOut == CAL_BRIT) {
+            break;
+          }
+        }
         break;
 
       case CAL_RAD:
@@ -394,8 +449,65 @@ public abstract class CalibratorGvar implements Calibrator {
 
     }
 
-    lookupTable[band - 1][index] = outputData;
+   // lookupTable[band - 1][index] = outputData;
     return outputData;
+
+  }
+
+  public int[] calibratedList( final int band, final boolean isPreCal ) {
+    int[] cList;
+
+    if(isPreCal){
+      if (band < 4 || band == 12) {
+        // Visible
+        cList = new int[]{CAL_RAW, CAL_BRIT};
+      } else {
+        // IR Channel
+        cList = new int[]{CAL_RAW, CAL_TEMP, CAL_BRIT};
+      }
+    } else {
+      if (band < 4 || band == 12) {
+        // Visible and near-visible (VIS006, VIS008, IR016, HRV)
+        cList = new int[]{CAL_RAW, CAL_ALB, CAL_BRIT};
+      } else {
+        // IR Channel
+        cList = new int[]{CAL_RAW, CAL_TEMP, CAL_RAD, CAL_BRIT};
+      }
+    }
+
+    return cList;
+  }
+
+
+  public String calibratedUnit(int calType){
+    String unitStr = null;
+
+    switch (calType) {
+
+      case CAL_RAW:
+        unitStr = null;
+        break;
+
+      case CAL_RAD:
+        unitStr = "MW**";
+        break;
+
+      case CAL_ALB:
+        unitStr = "%";
+        break;
+
+      case CAL_TEMP:
+        unitStr = "K";
+        break;
+
+      case CAL_BRIT:
+        unitStr = null;
+        break;
+
+    }
+
+    // lookupTable[band - 1][index] = outputData;
+    return unitStr;
 
   }
 

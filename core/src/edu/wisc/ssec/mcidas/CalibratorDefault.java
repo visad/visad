@@ -165,4 +165,15 @@ public class CalibratorDefault implements Calibrator {
 
   }
 
+  public int[] calibratedList( final int band, final boolean isPreCal ) {
+    int[] cList;
+
+    cList = new int[]{CAL_RAW, CAL_BRIT};
+
+    return cList;
+  }
+
+  public  String calibratedUnit (int calType ){
+    return null;
+  }
 }

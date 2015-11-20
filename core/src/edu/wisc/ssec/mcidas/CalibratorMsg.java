@@ -243,6 +243,29 @@ public class CalibratorMsg implements Calibrator {
         return pxl;
     }
 
+
+    public int[] calibratedList( final int band, final boolean isPreCal ) {
+        int[] cList;
+
+        if(isPreCal){
+            if (band < 4 || band == 12) {
+                // Visible and near-visible (VIS006, VIS008, IR016, HRV)
+                cList = new int[]{CAL_RAW, CAL_BRIT};
+            } else {
+                // IR Channel
+                cList = new int[]{CAL_RAW, CAL_TEMP,  CAL_BRIT};
+            }
+        } else {
+            if (band < 4 || band == 12) {
+                // Visible and near-visible (VIS006, VIS008, IR016, HRV)
+                cList = new int[]{CAL_RAW, CAL_RAD, CAL_ALB, CAL_BRIT};
+            } else {
+                // IR Channel
+                cList = new int[]{CAL_RAW, CAL_TEMP, CAL_RAD, CAL_BRIT};
+            }
+        }
+        return cList;
+    }
     /**
      * Calibrate a pixel from RAW data according to the parameters provided.
      *
@@ -438,4 +461,35 @@ public class CalibratorMsg implements Calibrator {
         return bites;
     }
 
+
+    public String calibratedUnit(int calType){
+        String unitStr = null;
+        switch (calType) {
+
+            case CAL_RAW:
+                unitStr = null;
+                break;
+
+            case CAL_RAD:
+                unitStr = "MW**";
+                break;
+
+            case CAL_ALB:
+                unitStr = "%";
+                break;
+
+            case CAL_TEMP:
+                unitStr = "K";
+                break;
+
+            case CAL_BRIT:
+                unitStr = null;
+                break;
+
+        }
+
+        // lookupTable[band - 1][index] = outputData;
+        return unitStr;
+
+    }
 }

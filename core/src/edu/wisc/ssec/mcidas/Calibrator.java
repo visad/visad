@@ -43,7 +43,7 @@ public interface Calibrator {
 
 	}
 
-public static final int CAL_NONE = -1;
+  public static final int CAL_NONE = -1;
   public static final int CAL_MIN  = 1;
   public static final int CAL_RAW  = 1;
   public static final int CAL_RAD  = 2;
@@ -113,4 +113,12 @@ public static final int CAL_NONE = -1;
     int calTypeOut
   );
 
+  public int[] calibratedList (
+          int band,
+          boolean isPreCal
+  );
+
+  public  String calibratedUnit (
+          int calType
+  );
 }
