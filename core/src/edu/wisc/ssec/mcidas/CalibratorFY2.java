@@ -54,6 +54,14 @@ public class CalibratorFY2 extends CalibratorDefault implements Calibrator {
 	public CalibratorFY2(int[] prefix, int[] areaDir, int[] calBlock)
 			throws IOException {
 		super(null, null);
+		if(calBlock != null)
+			initFY2(prefix, areaDir, calBlock);
+		else
+			setIsPreCalibrated(true);
+	}
+
+	public void initFY2(int[] prefix, int[] areaDir, int[] calBlock){
+
 		this.prefix = prefix;
 		this.calBlock = calBlock;
 		// initialize tables

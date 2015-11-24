@@ -75,6 +75,9 @@ public abstract class CalibratorGvar implements Calibrator {
   private static int bandNum = 0;
   private static int sid = 0;
 
+  //
+  public boolean isPreCalibrated = false;
+
   /**
    *
    * constructor
@@ -101,6 +104,8 @@ public abstract class CalibratorGvar implements Calibrator {
     sid = sensorId;
     if(calBlock != null)
       initGvar(sensorId, calBlock);
+    else
+      setIsPreCalibrated(true);
   }
 
 
@@ -510,5 +515,57 @@ public abstract class CalibratorGvar implements Calibrator {
     return unitStr;
 
   }
+  /**
+   *
+   * convert a gray scale value to brightness temperature
+   *
+   * @param inVal       input data value
+   *
+   */
+  public float convertBritToTemp(int inVal) {
 
+    int con1 = 418;
+    int con2 = 660;
+    int ilim = 176;
+
+    float outVal;
+    if(inVal > ilim){
+      outVal = con1 - inVal;
+    } else {
+      outVal = (con2 - inVal)/2;
+    }
+
+    return (outVal);
+  }
+
+  /**
+   *
+   * convert a gray scale value to brightness temperature
+   *
+   * @param inputData   input data array
+   *
+   */
+  public float[] convertBritToTemp (float[] inputData) {
+
+    // create the output data buffer
+    float[] outputData = new float[inputData.length];
+
+    // just call the other calibrate routine for each data point
+    for (int i = 0; i < inputData.length; i++) {
+      outputData[i] = convertBritToTemp((int) inputData[i]);
+    }
+
+    // return the calibrated buffer
+    return outputData;
+
+  }
+
+
+  public boolean getIsPreCalibrated(){
+    return isPreCalibrated;
+  }
+
+  public void setIsPreCalibrated(boolean isPrecalibrated){
+    this.isPreCalibrated = isPrecalibrated;
+  }
 }

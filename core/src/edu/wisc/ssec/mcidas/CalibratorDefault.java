@@ -53,6 +53,7 @@ public class CalibratorDefault implements Calibrator {
   // var to store current cal type
   protected static int curCalType = 0;
 
+  public boolean isPreCalibrated = false;
   /**
    *
    * constructor - does nothing for default calibrator
@@ -175,5 +176,68 @@ public class CalibratorDefault implements Calibrator {
 
   public  String calibratedUnit (int calType ){
     return null;
+  }
+
+  /**
+   *
+   * convert a gray scale value to brightness temperature
+   *
+   * @param inVal       input data value
+   *
+   */
+  public float convertBritToTemp(int inVal) {
+
+    int con1 = 418;
+    int con2 = 660;
+    int ilim = 176;
+
+    float outVal;
+    if(inVal > ilim){
+      outVal = con1 - inVal;
+    } else {
+      outVal = (con2 - inVal)/2;
+    }
+
+    return (outVal);
+  }
+
+  /**
+   *
+   * convert a gray scale value to brightness temperature
+   *
+   * @param inputData   input data array
+   *
+   */
+  public float[] convertBritToTemp (float[] inputData) {
+
+    // create the output data buffer
+    float[] outputData = new float[inputData.length];
+
+    // just call the other calibrate routine for each data point
+    for (int i = 0; i < inputData.length; i++) {
+      outputData[i] = convertBritToTemp((int) inputData[i]);
+    }
+
+    // return the calibrated buffer
+    return outputData;
+
+  }
+
+  /**
+   *
+   * return isPrecalibrated value
+   *
+   */
+  public boolean getIsPreCalibrated(){
+    return isPreCalibrated;
+  }
+
+  /**
+   *
+   * set isPrecalibrated value
+   *
+   */
+  public void setIsPreCalibrated(boolean isPrecalibrated){
+    this.isPreCalibrated = isPrecalibrated;
   }
 }

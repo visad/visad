@@ -105,7 +105,7 @@ public class CalibratorMsg implements Calibrator {
     };
 
     /** Coefficients used in the inverse planck function. */
-    private final double[][] planckCoefs;
+    private double[][] planckCoefs;
 
     /** Cal block converted from an int array. */
     private byte[] calBytes;
@@ -113,6 +113,8 @@ public class CalibratorMsg implements Calibrator {
      * Current cal type as set by <code>setCalType</code>
      */
     private int curCalType = CAL_RAW;
+
+    public boolean isPreCalibrated = false;
     
     /**
      * Construct this object according to the calibration data provided.
@@ -122,12 +124,20 @@ public class CalibratorMsg implements Calibrator {
      * @param cal calibration block from an MSG AREA file.
      * @throws CalibratorException on invalid calibration block.
      */
-    public CalibratorMsg(final int[] cal)  throws CalibratorException { 
+    public CalibratorMsg(int[] cal)  throws CalibratorException {
+        if (cal != null)
+            initMsg(cal);
+        else
+            setIsPreCalibrated(true);
+
+    }
+
+    public void initMsg(int[] cal) throws CalibratorException {
         int[] calBlock = (int[]) cal.clone();
 
         // convert int[] to bytes
         calBytes = calIntsToBytes(calBlock);
-       
+
         // if the header is incorrect, flip and try again
         String msgt = new String(calBytes, 0, 4);
         if (!msgt.equals(HEADER)) {
@@ -136,12 +146,13 @@ public class CalibratorMsg implements Calibrator {
             msgt = new String(calBytes, 0, 4);
             if (!msgt.equals(HEADER)) {
                 throw new IllegalArgumentException(
-                    "Invalid calibration block header: " + msgt
+                        "Invalid calibration block header: " + msgt
                 );
             }
         }
 
         planckCoefs = getCalCoefs();
+
     }
     
     /**
@@ -491,5 +502,68 @@ public class CalibratorMsg implements Calibrator {
         // lookupTable[band - 1][index] = outputData;
         return unitStr;
 
+    }
+    /**
+     *
+     * convert a gray scale value to brightness temperature
+     *
+     * @param inVal       input data value
+     *
+     */
+    public float convertBritToTemp(int inVal) {
+
+        int con1 = 418;
+        int con2 = 660;
+        int ilim = 176;
+
+        float outVal;
+        if(inVal > ilim){
+            outVal = con1 - inVal;
+        } else {
+            outVal = (con2 - inVal)/2;
+        }
+
+        return (outVal);
+    }
+
+    /**
+     *
+     * convert a gray scale value to brightness temperature
+     *
+     * @param inputData   input data array
+     *
+     */
+    public float[] convertBritToTemp (float[] inputData) {
+
+        // create the output data buffer
+        float[] outputData = new float[inputData.length];
+
+        // just call the other calibrate routine for each data point
+        for (int i = 0; i < inputData.length; i++) {
+            outputData[i] = convertBritToTemp((int) inputData[i]);
+        }
+
+        // return the calibrated buffer
+        return outputData;
+
+    }
+
+
+    /**
+     *
+     * return isPrecalibrated value
+     *
+     */
+    public boolean getIsPreCalibrated(){
+        return isPreCalibrated;
+    }
+
+    /**
+     *
+     * set isPrecalibrated value
+     *
+     */
+    public void setIsPreCalibrated(boolean isPrecalibrated){
+        this.isPreCalibrated = isPrecalibrated;
     }
 }

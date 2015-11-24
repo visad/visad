@@ -96,7 +96,8 @@ public interface Calibrator {
   public static final int SENSOR_GOES16_IMGR = 186;
   /** GOES 16 sounder. */
   public static final int SENSOR_GOES16_SNDR = 187;
-  
+
+
   public int setCalType (
     int calType
   );
@@ -120,5 +121,19 @@ public interface Calibrator {
 
   public  String calibratedUnit (
           int calType
+  );
+
+  public float convertBritToTemp(
+          int inVal
+  );
+
+  public float[] convertBritToTemp (
+          float[] inputData
+  );
+
+  public boolean getIsPreCalibrated();
+
+  public void setIsPreCalibrated(
+          boolean isPreCalibrated
   );
 }
