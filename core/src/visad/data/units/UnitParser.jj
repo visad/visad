@@ -288,7 +288,7 @@ TOKEN [IGNORE_CASE] :
     |   < COLON:    ":" >
     |   < UINT:     (["0"-"9"])+ >
     |   <#SIGN:     <PLUS> | <MINUS> >
-    |   <#LETTER:   ["a"-"z","_"] >
+    |   <#LETTER:   ["a"-"z","_","˚"] >
     |   < LPAREN:   "(" >
     |   < RPAREN:   ")" >
     |   < REAL_EXP: "e" (<SIGN>)? <UINT> >
