@@ -174,7 +174,6 @@ public final class DefaultUnitsDB extends UnitTable {
         px("degree K", "K");
         px("degrees K", "K");
 
-        //ps("Cel", new OffsetUnit(273.15, (BaseUnit) get("K")));
         ps("°C", new OffsetUnit(273.15, (BaseUnit) get("K")));
         pn("celsius", "°C");
         px("degree celsius", "°C");
@@ -188,6 +187,7 @@ public final class DefaultUnitsDB extends UnitTable {
         px("deg C", "°C");
         px("degree C", "°C");
         px("degrees C", "°C");
+        px("Cel", "°C");
         // ps("C", "Cel"); // `C' means `coulomb'
 
         pn("rankine", get("K").scale(1 / 1.8));
@@ -201,15 +201,16 @@ public final class DefaultUnitsDB extends UnitTable {
         px("degrees R", "rankine");
         // ps("R", "rankine"); // "R" means "roentgen"
 
-        pn("fahrenheit", get("Rankine").shift(459.67));
-        px("degree fahrenheit", "fahrenheit");
-        px("degrees fahrenheit", "fahrenheit");
-        px("degF", "fahrenheit");
-        px("degreeF", "fahrenheit");
-        px("degreesF", "fahrenheit");
-        px("deg F", "fahrenheit");
-        px("degree F", "fahrenheit");
-        px("degrees F", "fahrenheit");
+        pn("°F", get("Rankine").shift(459.67));
+        px("fahrenheit", "°F");
+        px("degree fahrenheit", "°F");
+        px("degrees fahrenheit", "°F");
+        px("degF", "°F");
+        px("degreeF", "°F");
+        px("degreesF", "°F");
+        px("deg F", "°F");
+        px("degree F", "°F");
+        px("degrees F", "°F");
         // ps("F", "fahrenheit"); // "F" means "farad"
 
         /*
