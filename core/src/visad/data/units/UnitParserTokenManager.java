@@ -70,7 +70,7 @@ private int jjStartNfaWithStates_0(int pos, int kind, int state)
    return jjMoveNfa_0(state, pos + 1);
 }
 static final long[] jjbitVec0 = {
-   0x0L, 0x0L, 0x0L, 0x4000000L
+   0x0L, 0x0L, 0x1000000000000L, 0x0L
 };
 private int jjMoveNfa_0(int startState, int curPos)
 {
@@ -445,9 +445,6 @@ private int jjMoveNfa_0(int startState, int curPos)
       }
       else
       {
-         int hiByte = (curChar >> 8);
-         int i1 = hiByte >> 6;
-         long l1 = 1L << (hiByte & 077);
          int i2 = (curChar & 0xff) >> 6;
          long l2 = 1L << (curChar & 077);
          do
@@ -456,27 +453,27 @@ private int jjMoveNfa_0(int startState, int curPos)
             {
                case 59:
                case 8:
-                  if (!jjCanMove_0(hiByte, i1, i2, l1, l2))
+                  if ((jjbitVec0[i2] & l2) == 0L)
                      break;
                   if (kind > 18)
                      kind = 18;
                   { jjCheckNAddTwoStates(8, 9); }
                   break;
                case 1:
-                  if (!jjCanMove_0(hiByte, i1, i2, l1, l2))
+                  if ((jjbitVec0[i2] & l2) == 0L)
                      break;
                   if (kind > 18)
                      kind = 18;
                   { jjCheckNAddTwoStates(8, 9); }
                   break;
                case 10:
-                  if (!jjCanMove_0(hiByte, i1, i2, l1, l2))
+                  if ((jjbitVec0[i2] & l2) == 0L)
                      break;
                   if (kind > 18)
                      kind = 18;
                   jjstateSet[jjnewStateCnt++] = 10;
                   break;
-               default : if (i1 == 0 || l1 == 0 || i2 == 0 ||  l2 == 0) break; else break;
+               default : break;
             }
          } while(i != startsAt);
       }
@@ -497,16 +494,6 @@ static final int[] jjnextStates = {
    22, 23, 27, 28, 5, 29, 35, 39, 29, 35, 39, 46, 52, 58, 2, 3, 
    42, 43, 48, 49, 54, 55, 
 };
-private static final boolean jjCanMove_0(int hiByte, int i1, int i2, long l1, long l2)
-{
-   switch(hiByte)
-   {
-      case 2:
-         return ((jjbitVec0[i2] & l2) != 0L);
-      default :
-         return false;
-   }
-}
 
 /** Token literal values. */
 public static final String[] jjstrLiteralImages = {
