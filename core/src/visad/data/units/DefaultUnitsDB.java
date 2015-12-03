@@ -175,19 +175,19 @@ public final class DefaultUnitsDB extends UnitTable {
         px("degrees K", "K");
 
         //ps("Cel", new OffsetUnit(273.15, (BaseUnit) get("K")));
-        ps("˚C", new OffsetUnit(273.15, (BaseUnit) get("K")));
-        pn("celsius", "˚C");
-        px("degree celsius", "˚C");
-        px("degrees celsius", "˚C");
-        pn("centigrade", "˚C");
-        px("degree centigrade", "˚C");
-        px("degrees centigrade", "˚C");
-        px("degC", "˚C");
-        px("degreeC", "˚C");
-        px("degreesC", "˚C");
-        px("deg C", "˚C");
-        px("degree C", "˚C");
-        px("degrees C", "˚C");
+        ps("°C", new OffsetUnit(273.15, (BaseUnit) get("K")));
+        pn("celsius", "°C");
+        px("degree celsius", "°C");
+        px("degrees celsius", "°C");
+        pn("centigrade", "°C");
+        px("degree centigrade", "°C");
+        px("degrees centigrade", "°C");
+        px("degC", "°C");
+        px("degreeC", "°C");
+        px("degreesC", "°C");
+        px("deg C", "°C");
+        px("degree C", "°C");
+        px("degrees C", "°C");
         // ps("C", "Cel"); // `C' means `coulomb'
 
         pn("rankine", get("K").scale(1 / 1.8));
