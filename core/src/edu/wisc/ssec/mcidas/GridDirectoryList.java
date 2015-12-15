@@ -213,7 +213,7 @@ public class GridDirectoryList
   
   /** 
    * returns the directory blocks for the requested grids.  
-   * see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+   * see <A HREF="http://www.ssec.wisc.edu/mcidas/doc/prog_man.html">
    *    McIDAS Programmer's Manual</A> for information on the parameters
    *    for each value.
    *

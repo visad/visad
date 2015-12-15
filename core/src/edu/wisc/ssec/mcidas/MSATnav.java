@@ -31,7 +31,7 @@ package edu.wisc.ssec.mcidas;
  * from the original FORTRAN code (nvxmsat.dlm) on the McIDAS system. It
  * only supports latitude/longitude to line/element transformations (LL) 
  * and vice/versa. Transform to 'XYZ' not implemented.
- * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+ * @see <A HREF="http://www.ssec.wisc.edu/mcidas/doc/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
  * @author  Don Murray

@@ -678,7 +678,7 @@ public class AreaAdapter {
    * Retrieves the "nominal" time of the image as a VisAD DateTime.  This
    * may or may not be the start of the image scan.  Values are derived from
    * the 4th and 5th words in the AREA file directory.
-   * @see <a href="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+   * @see <a href="http://www.ssec.wisc.edu/mcidas/doc/prog_man.html">
    * McIDAS Programmer's Manual</a>
    * @see #getImageStartTime()
    *
@@ -693,7 +693,7 @@ public class AreaAdapter {
   /**
    * Retrieves the time of the start of the image scan as a VisAD DateTime.
    * Values are derived from the 46th and 47th words in the AREA file directory.
-   * @see <a href="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+   * @see <a href="http://www.ssec.wisc.edu/mcidas/doc/prog_man.html">
    * McIDAS Programmer's Manual</a>
    * @see #getNominalTime()
    *

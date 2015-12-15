@@ -40,7 +40,7 @@ import edu.wisc.ssec.mcidas.AreaFile;
 /**
  * Class for static McIDAS utility methods.  In many cases, these
  * methods are the Java equivalents of  McIDAS library functions.
- * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+ * @see <A HREF="http://www.ssec.wisc.edu/mcidas/doc/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
  * @author Don Murray, Unidata

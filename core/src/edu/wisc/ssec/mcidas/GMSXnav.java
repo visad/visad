@@ -38,7 +38,7 @@ import java.lang.Math;
  * only supports latitude/longitude to line/element transformations (LL)
  * and vice/versa. Transform to 'XYZ' not implemented.
  * @see edu.wisc.ssec.mcidas.AREAnav
- * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+ * @see <A HREF="http://www.ssec.wisc.edu/mcidas/doc/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
  * @author Tommy Jasmin, University of Wisconsin, SSEC
@@ -48,6 +48,7 @@ public class GMSXnav extends AREAnav
 
 {
 
+  private static final long serialVersionUID = 1L;
   private byte bParms[] = new byte[3200];
   private float subLon;
   private float subLat;
@@ -433,12 +434,6 @@ public class GMSXnav extends AREAnav
 
     int i = 0;
     int j = 0;
-    int offset;
-    int tmpLoInt;
-    int tmpHiInt;
-    long tmpLong;
-    float r4Dmy = 0.0f;
-    double r8Dmy = 0.0d;
 
     dtims = sv0100(6,  8, b,   0);
     dspin = sv0100(6,  8, b, 240);
@@ -535,24 +530,6 @@ public class GMSXnav extends AREAnav
 
   /**
    *
-   * set the sub-point Latitude and Longitude
-   *
-   * @param ll is the [latitude,longitude] of the sub-point
-   *
-   *
-   */
-
-  private void subLatLon (float[] ll) 
-
-  {
-
-    return;
-
-  }
-
-
-  /**
-   *
    * mgivsr does the actual conversion to/from lat/lon or line/elem
    *
    * @param iMode - conversion mode, to lat/lon or to line/elem
@@ -575,7 +552,6 @@ public class GMSXnav extends AREAnav
 
   {
 
-    int rc = 0;
     int lMode;
     float rstep;
     float rsamp;
@@ -623,11 +599,9 @@ public class GMSXnav extends AREAnav
 
     // parameter checks
     if (Math.abs(iMode) > 4) {
-      rc = 1;
       return (point);
     }
     if ((Math.abs(rLat) > 90) && (iMode > 0)) {
-      rc = 2;
       return (point);
     }
 
@@ -698,12 +672,10 @@ public class GMSXnav extends AREAnav
       if ((rLin < 0) || (rLin > rftl)) {
         point[0] = Float.NaN;
         point[1] = Float.NaN;
-        rc = 4;
       }
       if ((rPix < 0) || (rPix > rftp)) {
         point[0] = Float.NaN;
         point[1] = Float.NaN;
-        rc = 5;
       }
 
     }
@@ -745,7 +717,6 @@ public class GMSXnav extends AREAnav
         dk1 = (-ddb + Math.sqrt(dd)) / dda;
         dk2 = (-ddb - Math.sqrt(dd)) / dda;
       } else {
-        rc = 6;
         return (point);
       }
       if (Math.abs(dk1) < Math.abs(dk2)) {
@@ -1059,49 +1030,6 @@ public class GMSXnav extends AREAnav
     asita = Math.acos(temp);
 
     return(asita);
-
-  }
-
-
-  /**
-   *
-   * mg1240 conversion routine of some sort
-   *
-   * @param va - ?
-   * @param vh - ?
-   * @param vn - ?
-   * @param dpai - double PI (Math.PI * 2)
-   *
-   * @return double
-   *
-   */
-
-  private double mg1240 (
-    double [] va,
-    double [] vh,
-    double [] vn,
-    double dpai
-  ) 
-
-  {
-
-    double azi;
-    double dnai;
-    double [] vb = new double[3];
-    double [] vc = new double[3];
-    double [] vd = new double[3];
-
-    vb = mg1220(vn, vh);
-    vc = mg1220(va, vh);
-    azi = mg1230(vb, vc);
-    vd = mg1220(vb, vc);
-
-    dnai = (vd[0] * vh[0]) + (vd[1] * vh[1]) + (vd[2] * vh[2]);
-    if (dnai > 0.0d) {
-      azi = dpai - azi;
-    }
-
-    return(azi);
 
   }
 
