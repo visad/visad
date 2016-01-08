@@ -94,6 +94,12 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   VisADGeometryArray trcrArray;
   ArrayList<VisADGeometryArray> trcrArrays;
   ArrayList<float[]> achrArrays;
+  boolean trajCachingEnabled = true;
+  boolean canUseTrajCache = false;
+  FlowControl flowCntrl = null;
+  ScalarMap flowMap = null;
+  boolean autoSizeTrcr = true;
+  TrajectoryParams trajParams;
   
 
   List<BranchGroup> branches = null;
@@ -192,13 +198,20 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       for (int kk=0; kk<scalarMaps.size(); kk++) {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
         DisplayRealType dspType = scalarMap.getDisplayScalar();
-        if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z) ||
-            dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y) || dspType.equals(Display.Flow2Z)) {
-
-          FlowControl flwCntrl = (FlowControl) scalarMap.getControl();
-          if (flwCntrl.trajectoryEnabled()) {
+        boolean isFlow = false;
+        if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z)) {
+          isFlow = true;
+        }
+        else if (dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y) || dspType.equals(Display.Flow2Z)) {
+          isFlow = true;
+        }
+      
+        if (isFlow) {
+          flowCntrl = (FlowControl) scalarMap.getControl();
+          flowMap = scalarMap;
+          if (flowCntrl.trajectoryEnabled()) {
             doTrajectory = true;
-            TrajectoryParams trajParams = flwCntrl.getTrajectoryParams();
+            trajParams = flowCntrl.getTrajectoryParams();
             trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
             trajRefreshInterval = trajParams.getTrajRefreshInterval();
             trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
@@ -211,6 +224,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajDoIntrp = trajParams.getDoIntrp();
             trcrSize = trajParams.getMarkerSize();
             trcrEnabled = trajParams.getMarkerEnabled();
+            trcrEnabled = true;
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1421,18 +1435,29 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   private void doTrajectory() throws VisADException, RemoteException {
     RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
     ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
-    FixedSizeListener listener = new FixedSizeListener(pCntrl);
-        
-    Iterator<ControlListener> iter = renderer.getProjectionControlListeners().iterator();
-    while (iter.hasNext()) {
-      pCntrl.removeControlListener(iter.next());
+    FixedSizeListener listener = null;
+    
+    if (autoSizeTrcr && trcrEnabled) {
+      listener = new FixedSizeListener(pCntrl, this);
+      Trajectory.setListener(pCntrl, listener, flowCntrl);
     }
-    pCntrl.addControlListener(listener);
     
     initTrajectory();
+    Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl);
+    
+    TrajectoryParams lastTrajParams = Trajectory.getLastTrajParams(flowCntrl, trajParams);
+    if (lastTrajParams != null) {
+      canUseTrajCache = lastTrajParams.equals(trajParams);
+    }
+    
+    Object trajCache = null;
+    if (trajCachingEnabled) {
+       trajCache = Trajectory.setCache(flowCntrl, canUseTrajCache);
+    }
+    else {
+       canUseTrajCache = false;
+    }
         
-    trajectories = new ArrayList<Trajectory>();
-     
     intrpU = new float[numSpatialPts];
     intrpV = new float[numSpatialPts];
     intrpW = new float[numSpatialPts];
@@ -1452,21 +1477,44 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     timeAccum = 0;
 
     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
-
+    
     for (int k=0; k<dataDomainLength-1; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
-
-      FlowInfo info = flowInfoList.get(i);
-      computeTrajectories(k, flowInfoList, times, timeSteps);
-      if (trcrEnabled) {
-        trcrArrays = new ArrayList<VisADGeometryArray>();
-        achrArrays = new ArrayList<float[]>();
-        trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);
+      
+      if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
+        if (direction > 0) {
+           switListen.allOffBelow.add(i);
+        }
+        else { //TODO: make this work eventually
+          //switListen.allOffAbove.add(i);
+        }
       }
 
+      FlowInfo info = flowInfoList.get(i);
+      
+      if (!canUseTrajCache) {
+         array = computeTrajectories(k, flowInfoList, times, timeSteps);
+         achrArrays = new ArrayList<float[]>();
+         trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);   
+         if (trajCachingEnabled) {
+           Trajectory.cacheTrajArray(trajCache, array);
+           Trajectory.cacheTrcrArray(trajCache, trcrArray, achrArrays);
+         }
+         trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/Trajectory.getScaleX(pCntrl)));        
+      }
+      else  {
+         array = Trajectory.getCachedTraj(trajCache, k);
+         if (trcrEnabled) {
+           trcrArray = Trajectory.getCachedTrcr(trajCache, k);
+           achrArrays = Trajectory.getCachedAncr(trajCache, k);
+           if (autoSizeTrcr) {
+             trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/Trajectory.getScaleX(pCntrl)));
+           }
+         }
+      }
+      
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
       mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
-      //mode.setLineWidth(2f, false);
 
       // something weird with this, everything being removed ?
       //array = (VisADLineArray) array.removeMissing();
@@ -1475,24 +1523,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       final BranchGroup node = (BranchGroup) swit.getChild(i);
           
       if (trcrEnabled) {
-        BranchGroup branchB = (BranchGroup) makeBranch();
-        for (int t=0; t<trcrArrays.size(); t++) {
-          TransformGroup tGroup = new TransformGroup();
-          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-          tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
-          listener.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
-
-          addToGroup(tGroup, trcrArrays.get(t), mode, info.constant_alpha, info.constant_color);
-          branchB.addChild(tGroup);
+        BranchGroup trcrBG = makeTracerBranch(trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
+        ((BranchGroup)switB.getChild(i)).addChild(trcrBG);
+        if (autoSizeTrcr) {
+          listener.add(trcrBG, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         }
-        ((BranchGroup)switB.getChild(i)).addChild(branchB);
       }
 
       addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
       node.addChild(branch);
 
-    } // domain length (time steps) outer time loop
+    } //---  domain length (time steps) outer time loop  -------------------------
         
     if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
       int idx = dataDomainLength-1;
@@ -1500,18 +1541,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
 
       if (trcrEnabled) {
-        BranchGroup branchB = (BranchGroup) makeBranch();
-        for (int t=0; t<trcrArrays.size(); t++) {
-          TransformGroup tGroup = new TransformGroup();
-          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-          tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-          tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
-          listener.FSTarray.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
-
-          addToGroup(tGroup, trcrArrays.get(t), mode, finfo.constant_alpha, finfo.constant_color);
-          branchB.addChild(tGroup);
+        BranchGroup trcrBG = makeTracerBranch(trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
+        ((BranchGroup)switB.getChild(idx)).addChild(trcrBG);
+        if (autoSizeTrcr) {
+          listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         }
-        ((BranchGroup)switB.getChild(idx)).addChild(branchB);
       }
     }
   }
@@ -1569,7 +1603,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          }
      }
      
-     private void computeTrajectories(int k, ArrayList<FlowInfo> flowInfoList, double[] times, double[] timeSteps) throws VisADException, RemoteException {
+     private VisADGeometryArray computeTrajectories(int k, ArrayList<FlowInfo> flowInfoList, double[] times, double[] timeSteps) throws VisADException, RemoteException {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
           FlowInfo info = flowInfoList.get(i);
@@ -1587,11 +1621,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              trajectories = new ArrayList<Trajectory>();
              java.util.Arrays.fill(Trajectory.markGrid, false);
              if (direction > 0) {
-               switListen.allOffBelow.add(i);
                Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs, spatialSetTraj);
              }
              else { //TODO: make this work eventually
-               //switListen.allOffAbove.add(i);
                //Trajectory.makeTrajectories(direction*times[i], trajectories, trajSkip, color_values, setLocs, lens);
              }
              timeAccum = 0.0;
@@ -1670,6 +1702,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           int numTrajectories = trajectories.size();
           Trajectory.reset(numTrajectories*numIntrpPts, clrDim);
+          /* new stuff */
+          for (int tt=0; tt<numTrajectories; tt++) {
+              trajectories.get(tt).npairs = 0;
+          }
+          //*/
 
           for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
             double dst = (x1 - x0)/numIntrpPts;
@@ -1691,9 +1728,31 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           } // inner time loop (time interpolation)
 
           array = Trajectory.makeGeometry();
+          //array = Trajectory.makeGeometry3(trajectories);
           trajectories = Trajectory.clean(trajectories, trajLifetime);
+          return array;
      }
      
+     BranchGroup makeTracerBranch(VisADGeometryArray trcrArray, ArrayList<float[]> achrArrays, GraphicsModeControl mode, float constant_alpha, float[] constant_color) throws VisADException {
+        BranchGroup branch = (BranchGroup) makeBranch();
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+        branch.setCapability(BranchGroup.ALLOW_DETACH);
+        
+        /* This branch is detached from 'branch' during auto resizing. 
+           New resized trcrArray is then added back to 'branch' */
+        BranchGroup trcrBranch = (BranchGroup) makeBranch();
+        trcrBranch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+        trcrBranch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+        trcrBranch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);  
+        trcrBranch.setCapability(BranchGroup.ALLOW_DETACH);        
+
+        addToGroup(trcrBranch, trcrArray, mode, constant_alpha, constant_color);
+        branch.addChild(trcrBranch);
+        
+        return branch;
+     }
   }
 
 

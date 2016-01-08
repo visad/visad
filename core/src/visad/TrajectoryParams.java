@@ -59,12 +59,29 @@ public class TrajectoryParams {
   float markerSize = 1f;
   boolean markerEnabled = false;
   boolean manualIntrpPts = false;
+  boolean autoSizeMarker = true;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
   RealTupleType startType = null;
 
   public TrajectoryParams() {
+  }
+  
+  public TrajectoryParams(TrajectoryParams params) {
+    this.trajVisibilityTimeWindow = params.getTrajVisibilityTimeWindow();
+    this.trajRefreshInterval = params.getTrajRefreshInterval();
+    this.numIntrpPts = params.getNumIntrpPts();
+    this.startSkip = params.getStartSkip();
+    this.smoothParams = params.getSmoothParams();
+    this.direction = params.getDirection();
+    this.doIntrp = params.getDoIntrp();
+    this.markerSize = params.getMarkerSize();
+    this.markerEnabled = params.getMarkerEnabled();
+    this.manualIntrpPts = params.getManualIntrpPts();
+    this.startPoints = params.getStartPoints();
+    this.startType = params.getStartType();
+    this.autoSizeMarker = params.getAutoSizeMarker();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -189,6 +206,14 @@ public class TrajectoryParams {
  
   public RealTupleType getStartType() {
     return startType;
+  }
+  
+  public boolean getAutoSizeMarker() {
+     return autoSizeMarker;
+  }
+  
+  public void setAutoSizeMarker(boolean autoSizeMarker) {
+     this.autoSizeMarker = autoSizeMarker;
   }
 
   public boolean equals(Object obj) {

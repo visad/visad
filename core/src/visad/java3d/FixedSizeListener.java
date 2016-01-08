@@ -6,17 +6,23 @@
 package visad.java3d;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.rmi.RemoteException;
 import visad.ControlEvent;
 import visad.ControlListener;
+import visad.DisplayListener;
+import visad.DisplayEvent;
 import visad.ProjectionControl;
 import visad.VisADException;
+import visad.VisADGeometryArray;
+import visad.GraphicsModeControl;
+import javax.media.j3d.*;
 
 
 public class FixedSizeListener implements ControlListener {
 
   /**  */
-  ArrayList<FixedSizeTransform> FSTarray = new ArrayList<FixedSizeTransform>();
+  ArrayList<Object> FSTarray = new ArrayList<Object>();
 
   /**  */
   ProjectionControl p_cntrl = null;
@@ -25,18 +31,37 @@ public class FixedSizeListener implements ControlListener {
   double last_scale;
 
   /**  */
-  double first_scale;
+  double first_scale = Double.NaN;
+  
+  double baseScale = Double.NaN;
+  
+  double rescaleThreshold = 1.15;
 
   /**  */
   int cnt = 0;
-
+  
+  VisADGeometryArray array;
+  
+  BranchGroup topBranch;
+  
+  ArrayList<float[]> anchors;
+  
+  ShadowTypeJ3D shadow;
+  
+  GraphicsModeControl mode;
+  
+  float constant_alpha;
+  
+  float[] constant_color;
+  
   /**
    *
    *
    * @param p_cntrl
    */
-  FixedSizeListener(ProjectionControl p_cntrl) {
+  FixedSizeListener(ProjectionControl p_cntrl, ShadowTypeJ3D shadow) {
     this.p_cntrl = p_cntrl;
+    this.shadow = shadow;
     double[] matrix = p_cntrl.getMatrix();
     double[] rot_a = new double[3];
     double[] trans_a = new double[3];
@@ -44,7 +69,6 @@ public class FixedSizeListener implements ControlListener {
     MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
     last_scale = scale_a[0];
     first_scale = last_scale;
-    p_cntrl.addControlListener(this);
   }
 
   /**
@@ -66,16 +90,50 @@ public class FixedSizeListener implements ControlListener {
 
     // - identify scale change events.
     if (!visad.util.Util.isApproximatelyEqual(scale_a[0], last_scale)) {
-      if (scale_a[0] / last_scale > 1.15 || scale_a[0] / last_scale < 1 / 1.15) {
+      if (scale_a[0] / last_scale > rescaleThreshold || scale_a[0] / last_scale < 1 / rescaleThreshold) {
         for (int k=0; k<FSTarray.size(); k++) {
-            FSTarray.get(k).updateTransform(first_scale, scale_a);
+          Info info = (Info) FSTarray.get(k);
+          topBranch = info.branch;
+          array = info.array;
+          anchors = info.anchors;
+          mode = info.mode;
+          constant_alpha = info.constant_alpha;
+          constant_color = info.constant_color;
+          BranchGroup branch = new BranchGroup();
+          branch.setCapability(BranchGroup.ALLOW_DETACH);
+          array = Trajectory.scaleGeometry(array, anchors, (float)(first_scale/scale_a[0]));
+          shadow.addToGroup(branch, array, mode, constant_alpha, constant_color);
+          try {
+            ((BranchGroup)topBranch.getChild(0)).detach();
+            topBranch.addChild(branch);
+          }
+          catch (Exception exc) {
+             System.out.println(exc);
+          }
         }
         last_scale = scale_a[0];
       }
     }
   }
   
-  public void add(FixedSizeTransform fst) {
-      FSTarray.add(fst);
+  public void add(BranchGroup branch, VisADGeometryArray array, ArrayList<float[]> anchors, GraphicsModeControl mode, float constant_alpha, float[] constant_color) {
+     Info info = new Info();
+     info.branch = branch;
+     info.array = array;
+     info.anchors = anchors;
+     info.mode = mode;
+     info.constant_alpha = constant_alpha;
+     info.constant_color = constant_color;
+     FSTarray.add(info);
   }
+
+}
+
+class Info {
+   BranchGroup branch;
+   VisADGeometryArray array;
+   ArrayList<float[]> anchors;
+   GraphicsModeControl mode;
+   float constant_alpha;
+   float[] constant_color;
 }
