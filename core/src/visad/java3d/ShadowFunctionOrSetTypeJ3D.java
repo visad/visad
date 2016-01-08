@@ -224,6 +224,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajDoIntrp = trajParams.getDoIntrp();
             trcrSize = trajParams.getMarkerSize();
             trcrEnabled = trajParams.getMarkerEnabled();
+            trajCachingEnabled = trajParams.getCachingEnabled();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1444,9 +1445,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     initTrajectory();
     Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl);
     
+    double trcrSizeRatio = 1;
     TrajectoryParams lastTrajParams = Trajectory.getLastTrajParams(flowCntrl, trajParams);
     if (lastTrajParams != null) {
       canUseTrajCache = lastTrajParams.equals(trajParams);
+      trcrSizeRatio = trajParams.getMarkerSize()/lastTrajParams.getMarkerSize();
     }
     
     Object trajCache = null;
