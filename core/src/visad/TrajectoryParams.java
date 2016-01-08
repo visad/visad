@@ -60,6 +60,7 @@ public class TrajectoryParams {
   boolean markerEnabled = false;
   boolean manualIntrpPts = false;
   boolean autoSizeMarker = true;
+  boolean cachingEnabled = true;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -82,6 +83,7 @@ public class TrajectoryParams {
     this.startPoints = params.getStartPoints();
     this.startType = params.getStartType();
     this.autoSizeMarker = params.getAutoSizeMarker();
+    this.cachingEnabled = params.getCachingEnabled();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -158,6 +160,10 @@ public class TrajectoryParams {
   public void setMarkerEnabled(boolean yesno) {
     this.markerEnabled = yesno;
   }
+  
+  public void setCachingEnabled(boolean yesno) {
+     this.cachingEnabled = yesno;
+  }
 
   public double getTrajVisibilityTimeWindow() {
     return trajVisibilityTimeWindow;
@@ -214,6 +220,10 @@ public class TrajectoryParams {
   
   public void setAutoSizeMarker(boolean autoSizeMarker) {
      this.autoSizeMarker = autoSizeMarker;
+  }
+  
+  public boolean getCachingEnabled() {
+     return this.cachingEnabled;
   }
 
   public boolean equals(Object obj) {
