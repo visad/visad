@@ -224,7 +224,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajDoIntrp = trajParams.getDoIntrp();
             trcrSize = trajParams.getMarkerSize();
             trcrEnabled = trajParams.getMarkerEnabled();
-            trcrEnabled = true;
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1504,12 +1503,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
       else  {
          array = Trajectory.getCachedTraj(trajCache, k);
-         if (trcrEnabled) {
-           trcrArray = Trajectory.getCachedTrcr(trajCache, k);
-           achrArrays = Trajectory.getCachedAncr(trajCache, k);
-           if (autoSizeTrcr) {
-             trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/Trajectory.getScaleX(pCntrl)));
-           }
+         trcrArray = Trajectory.getCachedTrcr(trajCache, k);
+         achrArrays = Trajectory.getCachedAncr(trajCache, k);
+         if (autoSizeTrcr) {
+           trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/Trajectory.getScaleX(pCntrl)));
          }
       }
       
