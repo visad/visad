@@ -1483,15 +1483,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     for (int k=0; k<dataDomainLength-1; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
-      if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
-        if (direction > 0) {
-           switListen.allOffBelow.add(i);
-        }
-        else { //TODO: make this work eventually
-          //switListen.allOffAbove.add(i);
-        }
-      }
-
       FlowInfo info = flowInfoList.get(i);
       
       if (!canUseTrajCache) {
@@ -1518,6 +1509,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
       // something weird with this, everything being removed ?
       //array = (VisADLineArray) array.removeMissing();
+      
+      if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
+        if (direction > 0) {
+           switListen.allOffBelow.add(i);
+        }
+        else { //TODO: make this work eventually
+          //switListen.allOffAbove.add(i);
+        }
+        timeAccum = 0.0;
+      }
+      timeAccum += timeSteps[i];
 
       final BranchGroup branch = (BranchGroup) branches.get(i);
       final BranchGroup node = (BranchGroup) swit.getChild(i);
@@ -1626,9 +1628,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              else { //TODO: make this work eventually
                //Trajectory.makeTrajectories(direction*times[i], trajectories, trajSkip, color_values, setLocs, lens);
              }
-             timeAccum = 0.0;
           }
-          timeAccum += timeSteps[i];
 
           // commented out when not using markGrid logic for starting/ending trajs
           //Trajectory.makeTrajectories(times[i], trajectories, 6, color_values, setLocs, lens);
