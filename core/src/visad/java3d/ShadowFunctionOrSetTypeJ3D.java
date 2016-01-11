@@ -1443,7 +1443,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     
     initTrajectory();
-    Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl);
+    Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl, renderer.getDisplay());
     
     double trcrSizeRatio = 1;
     TrajectoryParams lastTrajParams = Trajectory.getLastTrajParams(flowCntrl, trajParams);
