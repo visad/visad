@@ -30,6 +30,9 @@ import visad.ScalarMapControlEvent;
 import visad.ScalarMapEvent;
 import visad.TrajectoryParams;
 import visad.ScalarMapListener;
+import visad.DisplayListener;
+import visad.DisplayEvent;
+import visad.DisplayImpl;
 
 public class Trajectory {
      /* Current location (spatial set) of massless tracer particle */
@@ -1511,9 +1514,9 @@ public class Trajectory {
         return cache;
      }
      
-     public static void initCleanUp(ScalarMap scalarMap, FlowControl flowCntrl, ProjectionControl pCntrl) {
+     public static void initCleanUp(ScalarMap scalarMap, FlowControl flowCntrl, ProjectionControl pCntrl, DisplayImpl display) {
         if (!removeListeners.containsKey(scalarMap)) {
-          removeListeners.put(scalarMap, new ListenForRemove(scalarMap, flowCntrl, pCntrl));
+          removeListeners.put(scalarMap, new ListenForRemove(scalarMap, flowCntrl, pCntrl, display));
         }
      }
      
@@ -1545,16 +1548,27 @@ public class Trajectory {
      ArrayList<ArrayList<float[]>> ancrArrayCache = new ArrayList<ArrayList<float[]>>();
   }
 
-  class ListenForRemove implements ScalarMapListener {
+  class ListenForRemove implements ScalarMapListener, DisplayListener {
     ScalarMap theMap;
     FlowControl flowCntrl;
     ProjectionControl pCntrl;
+    DisplayImpl display;
    
-   public ListenForRemove(ScalarMap scalarMap, FlowControl control, ProjectionControl pCntrl) {
+   public ListenForRemove(ScalarMap scalarMap, FlowControl control, ProjectionControl pCntrl, DisplayImpl display) {
      theMap = scalarMap;
      flowCntrl = control;
      this.pCntrl = pCntrl;
+     this.display = display;
      scalarMap.addScalarMapListener(this);
+     display.addDisplayListener(this);
+   }
+   
+   public void displayChanged(DisplayEvent evt) {
+      int id = evt.getId();
+      if (id == DisplayEvent.DESTROYED) {
+         cleanUp();
+         display.removeDisplayListener(this);
+      }
    }
 
    public void mapChanged(ScalarMapEvent evt) throws VisADException, RemoteException {
@@ -1563,16 +1577,19 @@ public class Trajectory {
    public void controlChanged(ScalarMapControlEvent evt) throws VisADException, RemoteException {
      int id = evt.getId();
      if (id == ScalarMapEvent.CONTROL_REMOVED || id == ScalarMapEvent.CONTROL_REPLACED) {
-        
-       ControlListener listener = Trajectory.scaleChangeListeners.get(flowCntrl);
-       pCntrl.removeControlListener(listener);
-       Trajectory.scaleChangeListeners.remove(flowCntrl);
-       
-       Trajectory.trajParamMap.remove(flowCntrl);
-       Trajectory.trajCacheMap.remove(flowCntrl);
-       Trajectory.removeListeners.remove(theMap);
+       cleanUp();
        theMap.removeScalarMapListener(this);
      }
+   }
+   
+   private void cleanUp() {
+     ControlListener listener = Trajectory.scaleChangeListeners.get(flowCntrl);
+     pCntrl.removeControlListener(listener);
+     Trajectory.scaleChangeListeners.remove(flowCntrl);
+       
+     Trajectory.trajParamMap.remove(flowCntrl);
+     Trajectory.trajCacheMap.remove(flowCntrl);
+     Trajectory.removeListeners.remove(theMap);
    }
      
   }
