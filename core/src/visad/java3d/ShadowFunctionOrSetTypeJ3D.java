@@ -1499,6 +1499,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          array = Trajectory.getCachedTraj(trajCache, k);
          trcrArray = Trajectory.getCachedTrcr(trajCache, k);
          achrArrays = Trajectory.getCachedAncr(trajCache, k);
+         if (trcrSizeRatio != 1.0) {
+           trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)trcrSizeRatio);            
+           Trajectory.cacheTrcrArray(trajCache, k, trcrArray, achrArrays);
+         }
          if (autoSizeTrcr) {
            trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/Trajectory.getScaleX(pCntrl)));
          }

@@ -1529,6 +1529,11 @@ public class Trajectory {
         ((TrajCache)cache).ancrArrayCache.add(anchors);
      }
      
+     public static void cacheTrcrArray(Object cache, int idx, VisADGeometryArray array, ArrayList<float[]> anchors) {
+        ((TrajCache)cache).trcrArrayCache.set(idx, array);
+        ((TrajCache)cache).ancrArrayCache.set(idx, anchors);
+     }
+     
      public static VisADGeometryArray getCachedTraj(Object cache, int idx) {
         return ((TrajCache)cache).trajArrayCache.get(idx);
      }
