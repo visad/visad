@@ -54,6 +54,8 @@ public class FixedSizeListener implements ControlListener {
   
   float[] constant_color;
   
+  private boolean locked = false;
+  
   /**
    *
    *
@@ -81,6 +83,13 @@ public class FixedSizeListener implements ControlListener {
    */
   public synchronized void controlChanged(ControlEvent e)
       throws VisADException, RemoteException {
+    if (locked) {
+       return;
+    }
+    update();
+  }
+  
+  public void update() throws VisADException {
     double[] matrix = p_cntrl.getMatrix();
     double[] rot_a = new double[3];
     double[] trans_a = new double[3];
@@ -126,7 +135,18 @@ public class FixedSizeListener implements ControlListener {
      info.constant_color = constant_color;
      FSTarray.add(info);
   }
-
+  
+  public synchronized void lock() {
+     locked = true;
+  }
+  
+  public synchronized void unlock() {
+     locked = false;
+  }
+  
+  public boolean isLocked() {
+     return locked;
+  }
 }
 
 class Info {
