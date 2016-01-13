@@ -1440,7 +1440,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixedSizeListener(pCntrl, this);
       Trajectory.setListener(pCntrl, listener, flowCntrl);
+      listener.lock();
     }
+    double scale = Trajectory.getScaleX(pCntrl); // current dispaly scale
     
     initTrajectory();
     Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl, renderer.getDisplay());
@@ -1493,7 +1495,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            Trajectory.cacheTrajArray(trajCache, array);
            Trajectory.cacheTrcrArray(trajCache, trcrArray, achrArrays);
          }
-         trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/Trajectory.getScaleX(pCntrl)));        
+         trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));        
       }
       else  {
          array = Trajectory.getCachedTraj(trajCache, k);
@@ -1504,7 +1506,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            Trajectory.cacheTrcrArray(trajCache, k, trcrArray, achrArrays);
          }
          if (autoSizeTrcr) {
-           trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/Trajectory.getScaleX(pCntrl)));
+           trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));
          }
       }
       
@@ -1553,6 +1555,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         }
       }
+    }
+    
+    if (autoSizeTrcr) {
+       if (listener.isLocked()) {
+          listener.update();
+          listener.unlock();
+       }
     }
   }
   
