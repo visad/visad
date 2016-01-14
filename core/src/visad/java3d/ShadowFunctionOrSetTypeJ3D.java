@@ -101,6 +101,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   boolean autoSizeTrcr = true;
   TrajectoryParams trajParams;
   
+  public static int LINE = 0;
+  public static int RIBBON = 1;
+  public static int CYLINDER = 2;
+  int trajType = LINE;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -1531,7 +1535,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       final BranchGroup node = (BranchGroup) swit.getChild(i);
           
       if (trcrEnabled) {
-        BranchGroup trcrBG = makeTracerBranch(trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
+        BranchGroup trcrBG = Trajectory.makeTracerBranch(this, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         ((BranchGroup)switB.getChild(i)).addChild(trcrBG);
         if (autoSizeTrcr) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
@@ -1549,7 +1553,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
 
       if (trcrEnabled) {
-        BranchGroup trcrBG = makeTracerBranch(trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
+        BranchGroup trcrBG = Trajectory.makeTracerBranch(this, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         ((BranchGroup)switB.getChild(idx)).addChild(trcrBG);
         if (autoSizeTrcr) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
@@ -1740,31 +1744,20 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           } // inner time loop (time interpolation)
 
-          array = Trajectory.makeGeometry();
-          //array = Trajectory.makeGeometry3(trajectories);
+          switch (trajType) {
+            case 0:
+              array = Trajectory.makeGeometry();
+              break;
+            case 1:
+              array = Trajectory.makeGeometry2(trajectories);
+              break;
+            case 2:
+              array = Trajectory.makeGeometry3(trajectories);
+              break;
+          }
+          
           trajectories = Trajectory.clean(trajectories, trajLifetime);
           return array;
-     }
-     
-     BranchGroup makeTracerBranch(VisADGeometryArray trcrArray, ArrayList<float[]> achrArrays, GraphicsModeControl mode, float constant_alpha, float[] constant_color) throws VisADException {
-        BranchGroup branch = (BranchGroup) makeBranch();
-        branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-        branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-        branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-        branch.setCapability(BranchGroup.ALLOW_DETACH);
-        
-        /* This branch is detached from 'branch' during auto resizing. 
-           New resized trcrArray is then added back to 'branch' */
-        BranchGroup trcrBranch = (BranchGroup) makeBranch();
-        trcrBranch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-        trcrBranch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-        trcrBranch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);  
-        trcrBranch.setCapability(BranchGroup.ALLOW_DETACH);        
-
-        addToGroup(trcrBranch, trcrArray, mode, constant_alpha, constant_color);
-        branch.addChild(trcrBranch);
-        
-        return branch;
      }
   }
 

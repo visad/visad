@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
+import javax.media.j3d.BranchGroup;
 import visad.CommonUnit;
 import visad.Data;
 import visad.FlowInfo;
@@ -15,7 +16,6 @@ import visad.GriddedSet;
 import visad.RealTupleType;
 import visad.Set;
 import visad.ShadowType;
-import visad.TrajectoryParams;
 import visad.Unit;
 import visad.VisADException;
 import visad.VisADGeometryArray;
@@ -33,6 +33,7 @@ import visad.ScalarMapListener;
 import visad.DisplayListener;
 import visad.DisplayEvent;
 import visad.DisplayImpl;
+import visad.GraphicsModeControl;
 
 public class Trajectory {
      /* Current location (spatial set) of massless tracer particle */
@@ -1544,6 +1545,21 @@ public class Trajectory {
      
      public static ArrayList<float[]> getCachedAncr(Object cache, int idx) {
         return ((TrajCache)cache).ancrArrayCache.get(idx);
+     }
+     
+     public static BranchGroup makeTracerBranch(ShadowType shadow, VisADGeometryArray trcrArray, ArrayList<float[]> achrArrays, GraphicsModeControl mode, float constant_alpha, float[] constant_color) throws VisADException {
+        BranchGroup branch = (BranchGroup) shadow.makeBranch();
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+        
+        /* This branch is detached from 'branch' during auto resizing. 
+           New resized trcrArray is then added back to 'branch' */
+        BranchGroup trcrBranch = (BranchGroup) shadow.makeBranch();
+
+        shadow.addToGroup(trcrBranch, trcrArray, mode, constant_alpha, constant_color);
+        branch.addChild(trcrBranch);
+        
+        return branch;
      }
   }
 
