@@ -403,10 +403,13 @@ public class Trajectory {
         java.util.Arrays.fill(colors, (byte)0);
      }
      
-     public static void reset(ArrayList<Trajectory> trajectories, int numIntrpPts, int clrDim) {
+     public static void reset(ArrayList<Trajectory> trajectories, int maxNumVerts, int clrDim) {
+        reset(maxNumVerts, clrDim);
+        
+        /* reset instance pair counter to zero */
         for (int k=0; k<trajectories.size(); k++) {
             Trajectory traj = trajectories.get(k);
-             //traj.reset();
+            traj.npairs = 0;
         }
      }
 
