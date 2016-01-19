@@ -1718,12 +1718,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           }
 
           int numTrajectories = trajectories.size();
-          Trajectory.reset(numTrajectories*numIntrpPts, clrDim);
-          /* new stuff */
-          for (int tt=0; tt<numTrajectories; tt++) {
-              trajectories.get(tt).npairs = 0;
-          }
-          //*/
+          Trajectory.reset(trajectories, numTrajectories*numIntrpPts, clrDim);
 
           for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
             double dst = (x1 - x0)/numIntrpPts;
