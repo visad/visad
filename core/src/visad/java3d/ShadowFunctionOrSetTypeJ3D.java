@@ -1537,7 +1537,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       if (trcrEnabled) {
         BranchGroup trcrBG = Trajectory.makeTracerBranch(this, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         ((BranchGroup)switB.getChild(i)).addChild(trcrBG);
-        if (autoSizeTrcr) {
+        if (listener != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         }
       }
@@ -1555,13 +1555,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       if (trcrEnabled) {
         BranchGroup trcrBG = Trajectory.makeTracerBranch(this, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         ((BranchGroup)switB.getChild(idx)).addChild(trcrBG);
-        if (autoSizeTrcr) {
+        if (listener != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         }
       }
     }
     
-    if (autoSizeTrcr) {
+    if (listener != null) {
        if (listener.isLocked()) {
           listener.update();
           listener.unlock();
