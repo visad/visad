@@ -100,7 +100,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   private boolean depthBufferEnable = true;
   
   /** for automatic push back in the z-buffer */
-  private boolean autoDepthOffsetEnable = true;
+  private boolean autoDepthOffsetEnable = false;
   private float depthOffsetInc = -2f;
   private int maxNumWithOffset = 6;
 
