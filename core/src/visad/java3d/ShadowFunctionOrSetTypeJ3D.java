@@ -104,6 +104,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   public static int LINE = 0;
   public static int RIBBON = 1;
   public static int CYLINDER = 2;
+  public static int DEFORM_RIBBON = 3;
   int trajType = LINE;
 
   List<BranchGroup> branches = null;
@@ -1448,7 +1449,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     double scale = Trajectory.getScaleX(pCntrl); // current dispaly scale
     
-    initTrajectory();
+    initTrajectory(renderer);
     Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl, renderer.getDisplay());
     
     double trcrSizeRatio = 1;
@@ -1569,7 +1570,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
   }
   
-     private void initTrajectory() throws VisADException, RemoteException {
+     private void initTrajectory(DataRenderer renderer) throws VisADException, RemoteException {
          /* Get start points, use first spatial_set locs for now. 
             Eventually want to include a time for start */
          ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
@@ -1589,8 +1590,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
          startClrs = new byte[color_values.length][];
          if (startPts == null) { //get from domain set
+           float[][] vec = null;
+           if (true) {
+              float[][] flowVals = Trajectory.convertFlowUnit(info.flow_values, info.flow_units);
+              vec = ShadowType.adjustFlowToEarth(info.which, flowVals, spatial_set0.getSamples(false), 1f, renderer);
+           }
            startPts = new float[3][];
-           Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs);
+           Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs, vec);
          }
          else {
            /* TODO: assuming earth navigated display coordinate system*/
@@ -1744,14 +1750,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               array = Trajectory.makeGeometry();
               break;
             case 1:
-              array = Trajectory.makeGeometry2(trajectories);
+              array = Trajectory.makeFixedWidthRibbon(trajectories);
               break;
             case 2:
-              array = Trajectory.makeGeometry3(trajectories);
+              array = Trajectory.makeCylinder(trajectories);
+              break;
+            case 3:
+              array = Trajectory.makeDeformableRibbon(trajectories);
               break;
           }
           
-          trajectories = Trajectory.clean(trajectories, trajLifetime);
+          trajectories = Trajectory.clean(trajType, trajectories, trajLifetime);
           return array;
      }
   }
