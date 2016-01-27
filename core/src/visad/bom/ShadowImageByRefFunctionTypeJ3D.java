@@ -92,6 +92,9 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.ShadowFunctionTypeJ3D;
 import visad.java3d.VisADImageNode;
 import visad.java3d.VisADImageTile;
+import visad.java3d.RendererJ3D;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.GraphicsModeControlJ3D;
 
 /**
    The ShadowImageFunctionTypeJ3D class shadows the FunctionType class for
@@ -662,7 +665,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     GraphicsModeControl mode = (GraphicsModeControl)
           display.getGraphicsModeControl().clone();
-
+    
+    display.setDepthBufferOffset(renderer);
+    
     // get some precomputed values useful for transform
     // mapping from ValueArray to MapVector
     int[] valueToMap = display.getValueToMap();
