@@ -81,7 +81,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     GraphicsModeControl mode = (GraphicsModeControl)
       display.getGraphicsModeControl().clone();
     
-    display.setDepthBufferOffset(renderer, mode);
+    display.setDepthBufferOffset(renderer);
 
     // get 'shape' flags
     boolean anyContour = adaptedShadowType.getAnyContour();
