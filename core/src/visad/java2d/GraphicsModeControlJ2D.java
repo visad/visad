@@ -649,20 +649,6 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     return texture3DMode;
   }
   
-  public boolean getAutoDepthOffsetEnable() {
-    return false;
-  }
-  
-  public void setAutoDepthOffsetEnable(boolean enable) throws VisADException, RemoteException {
-    throw new DisplayException("GraphicsModeControlJ2D." +
-                               "autoDepthOffset not supported");
-  }
-  
-  public void setAutoDepthOffsetEnable(boolean enable, boolean noChange) throws VisADException, RemoteException {
-    throw new DisplayException("GraphicsModeControlJ2D." +
-                               "autoDepthOffset not supported");
-  }
-
   public Object clone() {
     GraphicsModeControlJ2D mode =
       new GraphicsModeControlJ2D(getDisplay());
