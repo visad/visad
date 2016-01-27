@@ -1752,7 +1752,7 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       if (data instanceof FlatField) {
         int mDim = ((FlatField)data).getDomainSet().getManifoldDimension();
         if (mDim == 2) {
-          display.setDepthBufferOffset(renderer, mode);
+          display.setDepthBufferOffset(renderer);
         }
       }
 

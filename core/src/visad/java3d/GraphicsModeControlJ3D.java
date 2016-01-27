@@ -644,9 +644,21 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return depthBufferEnable;
   }
   
+  /**
+   * AutoDepthOffset: automatically offsets (pushes back) z-buffer depth for 
+   * flat surfaces with first farthest back and successive separated by a
+   * constant increment toward front. 
+   * 
+   * Useful for reducing visual artifacts due to z-buffer fighting when
+   * flat surfaces are coplanar in display space.
+   * 
+   * @param enable
+   * @throws VisADException
+   * @throws RemoteException 
+   */
   public void setAutoDepthOffsetEnable(boolean enable) throws VisADException, RemoteException {
     this.autoDepthOffsetEnable = enable;
-    getDisplay().resetDepthBufferOffsets();
+    ((DisplayImplJ3D)getDisplay()).resetDepthBufferOffsets();
     changeControl(true);
     getDisplay().reDisplayAll();
   }
@@ -659,10 +671,17 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return autoDepthOffsetEnable;
   }
   
+  /**
+   * Set the maximum number of DataRenderers in the autoDepthOffset stack.
+   * @param numWith should be > 1
+   * @param noChange
+   * @throws VisADException
+   * @throws RemoteException 
+   */
   public void setNumRenderersWithDepthOffset(int numWith, boolean noChange) throws VisADException, RemoteException {
     this.maxNumWithOffset = numWith;
     if (!noChange) {
-      getDisplay().resetDepthBufferOffsets();
+      ((DisplayImplJ3D)getDisplay()).resetDepthBufferOffsets();
       changeControl(true);
       getDisplay().reDisplayAll();
     }
@@ -672,10 +691,18 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return maxNumWithOffset;
   }
   
+  /**
+   * Set the depth increment between successive flat surfaces in the autoDepthOffset stack.
+   * Should be less than zero (z increases into the screen).
+   * @param inc
+   * @param noChange
+   * @throws VisADException
+   * @throws RemoteException 
+   */
   public void setDepthOffsetIncrement(float inc, boolean noChange) throws VisADException, RemoteException {
     this.depthOffsetInc = inc;
     if (!noChange) {
-      getDisplay().resetDepthBufferOffsets();
+      ((DisplayImplJ3D)getDisplay()).resetDepthBufferOffsets();
       changeControl(true);
       getDisplay().reDisplayAll();
     }  
