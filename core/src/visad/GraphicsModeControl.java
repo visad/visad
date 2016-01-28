@@ -375,7 +375,7 @@ public abstract class GraphicsModeControl extends Control implements Cloneable {
    * @return  offset factor
    */
   public abstract float getPolygonOffsetFactor();
-
+  
   /**
    * Set the transparency of missing values.
    *

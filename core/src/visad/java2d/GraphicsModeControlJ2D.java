@@ -648,7 +648,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   public int getTexture3DMode() {
     return texture3DMode;
   }
-
+  
   public Object clone() {
     GraphicsModeControlJ2D mode =
       new GraphicsModeControlJ2D(getDisplay());

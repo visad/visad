@@ -84,7 +84,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /** for undersampling of curved texture maps @serial */
   private int curvedSize = 10;
 
-  /** true to adjust projection seam */
+   /** true to adjust projection seam */
   private boolean adjustProjectionSeam;
 
   /** mode for Texture3D */
@@ -98,6 +98,11 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
   /** for depth buffer enabling */
   private boolean depthBufferEnable = true;
+  
+  /** for automatic push back in the z-buffer */
+  private boolean autoDepthOffsetEnable = false;
+  private float depthOffsetInc = -2f;
+  private int maxNumWithOffset = 6;
 
   /**
    * Construct a GraphicsModeControlJ3D associated with the input display
@@ -638,7 +643,75 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public boolean getDepthBufferEnable() {
     return depthBufferEnable;
   }
-
+  
+  /**
+   * AutoDepthOffset: automatically offsets (pushes back) z-buffer depth for 
+   * flat surfaces with first farthest back and successive separated by a
+   * constant increment toward front. 
+   * 
+   * Useful for reducing visual artifacts due to z-buffer fighting when
+   * flat surfaces are coplanar in display space.
+   * 
+   * @param enable
+   * @throws VisADException
+   * @throws RemoteException 
+   */
+  public void setAutoDepthOffsetEnable(boolean enable) throws VisADException, RemoteException {
+    this.autoDepthOffsetEnable = enable;
+    ((DisplayImplJ3D)getDisplay()).resetDepthBufferOffsets();
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+  
+  public void setAutoDepthOffsetEnable(boolean enable, boolean noChange) throws VisADException, RemoteException {
+    this.autoDepthOffsetEnable = enable;
+  }
+  
+  public boolean getAutoDepthOffsetEnable() {
+    return autoDepthOffsetEnable;
+  }
+  
+  /**
+   * Set the maximum number of DataRenderers in the autoDepthOffset stack.
+   * @param numWith should be > 1
+   * @param noChange
+   * @throws VisADException
+   * @throws RemoteException 
+   */
+  public void setNumRenderersWithDepthOffset(int numWith, boolean noChange) throws VisADException, RemoteException {
+    this.maxNumWithOffset = numWith;
+    if (!noChange) {
+      ((DisplayImplJ3D)getDisplay()).resetDepthBufferOffsets();
+      changeControl(true);
+      getDisplay().reDisplayAll();
+    }
+  }
+  
+  public int getNumRenderersWithDepthOffset() {
+    return maxNumWithOffset;
+  }
+  
+  /**
+   * Set the depth increment between successive flat surfaces in the autoDepthOffset stack.
+   * Should be less than zero (z increases into the screen).
+   * @param inc
+   * @param noChange
+   * @throws VisADException
+   * @throws RemoteException 
+   */
+  public void setDepthOffsetIncrement(float inc, boolean noChange) throws VisADException, RemoteException {
+    this.depthOffsetInc = inc;
+    if (!noChange) {
+      ((DisplayImplJ3D)getDisplay()).resetDepthBufferOffsets();
+      changeControl(true);
+      getDisplay().reDisplayAll();
+    }  
+  }
+  
+  public float getDepthOffsetIncrement() {
+    return this.depthOffsetInc;
+  }
+  
   /**
    * See whether missing values are rendered as transparent or not.
    *
@@ -788,6 +861,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.cacheAppearances = cacheAppearances;
     mode.mergeGeometries = mergeGeometries;
     mode.depthBufferEnable = depthBufferEnable;
+    mode.autoDepthOffsetEnable = autoDepthOffsetEnable;
+    mode.depthOffsetInc = depthOffsetInc;
+    mode.maxNumWithOffset = maxNumWithOffset;
     return mode;
   }
 
@@ -907,7 +983,22 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       changed = true;
       polygonOffsetFactor = rmtCtl.polygonOffsetFactor;
     }
+    
+    if (autoDepthOffsetEnable != rmtCtl.autoDepthOffsetEnable) {
+      changed = true;
+      autoDepthOffsetEnable = rmtCtl.autoDepthOffsetEnable;
+    }
+    
+    if (!Util.isApproximatelyEqual(maxNumWithOffset, rmtCtl.maxNumWithOffset)) {
+      changed = true;
+      maxNumWithOffset = rmtCtl.maxNumWithOffset;
+    }
 
+    if (!Util.isApproximatelyEqual(depthOffsetInc, rmtCtl.depthOffsetInc)) {
+      changed = true;
+      depthOffsetInc = rmtCtl.depthOffsetInc;
+    }
+        
     if (anti_alias_flag != rmtCtl.anti_alias_flag) {
       changed = true;
       anti_alias_flag = rmtCtl.anti_alias_flag;
@@ -1010,6 +1101,18 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       return false;
     }
 
+    if (autoDepthOffsetEnable != gmc.autoDepthOffsetEnable) {
+      return false; 
+    }
+    
+    if (!Util.isApproximatelyEqual(maxNumWithOffset, gmc.maxNumWithOffset)) {
+      return false;
+    }
+
+    if (!Util.isApproximatelyEqual(depthOffsetInc, gmc.depthOffsetInc)) {
+      return false;
+    }
+    
     if (adjustProjectionSeam != gmc.adjustProjectionSeam) {
       return false;
     }

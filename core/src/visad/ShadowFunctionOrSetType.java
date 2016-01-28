@@ -1749,6 +1749,12 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
         isMissingTransparent = (missingTransparent > 0.5f);
       }
       */
+      if (data instanceof FlatField) {
+        int mDim = ((FlatField)data).getDomainSet().getManifoldDimension();
+        if (mDim == 2) {
+          display.setDepthBufferOffset(renderer);
+        }
+      }
 
 // if (link != null) System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
       visad.util.Trace.call1("ShadowFunctionOrSetType:assembleColor ");
