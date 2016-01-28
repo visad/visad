@@ -165,7 +165,7 @@ public class LinearLatLonSet extends Linear2DSet {
                          CoordinateSystem coord_sys, Unit[] units,
                          ErrorEstimate[] errors) throws VisADException {
     this(type, first1, last1, length1, first2, last2, length2, coord_sys,
-          units, errors, false);
+            units, errors, false);
   }
 
   /** 
@@ -241,6 +241,11 @@ public class LinearLatLonSet extends Linear2DSet {
     LongitudeWrap =
         (Hi[lonI] - Low[lonI]) + 2.0 * Math.abs(lon.getStep()) >= twoPiLon &&
         lon.getLength() > 1;
+
+    if(lon.getLength() > 1 && lon.getFirst() > 0 && lon.getLast() < 0){
+      LongitudeWrap = true;
+    }
+
     if (LongitudeWrap) {
       WrapStep = twoPiLon - (Hi[lonI] - Low[lonI]);
       WrapFactor = Math.abs(lon.getStep()) / WrapStep;
