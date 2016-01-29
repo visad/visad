@@ -47,7 +47,11 @@ public class TrajectoryParams {
       this.w2 = w2;
     }
   }
-
+  
+  public static int LINE = 0;
+  public static int RIBBON = 1;
+  public static int CYLINDER = 2;
+  public static int DEFORM_RIBBON = 3;
 
   double trajVisibilityTimeWindow = 86400.0;
   double trajRefreshInterval = 86400.0;
@@ -61,6 +65,9 @@ public class TrajectoryParams {
   boolean manualIntrpPts = false;
   boolean autoSizeMarker = true;
   boolean cachingEnabled = true;
+  
+  int trajForm = LINE;
+  float cylWidth = 0.01f;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -84,6 +91,8 @@ public class TrajectoryParams {
     this.startType = params.getStartType();
     this.autoSizeMarker = params.getAutoSizeMarker();
     this.cachingEnabled = params.getCachingEnabled();
+    this.trajForm = params.getTrajectoryForm();
+    this.cylWidth = params.getCylinderWidth();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -164,6 +173,14 @@ public class TrajectoryParams {
   public void setCachingEnabled(boolean yesno) {
      this.cachingEnabled = yesno;
   }
+  
+  public void setTrajectormForm(int form) {
+     trajForm = form;
+  }
+  
+  public void setCylinderWidth(float width) {
+     cylWidth = width;
+  }
 
   public double getTrajVisibilityTimeWindow() {
     return trajVisibilityTimeWindow;
@@ -183,6 +200,14 @@ public class TrajectoryParams {
 
   public SmoothParams getSmoothParams() {
     return smoothParams;
+  }
+  
+  public int getTrajectoryForm() {
+    return trajForm;
+  }
+  
+  public float getCylinderWidth() {
+     return cylWidth;
   }
 
   public int getDirection() {
@@ -245,6 +270,9 @@ public class TrajectoryParams {
         return false;
       }
       else if (this.smoothParams != trajParams.smoothParams) {
+        return false;
+      }
+      else if (this.cylWidth != trajParams.cylWidth) {
         return false;
       }
     }
