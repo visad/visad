@@ -178,7 +178,7 @@ public class Trajectory {
        return spatialSetTraj;
      }
      
-     public static void getStartPointsFromDomain(int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
+     public static void getStartPointsFromDomain(int trajForm, int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
          int manifoldDim = spatial_set.getManifoldDimension();
          int[] lens = spatial_set.getLengths();
          int lenX = lens[0];
@@ -186,14 +186,14 @@ public class Trajectory {
          int lenZ;
          if (manifoldDim == 3) {
              lenZ = lens[2];
-             getStartPointsFromDomain3D(skip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs);
+             getStartPointsFromDomain3D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs);
          }
          else if (manifoldDim == 2) {
-             getStartPointsFromDomain2D(skip, spatial_set.getSamples(false), lenX, lenY, color_values, startPts, startClrs);
+             getStartPointsFromDomain2D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, color_values, startPts, startClrs, flowValues);
          }
      }
      
-     public static void getStartPointsFromDomain3D(int skip, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
+     public static void getStartPointsFromDomain3D(int trajForm, int skip, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
          int len2D = lenX*lenY;
          
          float[][] locs2D = new float[3][len2D];
@@ -208,7 +208,7 @@ public class Trajectory {
              System.arraycopy(locs[1], k*len2D, locs2D[1], 0, len2D);
              System.arraycopy(locs[2], k*len2D, locs2D[2], 0, len2D);
              
-             getStartPointsFromDomain2D(skip, locs2D, lenX, lenY, color_values, pts, clrs);
+             getStartPointsFromDomain2D(trajForm, skip, locs2D, lenX, lenY, color_values, pts, clrs, null);
              
              int lenB = pts[0].length;
              float[][] tmpPts = new float[3][lenA+lenB];
@@ -253,7 +253,7 @@ public class Trajectory {
          }
      }
 
-     public static void getStartPointsFromDomain2D(int skip, float[][] setLocs, int lenX, int lenY, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
+     public static void getStartPointsFromDomain2D(int trajForm, int skip, float[][] setLocs, int lenX, int lenY, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
         int clrDim = color_values.length;
         int m = 0;
         if (doStartOffset) {
@@ -269,6 +269,10 @@ public class Trajectory {
         int numJ = 1 + ((jB-1)-jA)/skip;
         int numI = 1 + ((iB-1)-iA)/skip;
         int num = numJ*numI;
+  
+        if (trajForm == TrajectoryParams.DEFORM_RIBBON) {
+          num *= 2;
+        }
 
         startPts[0] = new float[num];
         startPts[1] = new float[num];
@@ -299,12 +303,37 @@ public class Trajectory {
                 startClrs[3][num] = color_values[3][k];
               }
             }
-          
             num++;
+            
+            if (trajForm == TrajectoryParams.DEFORM_RIBBON) {         
+              float u = flowValues[0][k];
+              float v = flowValues[1][k];
+              if (Math.abs(u/v) > 1) {
+                k += lenX;
+              }
+              else {
+                k += 1;    
+              }
+
+              if (!markGrid[k]) {
+                startPts[0][num] = setLocs[0][k];
+                startPts[1][num] = setLocs[1][k];
+                startPts[2][num] = setLocs[2][k];
+
+                startClrs[0][num] = color_values[0][k];
+                startClrs[1][num] = color_values[1][k];
+                startClrs[2][num] = color_values[2][k];
+                if (clrDim == 4) {
+                  startClrs[3][num] = color_values[3][k];
+                }
+              }
+              num++;
+            }
+            
           }
         }
 
-        /*
+        /* For animated Streamllines TODO
         for (int k=0; k<markGrid.length; k++) {
            markGrid[k] = false;
         }
@@ -338,7 +367,7 @@ public class Trajectory {
                 startColor[3] = color_values[3][k];
               }
 
-              /*
+              /* For animated streamlines
               Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
               traj.initialTime = time;
               trajectories.add(traj);
@@ -348,7 +377,7 @@ public class Trajectory {
           }
         }
 
-        /*
+        /* For animated streamlines
         for (int k=0; k<markGrid.length; k++) {
            markGrid[k] = false;
         }
@@ -379,6 +408,54 @@ public class Trajectory {
          }
        }
        return newList;
+     }
+     
+     public static ArrayList<Trajectory> clean(int trajType, ArrayList<Trajectory> trajectories, double threshold) {
+        ArrayList<Trajectory> newList = null;
+        switch (trajType) {
+           case 0:
+              newList = clean(trajectories, threshold);
+              break;
+           case 1:
+              newList = clean(trajectories, threshold);
+              break;
+           case 2:
+              newList = clean(trajectories, threshold);
+              break;
+           case 3:
+              newList = cleanDefStrp(trajectories, threshold);
+              break;
+        }
+        return newList;
+     }
+     
+     public static ArrayList<Trajectory> cleanDefStrp(ArrayList<Trajectory> trajectories, double threshold) {
+       Iterator<Trajectory> iter = trajectories.iterator();
+       ArrayList<Trajectory>  removeList = new ArrayList<Trajectory>();
+       
+       while (iter.hasNext() ) {
+         Trajectory traj = iter.next();
+         if (traj.offGrid || ((traj.currentTime - traj.initialTime) > threshold)) {
+           int idxA;
+           int idxB;
+           int idx = trajectories.indexOf(traj);
+           if ((idx % 2) == 0) {
+              idxA = idx;
+              idxB = idx+1;
+           }
+           else {
+              idxB = idx;
+              idxA = idx-1;
+           }
+           removeList.add(trajectories.get(idxA));
+           removeList.add(trajectories.get(idxB));
+         }
+       }
+       for (int t=0; t<removeList.size(); t++) {
+          trajectories.remove(removeList.get(t));
+       }
+       
+       return trajectories;
      }
 
      public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories) {
@@ -426,29 +503,36 @@ public class Trajectory {
        return array;
      }
      
-     public static VisADGeometryArray makeGeometry3(ArrayList<Trajectory> trajectories) {
+     public static VisADGeometryArray makeCylinder(ArrayList<Trajectory> trajectories, VisADGeometryArray[] auxArray, float cylWidth) {
         VisADTriangleStripArray array = new VisADTriangleStripArray();
-        
-        float fac = 0.010f;
+        VisADTriangleArray coneArray = new VisADTriangleArray();
         
         int ntrajs = trajectories.size();
         
-        int numv = totNpairs*(12+1)*2;
+        int numSides = 20;
+        
+        int numv = totNpairs*(numSides+1)*2;
         
         float[] coords = new float[numv*3];
         byte[] colors = new byte[numv*3];
         float[] normals = new float[numv*3];
         int[] strips = new int[totNpairs];
         
+        float[] coneCoords = new float[ntrajs*(numSides+1)*3*3];
+        byte[] coneColors = new byte[ntrajs*(numSides+1)*3*3];
+        float[] coneNormals = new float[ntrajs*(numSides+1)*3*3];
+        
         float[] uvecPath = new float[3];
         float[] norm = new float[] {0f, 0f, 1f};
         byte[][] color = new byte[3][1];
         float[] pt0 = new float[3];
         float[] pt1 = new float[3];
+        float[][] basePts = new float[3][numSides+1];
         
         
         int[] idx = new int[] {0};
         int strpCnt = 0;
+        int[] coneIdx = new int[] {0};
         
         for (int t=0; t<ntrajs; t++) {
           Trajectory traj = trajectories.get(t);
@@ -491,13 +575,20 @@ public class Trajectory {
             //color[1][0] = g0;
             //color[2][0] = b0;
             color[0][0] = (byte)255;
-            color[1][0] = 0;
-            color[2][0] = 0;           
+            color[1][0] = 40;
+            color[2][0] = 80;      
             
-            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, color, fac, coords, colors, normals, idx);
-            strips[strpCnt++] = (12+1)*2;
-            
+            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, color, cylWidth, (numSides+1), coords, colors, normals, idx);
+            strips[strpCnt++] = (numSides+1)*2;
           }
+          
+          float[] vertex = new float[3];
+          vertex[0] = pt1[0] + uvecPath[0]*0.006f;
+          vertex[1] = pt1[1] + uvecPath[1]*0.006f;
+          vertex[2] = pt1[2] + uvecPath[2]*0.006f;
+          
+          // build cone here. add to coneArray
+          makeCone(traj.last_circleXYZ, vertex, color, coneCoords, coneColors, coneNormals, coneIdx);
         }
         
         array.coordinates = coords;
@@ -506,10 +597,216 @@ public class Trajectory {
         array.vertexCount = idx[0];
         array.stripVertexCounts = strips;
         
+        coneArray.coordinates = coneCoords;
+        coneArray.normals = coneNormals;
+        coneArray.colors = coneColors;
+        coneArray.vertexCount = coneIdx[0];
+        
+        auxArray[0] = coneArray;
+        
         return array; 
      }
      
-     public static VisADGeometryArray makeGeometry2(ArrayList<Trajectory> trajectories) {
+     public static void makeCone(float[][] basePts, float[] vertex, byte[][] color, float[] coords, byte[] colors, float[] normals, int[] vertCnt) {
+       int nPts = basePts[0].length;
+       
+       float[] ptA = new float[3];
+       float[] ptB = new float[3];
+       float[] AV = new float[3];
+       float[] BV = new float[3];
+       
+       int vcnt = vertCnt[0];
+       int idx = 3*vcnt; 
+       int cidx = 3*vcnt;
+       
+       for (int k=0; k<nPts; k++) {
+         // A--vertex--B
+         int ia = k;
+         int ib = (k==(nPts-1)) ? 0 : (k+1);
+         
+         ptA[0] = basePts[0][ia];
+         ptA[1] = basePts[1][ia];
+         ptA[2] = basePts[2][ia];
+         
+         ptB[0] = basePts[0][ib];
+         ptB[1] = basePts[1][ib];
+         ptB[2] = basePts[2][ib];
+         
+         AV[0] = ptA[0] - vertex[0];
+         AV[1] = ptA[1] - vertex[1];
+         AV[2] = ptA[2] - vertex[2];
+         BV[0] = ptB[0] - vertex[0];
+         BV[1] = ptB[1] - vertex[1];
+         BV[2] = ptB[2] - vertex[2];
+         
+         float[] norm = AxB(AV, BV);
+         
+         
+         normals[idx] = norm[0];
+         coords[idx++] = ptA[0];  
+         normals[idx] = norm[1];
+         coords[idx++] = ptA[1];  
+         normals[idx] = norm[2];
+         coords[idx++] = ptA[2];  
+         colors[cidx++] = color[0][0];
+         colors[cidx++] = color[1][0];
+         colors[cidx++] = color[2][0];        
+         vcnt++;
+         
+         normals[idx] = norm[0];
+         coords[idx++] = ptB[0];
+         normals[idx] = norm[1];
+         coords[idx++] = ptB[1];  
+         normals[idx] = norm[2];
+         coords[idx++] = ptB[2];  
+         colors[cidx++] = color[0][0];
+         colors[cidx++] = color[1][0];
+         colors[cidx++] = color[2][0];         
+         vcnt++;   
+         
+         normals[idx] = norm[0];
+         coords[idx++] = vertex[0]; 
+         normals[idx] = norm[1];
+         coords[idx++] = vertex[1];  
+         normals[idx] = norm[2];
+         coords[idx++] = vertex[2];  
+         colors[cidx++] = color[0][0];
+         colors[cidx++] = color[1][0];
+         colors[cidx++] = color[2][0];         
+         vcnt++; 
+       }
+       vertCnt[0] = vcnt;
+     }
+     
+     public static VisADGeometryArray makeDeformableRibbon(ArrayList<Trajectory> trajectories) {
+       VisADTriangleArray array = new VisADTriangleArray();
+       
+       int ntrajs = trajectories.size();
+       int ntris = (totNpairs/2)*2;
+       int num = ntris*3;
+       
+       float[] newCoords = new float[num*3];
+       java.util.Arrays.fill(newCoords, Float.NaN);
+       byte[] newColors = new byte[num*3];
+       float[] newNormals = new float[num*3];
+       
+       float[] A0 = new float[3];
+       float[] A1 = new float[3];
+       float[] B0 = new float[3];
+       float[] B1 = new float[3];
+       
+       int numVerts = 0;
+       
+       for (int k=0; k<ntrajs/2; k++) {
+          int t = k*2;
+          Trajectory trajA = trajectories.get(t);
+          Trajectory trajB = trajectories.get(t+1);
+          
+          int npairs = Math.min(trajA.npairs, trajB.npairs);
+          
+          for (int n=0; n<npairs; n++) {
+             int ia = trajA.indexes[n];
+             int ib = trajB.indexes[n];
+             
+             A0[0] = coordinates[ia];
+             A0[1] = coordinates[ia+1];
+             A0[2] = coordinates[ia+2];
+             A1[0] = coordinates[ia+3];
+             A1[1] = coordinates[ia+4];
+             A1[2] = coordinates[ia+5];
+             
+             B0[0] = coordinates[ib];
+             B0[1] = coordinates[ib+1];
+             B0[2] = coordinates[ib+2];
+             B1[0] = coordinates[ib+3];
+             B1[1] = coordinates[ib+4];
+             B1[2] = coordinates[ib+5];            
+             
+             byte ar0 = colors[ia];
+             byte ag0 = colors[ia+1];
+             byte ab0 = colors[ia+2];
+             byte ar1 = colors[ia+3];
+             byte ag1 = colors[ia+4];
+             byte ab1 = colors[ia+5];
+             
+             byte br0 = colors[ib];
+             byte bg0 = colors[ib+1];
+             byte bb0 = colors[ib+2];
+             byte br1 = colors[ib+3];
+             byte bg1 = colors[ib+4];
+             byte bb1 = colors[ib+5];          
+             
+             int idx = numVerts*3;
+             
+             newCoords[idx] = A0[0];
+             newCoords[idx+1] = A0[1];
+             newCoords[idx+2] = A0[2];
+             newColors[idx] = ar0;
+             newColors[idx+1] = ag0;
+             newColors[idx+2] = ab0;
+             numVerts++;
+
+             idx = numVerts*3;
+             newCoords[idx] = B0[0];
+             newCoords[idx+1] = B0[1];
+             newCoords[idx+2] = B0[2];
+             newColors[idx] = br0;
+             newColors[idx+1] = bg0;
+             newColors[idx+2] = bb0;             
+             numVerts++; 
+             
+             idx = numVerts*3;
+             newCoords[idx] = B1[0];
+             newCoords[idx+1] = B1[1];
+             newCoords[idx+2] = B1[2];
+             newColors[idx] = br1;
+             newColors[idx+1] = bg1;
+             newColors[idx+2] = bb1;             
+             numVerts++;  
+             
+             idx = numVerts*3;
+             newCoords[idx] = B1[0];
+             newCoords[idx+1] = B1[1];
+             newCoords[idx+2] = B1[2];
+             newColors[idx] = br1;
+             newColors[idx+1] = bg1;
+             newColors[idx+2] = bb1;             
+             numVerts++;
+
+             idx = numVerts*3;
+             newCoords[idx] = A1[0];
+             newCoords[idx+1] = A1[1];
+             newCoords[idx+2] = A1[2];
+             newColors[idx] = ar1;
+             newColors[idx+1] = ag1;
+             newColors[idx+2] = ab1;             
+             numVerts++; 
+             
+             idx = numVerts*3;
+             newCoords[idx] = A0[0];
+             newCoords[idx+1] = A0[1];
+             newCoords[idx+2] = A0[2];
+             newColors[idx] = ar0;
+             newColors[idx+1] = ag0;
+             newColors[idx+2] = ab0;             
+             numVerts++;                       
+          }
+          
+       }
+       // remove missing:
+       float[] coords = new float[numVerts*3];
+       byte[] colors = new byte[numVerts*3];
+       System.arraycopy(newCoords, 0, coords, 0, coords.length);
+       System.arraycopy(newColors, 0, colors, 0, colors.length);
+       
+       array.coordinates = coords;
+       array.colors = colors;       
+       array.vertexCount = numVerts;
+       
+       return array;
+     }
+     
+     public static VisADGeometryArray makeFixedWidthRibbon(ArrayList<Trajectory> trajectories) {
         VisADTriangleArray array = new VisADTriangleArray();
         
         int ntrajs = trajectories.size();
@@ -842,13 +1139,12 @@ public class Trajectory {
      }
      
      public VisADGeometryArray makeCylinderStrip(float[] T, float[] S, float[] pt0, float[] pt1, byte[][] color, float size,
-                 float[] coords, byte[] colors, float[] normls, int[] vertCnt) {
+                 int npts, float[] coords, byte[] colors, float[] normls, int[] vertCnt) {
         VisADTriangleStripArray array = new VisADTriangleStripArray();
         
         int clrDim = color.length;
         
-        int npts = 13; // num points around
-        if (circle == null) {
+         if (circle == null) {
            circle = new float[2][npts];
            float intrvl = (float) (2*Math.PI)/(npts-1);
            for (int i=0; i<npts; i++) {
@@ -1528,6 +1824,10 @@ public class Trajectory {
         ((TrajCache)cache).trajArrayCache.add(array);
      }
      
+     public static void cacheArray(Object cache, VisADGeometryArray array) {
+        ((TrajCache)cache).arrayCache.add(array);
+     }
+     
      public static void cacheTrcrArray(Object cache, VisADGeometryArray array, ArrayList<float[]> anchors) {
         ((TrajCache)cache).trcrArrayCache.add(array);
         ((TrajCache)cache).ancrArrayCache.add(anchors);
@@ -1550,6 +1850,10 @@ public class Trajectory {
         return ((TrajCache)cache).ancrArrayCache.get(idx);
      }
      
+     public static VisADGeometryArray getCachedArray(Object cache, int idx) {
+        return ((TrajCache)cache).arrayCache.get(idx);
+     }     
+     
      public static BranchGroup makeTracerBranch(ShadowType shadow, VisADGeometryArray trcrArray, ArrayList<float[]> achrArrays, GraphicsModeControl mode, float constant_alpha, float[] constant_color) throws VisADException {
         BranchGroup branch = (BranchGroup) shadow.makeBranch();
         branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
@@ -1570,6 +1874,7 @@ public class Trajectory {
      ArrayList<VisADGeometryArray> trajArrayCache = new ArrayList<VisADGeometryArray>();
      ArrayList<VisADGeometryArray> trcrArrayCache = new ArrayList<VisADGeometryArray>();
      ArrayList<ArrayList<float[]>> ancrArrayCache = new ArrayList<ArrayList<float[]>>();
+     ArrayList<VisADGeometryArray> arrayCache = new ArrayList<VisADGeometryArray>();     
   }
 
   class ListenForRemove implements ScalarMapListener, DisplayListener {

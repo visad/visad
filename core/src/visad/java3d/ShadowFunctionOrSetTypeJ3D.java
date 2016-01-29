@@ -104,7 +104,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   public static int LINE = 0;
   public static int RIBBON = 1;
   public static int CYLINDER = 2;
-  int trajType = LINE;
+  public static int DEFORM_RIBBON = 3;
+  
+  int trajForm = LINE; // Default
+  float cylWidth = 0.01f;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -229,6 +232,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trcrSize = trajParams.getMarkerSize();
             trcrEnabled = trajParams.getMarkerEnabled();
             trajCachingEnabled = trajParams.getCachingEnabled();
+            trajForm = trajParams.getTrajectoryForm();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1448,7 +1452,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     double scale = Trajectory.getScaleX(pCntrl); // current dispaly scale
     
-    initTrajectory();
+    if (trajForm == CYLINDER) {
+       trajSkip *= 8;
+       trcrEnabled = false;
+    }
+    
+    trcrEnabled = trcrEnabled && (trajForm == LINE);
+    
+    initTrajectory(renderer);
     Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl, renderer.getDisplay());
     
     double trcrSizeRatio = 1;
@@ -1485,6 +1496,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     timeAccum = 0;
 
     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+    VisADGeometryArray[] auxArray = new VisADGeometryArray[1];
     
     for (int k=0; k<dataDomainLength-1; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
@@ -1492,17 +1504,19 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       FlowInfo info = flowInfoList.get(i);
       
       if (!canUseTrajCache) {
-         array = computeTrajectories(k, flowInfoList, times, timeSteps);
+         array = computeTrajectories(k, flowInfoList, times, timeSteps, auxArray);
          achrArrays = new ArrayList<float[]>();
          trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);   
          if (trajCachingEnabled) {
            Trajectory.cacheTrajArray(trajCache, array);
+           Trajectory.cacheArray(trajCache, auxArray[0]);
            Trajectory.cacheTrcrArray(trajCache, trcrArray, achrArrays);
          }
          trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));        
       }
       else  {
          array = Trajectory.getCachedTraj(trajCache, k);
+         auxArray[0] = Trajectory.getCachedArray(trajCache, i);
          trcrArray = Trajectory.getCachedTrcr(trajCache, k);
          achrArrays = Trajectory.getCachedAncr(trajCache, k);
          if (trcrSizeRatio != 1.0) {
@@ -1543,7 +1557,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
 
       addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
-      node.addChild(branch);
+      node.addChild(branch); 
+      
+      if (auxArray[0] != null) {
+        BranchGroup auxBrnch = (BranchGroup) makeBranch();
+        addToGroup(auxBrnch, auxArray[0], mode, info.constant_alpha, info.constant_color);  
+        ((BranchGroup)switB.getChild(i)).addChild(auxBrnch);
+      }
 
     } //---  domain length (time steps) outer time loop  -------------------------
         
@@ -1569,7 +1589,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
   }
   
-     private void initTrajectory() throws VisADException, RemoteException {
+     private void initTrajectory(DataRenderer renderer) throws VisADException, RemoteException {
          /* Get start points, use first spatial_set locs for now. 
             Eventually want to include a time for start */
          ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
@@ -1589,8 +1609,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
          startClrs = new byte[color_values.length][];
          if (startPts == null) { //get from domain set
+           float[][] vec = null;
+           if (true) {
+              float[][] flowVals = Trajectory.convertFlowUnit(info.flow_values, info.flow_units);
+              vec = ShadowType.adjustFlowToEarth(info.which, flowVals, spatial_set0.getSamples(false), 1f, renderer);
+           }
            startPts = new float[3][];
-           Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs);
+           Trajectory.getStartPointsFromDomain(trajForm, trajSkip, spatial_set0, color_values, startPts, startClrs, vec);
          }
          else {
            /* TODO: assuming earth navigated display coordinate system*/
@@ -1622,7 +1647,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          }
      }
      
-     private VisADGeometryArray computeTrajectories(int k, ArrayList<FlowInfo> flowInfoList, double[] times, double[] timeSteps) throws VisADException, RemoteException {
+     private VisADGeometryArray computeTrajectories(int k, ArrayList<FlowInfo> flowInfoList, double[] times, double[] timeSteps, VisADGeometryArray[] auxArray) throws VisADException, RemoteException {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
           FlowInfo info = flowInfoList.get(i);
@@ -1739,19 +1764,22 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           } // inner time loop (time interpolation)
 
-          switch (trajType) {
+          switch (trajForm) {
             case 0:
               array = Trajectory.makeGeometry();
               break;
             case 1:
-              array = Trajectory.makeGeometry2(trajectories);
+              array = Trajectory.makeFixedWidthRibbon(trajectories);
               break;
             case 2:
-              array = Trajectory.makeGeometry3(trajectories);
+              array = Trajectory.makeCylinder(trajectories, auxArray, cylWidth);
+              break;
+            case 3:
+              array = Trajectory.makeDeformableRibbon(trajectories);
               break;
           }
           
-          trajectories = Trajectory.clean(trajectories, trajLifetime);
+          trajectories = Trajectory.clean(trajForm, trajectories, trajLifetime);
           return array;
      }
   }
