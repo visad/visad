@@ -514,7 +514,7 @@ public class Trajectory {
         int numv = totNpairs*(numSides+1)*2;
         
         float[] coords = new float[numv*3];
-        byte[] colors = new byte[numv*3];
+        byte[] newColors = new byte[numv*3];
         float[] normals = new float[numv*3];
         int[] strips = new int[totNpairs];
         
@@ -571,14 +571,11 @@ public class Trajectory {
             pt1[1] = y1;
             pt1[2] = z1;       
             
-            //color[0][0] = r0;
-            //color[1][0] = g0;
-            //color[2][0] = b0;
-            color[0][0] = (byte)255;
-            color[1][0] = 40;
-            color[2][0] = 80;      
+            color[0][0] = r0;
+            color[1][0] = g0;
+            color[2][0] = b0;
             
-            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, color, cylWidth, (numSides+1), coords, colors, normals, idx);
+            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, color, cylWidth, (numSides+1), coords, newColors, normals, idx);
             strips[strpCnt++] = (numSides+1)*2;
           }
           
@@ -593,7 +590,7 @@ public class Trajectory {
         
         array.coordinates = coords;
         array.normals = normals;
-        array.colors = colors;
+        array.colors = newColors;
         array.vertexCount = idx[0];
         array.stripVertexCounts = strips;
         

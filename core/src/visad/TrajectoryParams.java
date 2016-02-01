@@ -154,6 +154,10 @@ public class TrajectoryParams {
     this.manualIntrpPts = true;
   }
   
+  public void setStartSkip(int skip) {
+    this.startSkip = skip;
+  }
+  
   public void setManualIntrpPts(boolean isManual) {
     this.manualIntrpPts = isManual;
   }
