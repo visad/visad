@@ -1445,19 +1445,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
     FixedSizeListener listener = null;
     
+    trcrEnabled = trcrEnabled && (trajForm == LINE);    
+    
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixedSizeListener(pCntrl, this);
       Trajectory.setListener(pCntrl, listener, flowCntrl);
       listener.lock();
     }
     double scale = Trajectory.getScaleX(pCntrl); // current dispaly scale
-    
-    if (trajForm == CYLINDER) {
-       trajSkip *= 8;
-       trcrEnabled = false;
-    }
-    
-    trcrEnabled = trcrEnabled && (trajForm == LINE);
     
     initTrajectory(renderer);
     Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl, renderer.getDisplay());
