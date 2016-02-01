@@ -272,6 +272,12 @@ public class TrajectoryParams {
       else if (this.smoothParams != trajParams.smoothParams) {
         return false;
       }
+      else if (this.trajForm != trajParams.trajForm) {
+        return false;
+      }
+      else if (this.doIntrp != trajParams.doIntrp) {
+         return false;
+      }
       else if (this.cylWidth != trajParams.cylWidth) {
         return false;
       }
