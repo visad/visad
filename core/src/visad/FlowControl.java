@@ -223,7 +223,7 @@ public abstract class FlowControl extends Control {
     if (trajectoryEnabled && streamlinesEnabled) {
       streamlinesEnabled = false;
     }
-    trajParams = tparms;
+    trajParams = new TrajectoryParams(tparms);
     changeControl(true);
   }  
 
@@ -323,7 +323,7 @@ public abstract class FlowControl extends Control {
 
   public void setTrajectoryParams(TrajectoryParams trajParams)
          throws VisADException, RemoteException {
-    this.trajParams = trajParams;
+    this.trajParams = new TrajectoryParams(trajParams);
     changeControl(true);
   }
 
