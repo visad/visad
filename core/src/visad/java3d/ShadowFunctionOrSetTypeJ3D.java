@@ -1445,19 +1445,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
     FixedSizeListener listener = null;
     
+    trcrEnabled = trcrEnabled && (trajForm == LINE);    
+    
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixedSizeListener(pCntrl, this);
       Trajectory.setListener(pCntrl, listener, flowCntrl);
       listener.lock();
     }
     double scale = Trajectory.getScaleX(pCntrl); // current dispaly scale
-    
-    if (trajForm == CYLINDER) {
-       trajSkip *= 8;
-       trcrEnabled = false;
-    }
-    
-    trcrEnabled = trcrEnabled && (trajForm == LINE);
     
     initTrajectory(renderer);
     Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl, renderer.getDisplay());
@@ -1476,7 +1471,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     else {
        canUseTrajCache = false;
     }
-        
+    
     intrpU = new float[numSpatialPts];
     intrpV = new float[numSpatialPts];
     intrpW = new float[numSpatialPts];
@@ -1516,7 +1511,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
       else  {
          array = Trajectory.getCachedTraj(trajCache, k);
-         auxArray[0] = Trajectory.getCachedArray(trajCache, i);
+         auxArray[0] = Trajectory.getCachedArray(trajCache, k);
          trcrArray = Trajectory.getCachedTrcr(trajCache, k);
          achrArrays = Trajectory.getCachedAncr(trajCache, k);
          if (trcrSizeRatio != 1.0) {
