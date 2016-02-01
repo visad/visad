@@ -174,7 +174,7 @@ public class TrajectoryParams {
      this.cachingEnabled = yesno;
   }
   
-  public void setTrajectormForm(int form) {
+  public void setTrajectoryForm(int form) {
      trajForm = form;
   }
   
@@ -250,7 +250,7 @@ public class TrajectoryParams {
   public boolean getCachingEnabled() {
      return this.cachingEnabled;
   }
-
+  
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
