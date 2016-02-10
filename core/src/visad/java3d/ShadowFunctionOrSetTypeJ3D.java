@@ -233,6 +233,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trcrEnabled = trajParams.getMarkerEnabled();
             trajCachingEnabled = trajParams.getCachingEnabled();
             trajForm = trajParams.getTrajectoryForm();
+            cylWidth = trajParams.getCylinderWidth();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
