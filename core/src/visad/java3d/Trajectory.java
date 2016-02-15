@@ -186,14 +186,14 @@ public class Trajectory {
          int lenZ;
          if (manifoldDim == 3) {
              lenZ = lens[2];
-             getStartPointsFromDomain3D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs);
+             getStartPointsFromDomain3D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs, flowValues);
          }
          else if (manifoldDim == 2) {
              getStartPointsFromDomain2D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, color_values, startPts, startClrs, flowValues);
          }
      }
      
-     public static void getStartPointsFromDomain3D(int trajForm, int skip, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
+     public static void getStartPointsFromDomain3D(int trajForm, int skip, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
          int len2D = lenX*lenY;
          
          float[][] locs2D = new float[3][len2D];
@@ -208,7 +208,7 @@ public class Trajectory {
              System.arraycopy(locs[1], k*len2D, locs2D[1], 0, len2D);
              System.arraycopy(locs[2], k*len2D, locs2D[2], 0, len2D);
              
-             getStartPointsFromDomain2D(trajForm, skip, locs2D, lenX, lenY, color_values, pts, clrs, null);
+             getStartPointsFromDomain2D(trajForm, skip, locs2D, lenX, lenY, color_values, pts, clrs, flowValues);
              
              int lenB = pts[0].length;
              float[][] tmpPts = new float[3][lenA+lenB];
