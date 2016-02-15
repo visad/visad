@@ -186,6 +186,19 @@ public class DisplayImplJ3D extends DisplayImpl {
     TEXTURE_NPOT = Boolean.parseBoolean(System.getProperty(PROP_TEXTURE_NPOT, "false"));
     //System.err.println("TEXTURE_NPOT:"+TEXTURE_NPOT);
   }
+  
+  /**
+   * Workaround for Java3D "grey window problem": sometimes Canvas3D is not painted
+   * This problem is rare and often hard to reproduce, so it is disabled by default.
+   */
+  public static final String NO_ERASE_BACKGROUND = "visad.java3d.noerasebackground";
+  static {
+    if (Boolean.parseBoolean(System.getProperty(NO_ERASE_BACKGROUND, "false"))) {
+      System.setProperty("sun.awt.noerasebackground", "true");
+      // If setting the above, suggested by Jogamp to set this to a small non-zero value. (TDR)
+      UniverseBuilderJ3D.setMinimumFrameCycleTime(20);
+    }
+  }
 
   /** this is used for APPLETFRAME */
   private DisplayAppletJ3D applet = null;
