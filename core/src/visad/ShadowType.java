@@ -2831,7 +2831,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     }
 
     byte[][] color_values = null;
-
+            
     if (colorMap == null) {
       return null;
     }
@@ -2844,7 +2844,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     color_values = new byte[clrDim][fltClrs[0].length];
     for (int d=0; d<clrDim; d++) {
       for (int t=0; t<color_values[0].length; t++) {
-        color_values[d][t] = (byte) (fltClrs[d][t]*255.0);
+        color_values[d][t] = ShadowType.floatToByte(fltClrs[d][t]);
       }
     }
     return color_values;

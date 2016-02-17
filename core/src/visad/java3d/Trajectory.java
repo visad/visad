@@ -499,7 +499,7 @@ public class Trajectory {
        array.coordinates = newCoords;
        array.colors = newColors;
        array.vertexCount = vertCnt;
-
+       
        return array;
      }
      
@@ -1570,13 +1570,13 @@ public class Trajectory {
               intrpFlow[1] += weights[0][j]*(direction)*del[1][0];
               intrpFlow[2] += weights[0][j]*(direction)*del[2][0];              
 
-              intrpClr[0] += weights[0][j]*color_values[0][idx];
-              intrpClr[1] += weights[0][j]*color_values[1][idx];
-              intrpClr[2] += weights[0][j]*color_values[2][idx];
+              intrpClr[0] += weights[0][j]*ShadowType.byteToFloat(color_values[0][idx]);
+              intrpClr[1] += weights[0][j]*ShadowType.byteToFloat(color_values[1][idx]);
+              intrpClr[2] += weights[0][j]*ShadowType.byteToFloat(color_values[2][idx]);
               if (clrDim == 4) {
-                intrpClr[3] += weights[0][j]*color_values[3][idx];
+                intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
               }
-              
+
               //markGrid[idx] = true;
               markGridTime[idx] = currentTimeIndex;
            }
@@ -1585,15 +1585,16 @@ public class Trajectory {
            stopPts[1] = startPts[1] + intrpFlow[1];
            stopPts[2] = startPts[2] + intrpFlow[2];
 
-           stopColor[0] = (byte) intrpClr[0];
-           stopColor[1] = (byte) intrpClr[1];
-           stopColor[2] = (byte) intrpClr[2];
+           stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
+           stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
+           stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
            if (clrDim == 4) {
-             stopColor[3] = (byte) intrpClr[3];
+             stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
            }
-
+           
            // interpolated color not working yet. Use constant color from the start
-           addPair(startPts, stopPts, startColor, startColor);
+           //addPair(startPts, stopPts, startColor, startColor);
+           addPair(startPts, stopPts, startColor, stopColor);
 
            uVecPath[0] = stopPts[0] - startPts[0];
            uVecPath[1] = stopPts[1] - startPts[1];
@@ -1607,8 +1608,14 @@ public class Trajectory {
            startPts[0] = stopPts[0];
            startPts[1] = stopPts[1];
            startPts[2] = stopPts[2];
+           
+           startColor[0] = stopColor[0];
+           startColor[1] = stopColor[1];
+           startColor[2] = stopColor[2];
+           if (clrDim == 4) {
+             startColor[3] = stopColor[3];
+           }
           
-
            if (manifoldDimension == 2) {
               startPts2D[0][0] = startPts[0];
               startPts2D[1][0] = startPts[1];
