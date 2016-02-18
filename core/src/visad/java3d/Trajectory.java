@@ -198,7 +198,8 @@ public class Trajectory {
          
          float[][] locs2D = new float[3][len2D];
          float[][] pts = new float[3][];
-         byte[][] clrs = new byte[startClrs.length][];
+         int clrDim = startClrs.length;
+         byte[][] clrs = new byte[clrDim][];
          
          int skipZ = lenZ/3;
          int lenA = 0;
@@ -212,41 +213,39 @@ public class Trajectory {
              
              int lenB = pts[0].length;
              float[][] tmpPts = new float[3][lenA+lenB];
-             byte[][] tmpClrs = new byte[clrs.length][lenA+lenB];
-            
-             if (lenA > 0) {
-                System.arraycopy(startPts[0], 0, tmpPts[0], 0, lenA);
+             byte[][] tmpClrs = new byte[clrDim][lenA+lenB];
+ 
+             if  (lenA > 0) {
+                System.arraycopy(startPts[0], 0, tmpPts[0], 0, lenA);   
+                System.arraycopy(startPts[1], 0, tmpPts[1], 0, lenA);
+                System.arraycopy(startPts[2], 0, tmpPts[2], 0, lenA);     
                 System.arraycopy(startClrs[0], 0, tmpClrs[0], 0, lenA);
+                System.arraycopy(startClrs[1], 0, tmpClrs[1], 0, lenA);
+                System.arraycopy(startClrs[2], 0, tmpClrs[2], 0, lenA);    
+                if (clrDim == 4) {
+                   System.arraycopy(startClrs[3], 0, tmpClrs[3], 0, lenA);                  
+                }
              }
              System.arraycopy(pts[0], 0, tmpPts[0], lenA, lenB);
-             System.arraycopy(clrs[0], 0, tmpClrs[0], lenA, lenB);
-             startPts[0] = tmpPts[0];
-             startClrs[0] = tmpClrs[0];
-
-             if (lenA > 0) {
-                System.arraycopy(startPts[1], 0, tmpPts[1], 0, lenA);
-                System.arraycopy(startClrs[1], 0, tmpClrs[1], 0, lenA);
-             }
-             System.arraycopy(pts[1], 0, tmpPts[1], lenA, lenB);
-             System.arraycopy(clrs[1], 0, tmpClrs[1], lenA, lenB);
-             startPts[1] = tmpPts[1];
-             startClrs[1] = tmpClrs[1];
-             
-             if (lenA > 0) {
-                System.arraycopy(startPts[2], 0, tmpPts[2], 0, lenA);
-                System.arraycopy(startClrs[2], 0, tmpClrs[2], 0, lenA);
-             }
+             System.arraycopy(pts[1], 0, tmpPts[1], lenA, lenB);            
              System.arraycopy(pts[2], 0, tmpPts[2], lenA, lenB);
-             System.arraycopy(clrs[2], 0, tmpClrs[2], lenA, lenB);
-             startPts[2] = tmpPts[2];
-             startClrs[2] = tmpClrs[2];
              
-             if (lenA > 0) {
-                 if (startClrs.length == 4) {
-                     System.arraycopy(startClrs[3], 0, tmpClrs[3], 0, lenA);
-                     System.arraycopy(clrs[3], 0, tmpClrs[3], lenA, lenB);
-                     startClrs[3] = tmpClrs[3];
-                 }
+             System.arraycopy(clrs[0], 0, tmpClrs[0], lenA, lenB);
+             System.arraycopy(clrs[1], 0, tmpClrs[1], lenA, lenB);
+             System.arraycopy(clrs[2], 0, tmpClrs[2], lenA, lenB);       
+             if (clrDim == 4) {
+                System.arraycopy(clrs[3], 0, tmpClrs[3], lenA, lenB);
+             }
+             
+             startPts[0] = tmpPts[0];
+             startPts[1] = tmpPts[1];
+             startPts[2] = tmpPts[2];
+             
+             startClrs[0] = tmpClrs[0];
+             startClrs[1] = tmpClrs[1];
+             startClrs[2] = tmpClrs[2];
+             if (clrDim == 4) {
+                startClrs[3] = tmpClrs[3];
              }
              
              lenA = startPts[0].length;
