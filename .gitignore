@@ -1,3 +1,6 @@
+# Maven build directories
+target/
+
 # Java class files
 *.class
 
