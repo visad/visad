@@ -1603,7 +1603,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          java.util.Arrays.fill(Trajectory.markGrid, false);
          java.util.Arrays.fill(Trajectory.markGridTime, 0);
 
-         startClrs = new byte[color_values.length][];
+         startClrs = new byte[clrDim][];
          if (startPts == null) { //get from domain set
            float[][] vec = null;
            if (true) {

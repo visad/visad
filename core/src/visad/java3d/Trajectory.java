@@ -89,6 +89,7 @@ public class Trajectory {
 
      private static float[] coordinates = null;
      private static byte[] colors = null;
+     private static int clrDim = 3;
      
      public static boolean[] markGrid;
      public static int[] markGridTime;
@@ -128,7 +129,7 @@ public class Trajectory {
 
      public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, float[][] startPts, byte[][] color_values, GriddedSet spatial_set) throws VisADException  {
         int num = startPts[0].length;
-        int clrDim = color_values.length;
+        clrDim = color_values.length;
         
         // determine grid relative positions of start points
         int manifoldDimension = spatial_set.getManifoldDimension();
@@ -198,7 +199,9 @@ public class Trajectory {
          
          float[][] locs2D = new float[3][len2D];
          float[][] pts = new float[3][];
+         
          int clrDim = startClrs.length;
+         byte[][] clrs2D = new byte[clrDim][len2D];
          byte[][] clrs = new byte[clrDim][];
          
          int skipZ = lenZ/3;
@@ -209,7 +212,14 @@ public class Trajectory {
              System.arraycopy(locs[1], k*len2D, locs2D[1], 0, len2D);
              System.arraycopy(locs[2], k*len2D, locs2D[2], 0, len2D);
              
-             getStartPointsFromDomain2D(trajForm, skip, locs2D, lenX, lenY, color_values, pts, clrs, flowValues);
+             System.arraycopy(color_values[0], k*len2D, clrs2D[0], 0, len2D);
+             System.arraycopy(color_values[1], k*len2D, clrs2D[1], 0, len2D);
+             System.arraycopy(color_values[2], k*len2D, clrs2D[2], 0, len2D);
+             if (clrDim == 4) {
+               System.arraycopy(color_values[3], k*len2D, clrs2D[3], 0, len2D);                
+             }
+             
+             getStartPointsFromDomain2D(trajForm, skip, locs2D, lenX, lenY, clrs2D, pts, clrs, flowValues);
              
              int lenB = pts[0].length;
              float[][] tmpPts = new float[3][lenA+lenB];
@@ -513,17 +523,18 @@ public class Trajectory {
         int numv = totNpairs*(numSides+1)*2;
         
         float[] coords = new float[numv*3];
-        byte[] newColors = new byte[numv*3];
+        byte[] newColors = new byte[numv*clrDim];
         float[] normals = new float[numv*3];
         int[] strips = new int[totNpairs];
         
         float[] coneCoords = new float[ntrajs*(numSides+1)*3*3];
-        byte[] coneColors = new byte[ntrajs*(numSides+1)*3*3];
+        byte[] coneColors = new byte[ntrajs*(numSides+1)*3*clrDim];
         float[] coneNormals = new float[ntrajs*(numSides+1)*3*3];
         
         float[] uvecPath = new float[3];
         float[] norm = new float[] {0f, 0f, 1f};
-        byte[][] color = new byte[3][1];
+        byte[][] clr0 = new byte[clrDim][1];
+        byte[][] clr1 = new byte[clrDim][1];
         float[] pt0 = new float[3];
         float[] pt1 = new float[3];
         float[][] basePts = new float[3][numSides+1];
@@ -532,12 +543,16 @@ public class Trajectory {
         int[] idx = new int[] {0};
         int strpCnt = 0;
         int[] coneIdx = new int[] {0};
+        byte r0,g0,b0,r1,g1,b1;
+        byte a0 = -1;
+        byte a1 = -1;
         
         for (int t=0; t<ntrajs; t++) {
           Trajectory traj = trajectories.get(t);
           for (int k=0; k<traj.npairs; k++) {
         
             int i = traj.indexes[k];
+            int ci = 2*clrDim*i/6;
             
             float x0 = coordinates[i];
             float y0 = coordinates[i+1];
@@ -546,12 +561,24 @@ public class Trajectory {
             float y1 = coordinates[i+4];
             float z1 = coordinates[i+5];
             
-            byte r0 = colors[i];
-            byte g0 = colors[i+1];
-            byte b0 = colors[i+2];
-            byte r1 = colors[i+3];
-            byte g1 = colors[i+4];
-            byte b1 = colors[i+5];
+            if (clrDim == 3) {
+               r0 = colors[ci];
+               g0 = colors[ci+1];
+               b0 = colors[ci+2];
+               r1 = colors[ci+3];
+               g1 = colors[ci+4];
+               b1 = colors[ci+5];
+            }
+            else {
+               r0 = colors[ci];
+               g0 = colors[ci+1];
+               b0 = colors[ci+2];
+               a0 = colors[ci+3];
+               r1 = colors[ci+4];
+               g1 = colors[ci+5];
+               b1 = colors[ci+6];
+               a1 = colors[ci+7];
+            }
             
             float mag = (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) + (z1-z0)*(z1-z0);
             mag = (float) Math.sqrt(mag);
@@ -568,13 +595,19 @@ public class Trajectory {
             pt0[2] = z0;
             pt1[0] = x1;
             pt1[1] = y1;
-            pt1[2] = z1;       
+            pt1[2] = z1;   
             
-            color[0][0] = r0;
-            color[1][0] = g0;
-            color[2][0] = b0;
             
-            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, color, cylWidth, (numSides+1), coords, newColors, normals, idx);
+            clr0[0][0] = r0;
+            clr0[1][0] = g0;
+            clr0[2][0] = b0;
+            if (clrDim == 4) clr0[3][0] = a0;
+            clr1[0][0] = r1;
+            clr1[1][0] = g1;
+            clr1[2][0] = b1;
+            if (clrDim == 4) clr1[3][0] = a1;        
+            
+            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, idx);
             strips[strpCnt++] = (numSides+1)*2;
           }
           
@@ -584,7 +617,7 @@ public class Trajectory {
           vertex[2] = pt1[2] + uvecPath[2]*0.006f;
           
           // build cone here. add to coneArray
-          makeCone(traj.last_circleXYZ, vertex, color, coneCoords, coneColors, coneNormals, coneIdx);
+          makeCone(traj.last_circleXYZ, vertex, clr0, coneCoords, coneColors, coneNormals, coneIdx);
         }
         
         array.coordinates = coords;
@@ -613,7 +646,7 @@ public class Trajectory {
        
        int vcnt = vertCnt[0];
        int idx = 3*vcnt; 
-       int cidx = 3*vcnt;
+       int cidx = clrDim*vcnt;
        
        for (int k=0; k<nPts; k++) {
          // A--vertex--B
@@ -646,7 +679,8 @@ public class Trajectory {
          coords[idx++] = ptA[2];  
          colors[cidx++] = color[0][0];
          colors[cidx++] = color[1][0];
-         colors[cidx++] = color[2][0];        
+         colors[cidx++] = color[2][0];     
+         if (clrDim == 4) colors[cidx++] = color[3][0];
          vcnt++;
          
          normals[idx] = norm[0];
@@ -657,18 +691,20 @@ public class Trajectory {
          coords[idx++] = ptB[2];  
          colors[cidx++] = color[0][0];
          colors[cidx++] = color[1][0];
-         colors[cidx++] = color[2][0];         
+         colors[cidx++] = color[2][0];      
+         if (clrDim == 4) colors[cidx++] = color[3][0];
          vcnt++;   
          
          normals[idx] = norm[0];
          coords[idx++] = vertex[0]; 
          normals[idx] = norm[1];
-         coords[idx++] = vertex[1];  
+         coords[idx++] = vertex[1];
          normals[idx] = norm[2];
          coords[idx++] = vertex[2];  
          colors[cidx++] = color[0][0];
          colors[cidx++] = color[1][0];
-         colors[cidx++] = color[2][0];         
+         colors[cidx++] = color[2][0];  
+         if (clrDim == 4) colors[cidx++] = color[3][0];
          vcnt++; 
        }
        vertCnt[0] = vcnt;
@@ -683,13 +719,19 @@ public class Trajectory {
        
        float[] newCoords = new float[num*3];
        java.util.Arrays.fill(newCoords, Float.NaN);
-       byte[] newColors = new byte[num*3];
+       byte[] newColors = new byte[num*clrDim];
        float[] newNormals = new float[num*3];
        
        float[] A0 = new float[3];
        float[] A1 = new float[3];
        float[] B0 = new float[3];
        float[] B1 = new float[3];
+       
+       byte ar0,ag0,ab0,ar1,ag1,ab1,br0,bg0,bb0,br1,bg1,bb1;
+       byte aa0 = -1;
+       byte aa1 = -1;
+       byte ba0 = -1;
+       byte ba1 = -1;
        
        int numVerts = 0;
        
@@ -703,6 +745,8 @@ public class Trajectory {
           for (int n=0; n<npairs; n++) {
              int ia = trajA.indexes[n];
              int ib = trajB.indexes[n];
+             int cia = 2*clrDim*ia/6;
+             int cib = 2*clrDim*ib/6;
              
              A0[0] = coordinates[ia];
              A0[1] = coordinates[ia+1];
@@ -718,80 +762,116 @@ public class Trajectory {
              B1[1] = coordinates[ib+4];
              B1[2] = coordinates[ib+5];            
              
-             byte ar0 = colors[ia];
-             byte ag0 = colors[ia+1];
-             byte ab0 = colors[ia+2];
-             byte ar1 = colors[ia+3];
-             byte ag1 = colors[ia+4];
-             byte ab1 = colors[ia+5];
+             if (clrDim == 3) {
+                ar0 = colors[cia];
+                ag0 = colors[cia+1];
+                ab0 = colors[cia+2];
+                ar1 = colors[cia+3];
+                ag1 = colors[cia+4];
+                ab1 = colors[cia+5];
+             }
+             else {
+                ar0 = colors[cia];
+                ag0 = colors[cia+1];
+                ab0 = colors[cia+2];
+                aa0 = colors[cia+3];
+                ar1 = colors[cia+4];
+                ag1 = colors[cia+5];
+                ab1 = colors[cia+6];   
+                aa1 = colors[cia+7];
+             }
              
-             byte br0 = colors[ib];
-             byte bg0 = colors[ib+1];
-             byte bb0 = colors[ib+2];
-             byte br1 = colors[ib+3];
-             byte bg1 = colors[ib+4];
-             byte bb1 = colors[ib+5];          
+             if (clrDim == 3) {
+                br0 = colors[cib];
+                bg0 = colors[cib+1];
+                bb0 = colors[cib+2];
+                br1 = colors[cib+3];
+                bg1 = colors[cib+4];
+                bb1 = colors[cib+5];  
+             }
+             else {
+                br0 = colors[cib];
+                bg0 = colors[cib+1];
+                bb0 = colors[cib+2];
+                ba0 = colors[cib+3];
+                br1 = colors[cib+4];
+                bg1 = colors[cib+5];
+                bb1 = colors[cib+6];
+                ba1 = colors[cib+7];
+             }
              
              int idx = numVerts*3;
+             int cidx = numVerts*clrDim;
              
              newCoords[idx] = A0[0];
              newCoords[idx+1] = A0[1];
              newCoords[idx+2] = A0[2];
-             newColors[idx] = ar0;
-             newColors[idx+1] = ag0;
-             newColors[idx+2] = ab0;
+             newColors[cidx] = ar0;
+             newColors[cidx+1] = ag0;
+             newColors[cidx+2] = ab0;
+             if (clrDim == 4) newColors[cidx+3] = aa0;
              numVerts++;
 
              idx = numVerts*3;
+             cidx = numVerts*clrDim;
              newCoords[idx] = B0[0];
              newCoords[idx+1] = B0[1];
              newCoords[idx+2] = B0[2];
-             newColors[idx] = br0;
-             newColors[idx+1] = bg0;
-             newColors[idx+2] = bb0;             
+             newColors[cidx] = br0;
+             newColors[cidx+1] = bg0;
+             newColors[cidx+2] = bb0;   
+             if (clrDim == 4) newColors[cidx+3] = ba0;             
              numVerts++; 
              
              idx = numVerts*3;
+             cidx = numVerts*clrDim;
              newCoords[idx] = B1[0];
              newCoords[idx+1] = B1[1];
              newCoords[idx+2] = B1[2];
-             newColors[idx] = br1;
-             newColors[idx+1] = bg1;
-             newColors[idx+2] = bb1;             
+             newColors[cidx] = br1;
+             newColors[cidx+1] = bg1;
+             newColors[cidx+2] = bb1;  
+             if (clrDim == 4) newColors[cidx+3] = ba1;             
              numVerts++;  
              
              idx = numVerts*3;
+             cidx = numVerts*clrDim;
              newCoords[idx] = B1[0];
              newCoords[idx+1] = B1[1];
              newCoords[idx+2] = B1[2];
-             newColors[idx] = br1;
-             newColors[idx+1] = bg1;
-             newColors[idx+2] = bb1;             
+             newColors[cidx] = br1;
+             newColors[cidx+1] = bg1;
+             newColors[cidx+2] = bb1;    
+             if (clrDim == 4) newColors[cidx+3] = ba1;             
              numVerts++;
 
              idx = numVerts*3;
+             cidx = numVerts*clrDim;
              newCoords[idx] = A1[0];
              newCoords[idx+1] = A1[1];
              newCoords[idx+2] = A1[2];
-             newColors[idx] = ar1;
-             newColors[idx+1] = ag1;
-             newColors[idx+2] = ab1;             
+             newColors[cidx] = ar1;
+             newColors[cidx+1] = ag1;
+             newColors[cidx+2] = ab1;   
+             if (clrDim == 4) newColors[cidx+3] = aa1;             
              numVerts++; 
              
              idx = numVerts*3;
+             cidx = numVerts*clrDim;
              newCoords[idx] = A0[0];
              newCoords[idx+1] = A0[1];
              newCoords[idx+2] = A0[2];
-             newColors[idx] = ar0;
-             newColors[idx+1] = ag0;
-             newColors[idx+2] = ab0;             
+             newColors[cidx] = ar0;
+             newColors[cidx+1] = ag0;
+             newColors[cidx+2] = ab0; 
+             if (clrDim == 4) newColors[cidx+3] = aa0;             
              numVerts++;                       
           }
           
        }
        // remove missing:
        float[] coords = new float[numVerts*3];
-       byte[] colors = new byte[numVerts*3];
+       byte[] colors = new byte[numVerts*clrDim];
        System.arraycopy(newCoords, 0, coords, 0, coords.length);
        System.arraycopy(newColors, 0, colors, 0, colors.length);
        
@@ -810,7 +890,7 @@ public class Trajectory {
         int num = totNpairs*6;
         
         float[] newCoords = new float[num*3*2];
-        byte[] newColors = new byte[num*3*2];
+        byte[] newColors = new byte[num*clrDim*2];
         float[] newNormals = new float[num*3*2];
         
         float[] uvecPath = new float[3];
@@ -826,12 +906,16 @@ public class Trajectory {
         
         
         int numVert=0;
+        byte r0,g0,b0,r1,g1,b1;
+        byte a0 = -1;
+        byte a1 = -1;
         
         for (int t=0; t<ntrajs; t++) {
           Trajectory traj = trajectories.get(t);
           for (int k=0; k<traj.npairs; k++) {
         
             int i = traj.indexes[k];
+            int ci = 2*clrDim*i/6;
             
             float x0 = coordinates[i];
             float y0 = coordinates[i+1];
@@ -840,12 +924,24 @@ public class Trajectory {
             float y1 = coordinates[i+4];
             float z1 = coordinates[i+5];
             
-            byte r0 = colors[i];
-            byte g0 = colors[i+1];
-            byte b0 = colors[i+2];
-            byte r1 = colors[i+3];
-            byte g1 = colors[i+4];
-            byte b1 = colors[i+5];
+            if (clrDim == 3) {
+              r0 = colors[ci];
+              g0 = colors[ci+1];
+              b0 = colors[ci+2];
+              r1 = colors[ci+3];
+              g1 = colors[ci+4];
+              b1 = colors[ci+5];
+            }
+            else {
+              r0 = colors[ci];
+              g0 = colors[ci+1];
+              b0 = colors[ci+2];
+              a0 = colors[ci+3];
+              r1 = colors[ci+4];
+              g1 = colors[ci+5];
+              b1 = colors[ci+6];    
+              a1 = colors[ci+7];
+            }
             
             float mag = (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) + (z1-z0)*(z1-z0);
             mag = (float) Math.sqrt(mag);
@@ -946,144 +1042,168 @@ public class Trajectory {
             }
             
             int idx = numVert*3;
+            int cidx = numVert*clrDim;
             newCoords[idx] = ptA[0];
             newCoords[idx+1] = ptA[1];
             newCoords[idx+2] = ptA[2];
-            newColors[idx] = r0;
-            newColors[idx+1] = g0;
-            newColors[idx+2] = b0;
+            newColors[cidx] = r0;
+            newColors[cidx+1] = g0;
+            newColors[cidx+2] = b0;
+            if (clrDim == 4) newColors[cidx+3] = a0;
             newNormals[idx] = 0f;
             newNormals[idx+1] = 0f;
             newNormals[idx+2] = 1f;
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptB[0];
             newCoords[idx+1] = ptB[1];
             newCoords[idx+2] = ptB[2];
-            newColors[idx] = r0;
-            newColors[idx+1] = g0;
-            newColors[idx+2] = b0;   
+            newColors[cidx] = r0;
+            newColors[cidx+1] = g0;
+            newColors[cidx+2] = b0;  
+            if (clrDim == 4) newColors[cidx+3] = a0;            
             newNormals[idx] = 0f;
             newNormals[idx+1] = 0f;
             newNormals[idx+2] = 1f;
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptC[0];
             newCoords[idx+1] = ptC[1];
             newCoords[idx+2] = ptC[2];
-            newColors[idx] = r1;
-            newColors[idx+1] = g1;
-            newColors[idx+2] = b1;  
+            newColors[cidx] = r1;
+            newColors[cidx+1] = g1;
+            newColors[cidx+2] = b1;  
+            if (clrDim == 4) newColors[cidx+3] = a1;            
             newNormals[idx] = 0f;
             newNormals[idx+1] = 0f;
             newNormals[idx+2] = 1f;
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptAA[0];
             newCoords[idx+1] = ptAA[1];
             newCoords[idx+2] = ptAA[2];
-            newColors[idx] = r0;
-            newColors[idx+1] = g0;
-            newColors[idx+2] = b0;
+            newColors[cidx] = r0;
+            newColors[cidx+1] = g0;
+            newColors[cidx+2] = b0;
+            if (clrDim == 4) newColors[cidx+3] = a0;            
             newNormals[idx] = norm_x_trj[0];
             newNormals[idx+1] = norm_x_trj[1];
             newNormals[idx+2] = norm_x_trj[2];
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptBB[0];
             newCoords[idx+1] = ptBB[1];
             newCoords[idx+2] = ptBB[2];
-            newColors[idx] = r0;
-            newColors[idx+1] = g0;
-            newColors[idx+2] = b0;    
+            newColors[cidx] = r0;
+            newColors[cidx+1] = g0;
+            newColors[cidx+2] = b0;   
+            if (clrDim == 4) newColors[cidx+3] = a0;            
             newNormals[idx] = norm_x_trj[0];
             newNormals[idx+1] = norm_x_trj[1];
             newNormals[idx+2] = norm_x_trj[2];
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptCC[0];
             newCoords[idx+1] = ptCC[1];
             newCoords[idx+2] = ptCC[2];
-            newColors[idx] = r1;
-            newColors[idx+1] = g1;
-            newColors[idx+2] = b1;  
+            newColors[cidx] = r1;
+            newColors[cidx+1] = g1;
+            newColors[cidx+2] = b1; 
+            if (clrDim == 4) newColors[cidx+3] = a1;            
             newNormals[idx] = norm_x_trj[0];
             newNormals[idx+1] = norm_x_trj[1];
             newNormals[idx+2] = norm_x_trj[2];
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptC[0];
             newCoords[idx+1] = ptC[1];
             newCoords[idx+2] = ptC[2];
-            newColors[idx] = r1;
-            newColors[idx+1] = g1;
-            newColors[idx+2] = b1;  
+            newColors[cidx] = r1;
+            newColors[cidx+1] = g1;
+            newColors[cidx+2] = b1;  
+            if (clrDim == 4) newColors[cidx+3] = a1;            
             newNormals[idx] = 0f;
             newNormals[idx+1] = 0f;
             newNormals[idx+2] = 1f;
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptA[0];
             newCoords[idx+1] = ptA[1];
             newCoords[idx+2] = ptA[2];
-            newColors[idx] = r0;
-            newColors[idx+1] = g0;
-            newColors[idx+2] = b0;     
+            newColors[cidx] = r0;
+            newColors[cidx+1] = g0;
+            newColors[cidx+2] = b0;     
+            if (clrDim == 4) newColors[cidx+3] = a0;            
             newNormals[idx] = 0f;
             newNormals[idx+1] = 0f;
             newNormals[idx+2] = 1f;
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptD[0];
             newCoords[idx+1] = ptD[1];
             newCoords[idx+2] = ptD[2];
-            newColors[idx] = r1;
-            newColors[idx+1] = g1;
-            newColors[idx+2] = b1;  
+            newColors[cidx] = r1;
+            newColors[cidx+1] = g1;
+            newColors[cidx+2] = b1;  
+            if (clrDim == 4) newColors[cidx+3] = a1;            
             newNormals[idx] = 0f;
             newNormals[idx+1] = 0f;
             newNormals[idx+2] = 1f;
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptCC[0];
             newCoords[idx+1] = ptCC[1];
             newCoords[idx+2] = ptCC[2];
-            newColors[idx] = r1;
-            newColors[idx+1] = g1;
-            newColors[idx+2] = b1;    
+            newColors[cidx] = r1;
+            newColors[cidx+1] = g1;
+            newColors[cidx+2] = b1; 
+            if (clrDim == 4) newColors[cidx+3] = a1;            
             newNormals[idx] = norm_x_trj[0];
             newNormals[idx+1] = norm_x_trj[1];
             newNormals[idx+2] = norm_x_trj[2];
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptAA[0];
             newCoords[idx+1] = ptAA[1];
             newCoords[idx+2] = ptAA[2];
-            newColors[idx] = r0;
-            newColors[idx+1] = g0;
-            newColors[idx+2] = b0; 
+            newColors[cidx] = r0;
+            newColors[cidx+1] = g0;
+            newColors[cidx+2] = b0; 
+            if (clrDim == 4) newColors[cidx+3] = a0;            
             newNormals[idx] = norm_x_trj[0];
             newNormals[idx+1] = norm_x_trj[1];
             newNormals[idx+2] = norm_x_trj[2];
             numVert++;
             
             idx = numVert*3;
+            cidx = numVert*clrDim;
             newCoords[idx] = ptDD[0];
             newCoords[idx+1] = ptDD[1];
             newCoords[idx+2] = ptDD[2];
-            newColors[idx] = r1;
-            newColors[idx+1] = g1;
-            newColors[idx+2] = b1;  
+            newColors[cidx] = r1;
+            newColors[cidx+1] = g1;
+            newColors[cidx+2] = b1; 
+            if (clrDim == 4) newColors[cidx+3] = a1;            
             newNormals[idx] = norm_x_trj[0];
             newNormals[idx+1] = norm_x_trj[1];
             newNormals[idx+2] = norm_x_trj[2];
@@ -1134,11 +1254,11 @@ public class Trajectory {
         return rotV;
      }
      
-     public VisADGeometryArray makeCylinderStrip(float[] T, float[] S, float[] pt0, float[] pt1, byte[][] color, float size,
+     public VisADGeometryArray makeCylinderStrip(float[] T, float[] S, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
                  int npts, float[] coords, byte[] colors, float[] normls, int[] vertCnt) {
         VisADTriangleStripArray array = new VisADTriangleStripArray();
         
-        int clrDim = color.length;
+        int clrDim = clr0.length;
         
          if (circle == null) {
            circle = new float[2][npts];
@@ -1191,15 +1311,15 @@ public class Trajectory {
           coords[idx++] = z;
 
           if (clrDim == 3) {
-             colors[cidx++] = color[0][0];
-             colors[cidx++] = color[1][0];
-             colors[cidx++] = color[2][0];
+             colors[cidx++] = clr0[0][0];
+             colors[cidx++] = clr0[1][0];
+             colors[cidx++] = clr0[2][0];
           }
           else { // must be four
-             colors[cidx++] = color[0][0];
-             colors[cidx++] = color[1][0];
-             colors[cidx++] = color[2][0];
-             colors[cidx++] = color[3][0];
+             colors[cidx++] = clr0[0][0];
+             colors[cidx++] = clr0[1][0];
+             colors[cidx++] = clr0[2][0];
+             colors[cidx++] = clr0[3][0];
           }
           vcnt++;
 
@@ -1215,15 +1335,15 @@ public class Trajectory {
           coords[idx++] = z;
 
           if (clrDim == 3) {
-             colors[cidx++] = color[0][0];
-             colors[cidx++] = color[1][0];
-             colors[cidx++] = color[2][0];
+             colors[cidx++] = clr1[0][0];
+             colors[cidx++] = clr1[1][0];
+             colors[cidx++] = clr1[2][0];
           }
           else { // must be four
-             colors[cidx++] = color[0][0];
-             colors[cidx++] = color[1][0];
-             colors[cidx++] = color[2][0];
-             colors[cidx++] = color[3][0];
+             colors[cidx++] = clr1[0][0];
+             colors[cidx++] = clr1[1][0];
+             colors[cidx++] = clr1[2][0];
+             colors[cidx++] = clr1[3][0];
           }
           vcnt++;
        }
@@ -1575,7 +1695,7 @@ public class Trajectory {
               if (clrDim == 4) {
                 intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
               }
-
+              
               //markGrid[idx] = true;
               markGridTime[idx] = currentTimeIndex;
            }
@@ -1639,6 +1759,7 @@ public class Trajectory {
      private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
         // new stuff 
         indexes[npairs] = coordCnt;
+        
         coordinates[coordCnt++] = startPt[0];
         coordinates[coordCnt++] = startPt[1];
         coordinates[coordCnt++] = startPt[2];
@@ -1669,6 +1790,14 @@ public class Trajectory {
         colors[colorCnt++] = stopColor[2];
         if (clrDim == 4) {
           colors[colorCnt++] = stopColor[3];
+        }
+        
+        // grow arrays
+        if (indexes.length == npairs) {
+           int[] tmp = new int[npairs+40];
+           System.arraycopy(indexes, 0, tmp, 0, npairs);
+           indexes = tmp;
+           tmp = new int[npairs+40];
         }
      }
 
