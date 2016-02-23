@@ -68,6 +68,9 @@ public class TrajectoryParams {
   
   int trajForm = LINE;
   float cylWidth = 0.01f;
+  float ribbonWidthFac = 1f;
+  int zStart = 0;
+  int zStartSkip = 0;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -93,6 +96,9 @@ public class TrajectoryParams {
     this.cachingEnabled = params.getCachingEnabled();
     this.trajForm = params.getTrajectoryForm();
     this.cylWidth = params.getCylinderWidth();
+    this.ribbonWidthFac = params.getRibbonWidthFactor();
+    this.zStart = params.getZStartIndex();
+    this.zStartSkip = params.getZStartSkip();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -158,6 +164,14 @@ public class TrajectoryParams {
     this.startSkip = skip;
   }
   
+  public void setZStartSkip(int skip) {
+     this.zStartSkip = skip;
+  }
+  
+  public void setZStartIndex(int idx) {
+     this.zStart = idx;
+  }
+  
   public void setManualIntrpPts(boolean isManual) {
     this.manualIntrpPts = isManual;
   }
@@ -185,6 +199,10 @@ public class TrajectoryParams {
   public void setCylinderWidth(float width) {
      cylWidth = width;
   }
+  
+  public void setRibbonWidthFactor(float fac) {
+     this.ribbonWidthFac = fac;
+  }
 
   public double getTrajVisibilityTimeWindow() {
     return trajVisibilityTimeWindow;
@@ -201,6 +219,14 @@ public class TrajectoryParams {
   public int getStartSkip() {
     return startSkip;
   }
+  
+  public int getZStartSkip() {
+    return zStartSkip;
+  }
+  
+  public int getZStartIndex() {
+    return zStart;
+  }
 
   public SmoothParams getSmoothParams() {
     return smoothParams;
@@ -212,6 +238,10 @@ public class TrajectoryParams {
   
   public float getCylinderWidth() {
      return cylWidth;
+  }
+  
+  public float getRibbonWidthFactor() {
+     return ribbonWidthFac;
   }
 
   public int getDirection() {
