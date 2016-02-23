@@ -108,6 +108,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   
   int trajForm = LINE; // Default
   float cylWidth = 0.01f;
+  float ribbonWidthFac = 1f;
+  int zStart = 0;
+  int zSkip = 0;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -234,6 +237,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajCachingEnabled = trajParams.getCachingEnabled();
             trajForm = trajParams.getTrajectoryForm();
             cylWidth = trajParams.getCylinderWidth();
+            ribbonWidthFac = trajParams.getRibbonWidthFactor();
+            zStart = trajParams.getZStartIndex();
+            zSkip = trajParams.getZStartSkip();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1611,7 +1617,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               vec = ShadowType.adjustFlowToEarth(info.which, flowVals, spatial_set0.getSamples(false), 1f, renderer);
            }
            startPts = new float[3][];
-           Trajectory.getStartPointsFromDomain(trajForm, trajSkip, spatial_set0, color_values, startPts, startClrs, vec);
+           Trajectory.getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec);
          }
          else {
            /* TODO: assuming earth navigated display coordinate system*/
@@ -1765,7 +1771,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               array = Trajectory.makeGeometry();
               break;
             case 1:
-              array = Trajectory.makeFixedWidthRibbon(trajectories);
+              array = Trajectory.makeFixedWidthRibbon(trajectories, ribbonWidthFac);
               break;
             case 2:
               array = Trajectory.makeCylinder(trajectories, auxArray, cylWidth);

@@ -179,7 +179,7 @@ public class Trajectory {
        return spatialSetTraj;
      }
      
-     public static void getStartPointsFromDomain(int trajForm, int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
+     public static void getStartPointsFromDomain(int trajForm, int skip, int zstart, int zskip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
          int manifoldDim = spatial_set.getManifoldDimension();
          int[] lens = spatial_set.getLengths();
          int lenX = lens[0];
@@ -187,14 +187,17 @@ public class Trajectory {
          int lenZ;
          if (manifoldDim == 3) {
              lenZ = lens[2];
-             getStartPointsFromDomain3D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs, flowValues);
+             if (zskip <= 0) {
+               zskip = lenZ/3;
+             }
+             getStartPointsFromDomain3D(trajForm, skip, zstart, zskip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs, flowValues);
          }
          else if (manifoldDim == 2) {
              getStartPointsFromDomain2D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, color_values, startPts, startClrs, flowValues);
          }
      }
      
-     public static void getStartPointsFromDomain3D(int trajForm, int skip, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
+     public static void getStartPointsFromDomain3D(int trajForm, int skip, int zstart, int skipZ, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
          int len2D = lenX*lenY;
          
          float[][] locs2D = new float[3][len2D];
@@ -204,10 +207,9 @@ public class Trajectory {
          byte[][] clrs2D = new byte[clrDim][len2D];
          byte[][] clrs = new byte[clrDim][];
          
-         int skipZ = lenZ/3;
          int lenA = 0;
          
-         for (int k=0; k<lenZ; k+=skipZ) {
+         for (int k=zstart; k<lenZ; k+=skipZ) {
              System.arraycopy(locs[0], k*len2D, locs2D[0], 0, len2D);
              System.arraycopy(locs[1], k*len2D, locs2D[1], 0, len2D);
              System.arraycopy(locs[2], k*len2D, locs2D[2], 0, len2D);
@@ -882,7 +884,7 @@ public class Trajectory {
        return array;
      }
      
-     public static VisADGeometryArray makeFixedWidthRibbon(ArrayList<Trajectory> trajectories) {
+     public static VisADGeometryArray makeFixedWidthRibbon(ArrayList<Trajectory> trajectories, float widthFac) {
         VisADTriangleArray array = new VisADTriangleArray();
         
         int ntrajs = trajectories.size();
@@ -909,6 +911,8 @@ public class Trajectory {
         byte r0,g0,b0,r1,g1,b1;
         byte a0 = -1;
         byte a1 = -1;
+        
+        float width = widthFac*0.006f;
         
         for (int t=0; t<ntrajs; t++) {
           Trajectory traj = trajectories.get(t);
@@ -953,24 +957,22 @@ public class Trajectory {
             
             float[] trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);
             
-            float fac = 0.006f;
-            
             // fixed width ribbon. Horz: A,B,C,D Vert: AA,BB,CC,DD ----------------------
             if (k==0) {
               if (traj.lastPtC == null) {
-                ptA[0] = fac*norm_x_trj[0] + x0;
-                ptA[1] = fac*norm_x_trj[1] + y0;
-                ptA[2] = fac*norm_x_trj[2] + z0;
-                ptB[0] = -fac*norm_x_trj[0] + x0;
-                ptB[1] = -fac*norm_x_trj[1] + y0;
-                ptB[2] = -fac*norm_x_trj[2] + z0;
+                ptA[0] = width*norm_x_trj[0] + x0;
+                ptA[1] = width*norm_x_trj[1] + y0;
+                ptA[2] = width*norm_x_trj[2] + z0;
+                ptB[0] = -width*norm_x_trj[0] + x0;
+                ptB[1] = -width*norm_x_trj[1] + y0;
+                ptB[2] = -width*norm_x_trj[2] + z0;
                 
-                ptAA[0] = fac*trj_x_norm_x_trj[0] + x0;
-                ptAA[1] = fac*trj_x_norm_x_trj[1] + y0;
-                ptAA[2] = fac*trj_x_norm_x_trj[2] + z0;
-                ptBB[0] = -fac*trj_x_norm_x_trj[0] + x0;
-                ptBB[1] = -fac*trj_x_norm_x_trj[1] + y0;
-                ptBB[2] = -fac*trj_x_norm_x_trj[2] + z0;
+                ptAA[0] = width*trj_x_norm_x_trj[0] + x0;
+                ptAA[1] = width*trj_x_norm_x_trj[1] + y0;
+                ptAA[2] = width*trj_x_norm_x_trj[2] + z0;
+                ptBB[0] = -width*trj_x_norm_x_trj[0] + x0;
+                ptBB[1] = -width*trj_x_norm_x_trj[1] + y0;
+                ptBB[2] = -width*trj_x_norm_x_trj[2] + z0;
               }
               else {
                 ptA[0] = traj.lastPtD[0];
@@ -1005,19 +1007,19 @@ public class Trajectory {
             }
                  
             
-            ptD[0] = fac*norm_x_trj[0] + x1;
-            ptD[1] = fac*norm_x_trj[1] + y1;
-            ptD[2] = fac*norm_x_trj[2] + z1;
-            ptC[0] = -fac*norm_x_trj[0] + x1;
-            ptC[1] = -fac*norm_x_trj[1] + y1;
-            ptC[2] = -fac*norm_x_trj[2] + z1;
+            ptD[0] = width*norm_x_trj[0] + x1;
+            ptD[1] = width*norm_x_trj[1] + y1;
+            ptD[2] = width*norm_x_trj[2] + z1;
+            ptC[0] = -width*norm_x_trj[0] + x1;
+            ptC[1] = -width*norm_x_trj[1] + y1;
+            ptC[2] = -width*norm_x_trj[2] + z1;
             
-            ptDD[0] = fac*trj_x_norm_x_trj[0] + x1;
-            ptDD[1] = fac*trj_x_norm_x_trj[1] + y1;
-            ptDD[2] = fac*trj_x_norm_x_trj[2] + z1;
-            ptCC[0] = -fac*trj_x_norm_x_trj[0] + x1;
-            ptCC[1] = -fac*trj_x_norm_x_trj[1] + y1;
-            ptCC[2] = -fac*trj_x_norm_x_trj[2] + z1;
+            ptDD[0] = width*trj_x_norm_x_trj[0] + x1;
+            ptDD[1] = width*trj_x_norm_x_trj[1] + y1;
+            ptDD[2] = width*trj_x_norm_x_trj[2] + z1;
+            ptCC[0] = -width*trj_x_norm_x_trj[0] + x1;
+            ptCC[1] = -width*trj_x_norm_x_trj[1] + y1;
+            ptCC[2] = -width*trj_x_norm_x_trj[2] + z1;
             
             if (traj.lastPtD == null) {
               traj.lastPtC = new float[] {ptC[0], ptC[1], ptC[2]}; 
