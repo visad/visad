@@ -179,7 +179,7 @@ public class Trajectory {
        return spatialSetTraj;
      }
      
-     public static void getStartPointsFromDomain(int trajForm, int skip, int zstart, int zskip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
+     public static void getStartPointsFromDomain(int trajForm, int skip, int zstart, int zskip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues, float ribbonWidthFac) throws VisADException {
          int manifoldDim = spatial_set.getManifoldDimension();
          int[] lens = spatial_set.getLengths();
          int lenX = lens[0];
@@ -190,14 +190,14 @@ public class Trajectory {
              if (zskip <= 0) {
                zskip = lenZ/3;
              }
-             getStartPointsFromDomain3D(trajForm, skip, zstart, zskip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs, flowValues);
+             getStartPointsFromDomain3D(trajForm, skip, zstart, zskip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs, flowValues, ribbonWidthFac);
          }
          else if (manifoldDim == 2) {
-             getStartPointsFromDomain2D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, color_values, startPts, startClrs, flowValues);
+             getStartPointsFromDomain2D(trajForm, skip, spatial_set.getSamples(false), lenX, lenY, color_values, startPts, startClrs, flowValues, ribbonWidthFac);
          }
      }
      
-     public static void getStartPointsFromDomain3D(int trajForm, int skip, int zstart, int skipZ, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
+     public static void getStartPointsFromDomain3D(int trajForm, int skip, int zstart, int skipZ, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues, float ribbonWidthFac) throws VisADException {
          int len2D = lenX*lenY;
          
          float[][] locs2D = new float[3][len2D];
@@ -221,7 +221,7 @@ public class Trajectory {
                System.arraycopy(color_values[3], k*len2D, clrs2D[3], 0, len2D);                
              }
              
-             getStartPointsFromDomain2D(trajForm, skip, locs2D, lenX, lenY, clrs2D, pts, clrs, flowValues);
+             getStartPointsFromDomain2D(trajForm, skip, locs2D, lenX, lenY, clrs2D, pts, clrs, flowValues, ribbonWidthFac);
              
              int lenB = pts[0].length;
              float[][] tmpPts = new float[3][lenA+lenB];
@@ -264,7 +264,7 @@ public class Trajectory {
          }
      }
 
-     public static void getStartPointsFromDomain2D(int trajForm, int skip, float[][] setLocs, int lenX, int lenY, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues) throws VisADException {
+     public static void getStartPointsFromDomain2D(int trajForm, int skip, float[][] setLocs, int lenX, int lenY, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues, float ribbonWidthFac) throws VisADException {
         int clrDim = color_values.length;
         int m = 0;
         if (doStartOffset) {
@@ -295,6 +295,10 @@ public class Trajectory {
         if (clrDim == 4) {
            startClrs[3] = new byte[num];
         }
+        
+        float[] norm = new float[] {0f, 0f, 1f};
+        float[] traj = new float[3];
+        float width = ribbonWidthFac*0.006f;
 
         num = 0;
         for (int j=1+o_j[m]*(skip/2); j<lenY-skip; j+=skip) {
@@ -302,34 +306,23 @@ public class Trajectory {
 
             int k = j*lenX + i;
 
-            if (!markGrid[k]) {
-              startPts[0][num] = setLocs[0][k];
-              startPts[1][num] = setLocs[1][k];
-              startPts[2][num] = setLocs[2][k];
-
-              startClrs[0][num] = color_values[0][k];
-              startClrs[1][num] = color_values[1][k];
-              startClrs[2][num] = color_values[2][k];
-              if (clrDim == 4) {
-                startClrs[3][num] = color_values[3][k];
-              }
-            }
-            num++;
             
             if (trajForm == TrajectoryParams.DEFORM_RIBBON) {         
               float u = flowValues[0][k];
               float v = flowValues[1][k];
-              if (Math.abs(u/v) > 1) {
-                k += lenX;
-              }
-              else {
-                k += 1;    
-              }
+
+              traj[0] = u;
+              traj[1] = v;
+              traj[2] = 0f;
+              float mag = (float) Math.sqrt(u*u+v*v);
+              traj[0] /= mag;
+              traj[1] /= mag;
+              float[] norm_x_traj = AxB(norm, traj);
 
               if (!markGrid[k]) {
-                startPts[0][num] = setLocs[0][k];
-                startPts[1][num] = setLocs[1][k];
-                startPts[2][num] = setLocs[2][k];
+                startPts[0][num] = width*norm_x_traj[0] + setLocs[0][k];
+                startPts[1][num] = width*norm_x_traj[1] + setLocs[1][k];
+                startPts[2][num] = width*norm_x_traj[2] + setLocs[2][k];
 
                 startClrs[0][num] = color_values[0][k];
                 startClrs[1][num] = color_values[1][k];
@@ -337,8 +330,35 @@ public class Trajectory {
                 if (clrDim == 4) {
                   startClrs[3][num] = color_values[3][k];
                 }
+                num++;
+                
+                startPts[0][num] = -width*norm_x_traj[0] + setLocs[0][k];
+                startPts[1][num] = -width*norm_x_traj[1] + setLocs[1][k];
+                startPts[2][num] = -width*norm_x_traj[2] + setLocs[2][k];
+
+                startClrs[0][num] = color_values[0][k];
+                startClrs[1][num] = color_values[1][k];
+                startClrs[2][num] = color_values[2][k];
+                if (clrDim == 4) {
+                  startClrs[3][num] = color_values[3][k];
+                }
+                num++;
               }
-              num++;
+            }
+            else {
+               if (!markGrid[k]) {
+                 startPts[0][num] = setLocs[0][k];
+                 startPts[1][num] = setLocs[1][k];
+                 startPts[2][num] = setLocs[2][k];
+
+                 startClrs[0][num] = color_values[0][k];
+                 startClrs[1][num] = color_values[1][k];
+                 startClrs[2][num] = color_values[2][k];
+                 if (clrDim == 4) {
+                   startClrs[3][num] = color_values[3][k];
+                 }
+                 num++;
+               }
             }
             
           }
