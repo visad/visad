@@ -1617,7 +1617,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               vec = ShadowType.adjustFlowToEarth(info.which, flowVals, spatial_set0.getSamples(false), 1f, renderer);
            }
            startPts = new float[3][];
-           Trajectory.getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec);
+           Trajectory.getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec, ribbonWidthFac);
          }
          else {
            /* TODO: assuming earth navigated display coordinate system*/
