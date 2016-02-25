@@ -691,6 +691,10 @@ public class Trajectory {
          BV[2] = ptB[2] - vertex[2];
          
          float[] norm = AxB(AV, BV);
+         float mag = (float) Math.sqrt(norm[0]*norm[0]+norm[1]*norm[1]+norm[2]*norm[2]);
+         norm[0] /= mag;
+         norm[1] /= mag;
+         norm[2] /= mag;
          
          
          normals[idx] = norm[0];
@@ -1324,12 +1328,18 @@ public class Trajectory {
           float x = last_circleXYZ[0][k];
           float y = last_circleXYZ[1][k];
           float z = last_circleXYZ[2][k];
+          
+          float delx = x - pt0[0];
+          float dely = y - pt0[1];
+          float delz = z - pt0[2];
+          
+          float mag = (float) Math.sqrt(delx*delx+dely*dely+delz*delz);
 
-          normls[idx] = x - pt0[0];
+          normls[idx] = delx/mag;
           coords[idx++] = x;
-          normls[idx] = y - pt0[1];
+          normls[idx] = dely/mag;
           coords[idx++] = y;
-          normls[idx] = z - pt0[2];
+          normls[idx] = delz/mag;
           coords[idx++] = z;
 
           if (clrDim == 3) {
@@ -1348,12 +1358,18 @@ public class Trajectory {
           x = circleXYZ[0][k];
           y = circleXYZ[1][k];
           z = circleXYZ[2][k];
-
-          normls[idx] = x - pt1[0];              
+          
+          delx = x - pt1[0];
+          dely = y - pt1[1];
+          delz = z - pt1[2];
+          
+          mag = (float) Math.sqrt(delx*delx+dely*dely+delz*delz);
+          
+          normls[idx] = delx/mag;              
           coords[idx++] = x;
-          normls[idx] = y - pt1[1];              
+          normls[idx] = dely/mag;              
           coords[idx++] = y;
-          normls[idx] = z - pt1[2];             
+          normls[idx] = delz/mag;             
           coords[idx++] = z;
 
           if (clrDim == 3) {
