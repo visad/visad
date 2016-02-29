@@ -2519,7 +2519,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     int flow_dim0 = -1;
     int flow_dim1 = -1;
-    int cnt_flow_maps = 0;
+    int cnt_flow1_maps = 0;
+    int cnt_flow2_maps = 0;
+    
     for (int k = 0; k < range_reals.length; k++) {
       for (int i = 0; i < valueArrayLength; i++) {
         ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
@@ -2527,39 +2529,57 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
         ScalarType scalar = map.getScalar();
         if (!scalar.equals(range_reals[k]))
           continue;
-        if ((dreal.equals(Display.Flow1X)) || (dreal.equals(Display.Flow2X))
-            || (dreal.equals(Display.Flow1Elevation))
-            || (dreal.equals(Display.Flow2Elevation))) {
+        if ((dreal.equals(Display.Flow1X)) || dreal.equals(Display.Flow1Elevation)) {
           if (flow_dim0 == -1) {
             flow_dim0 = 0;
           } else {
             flow_dim0 = 0;
             flow_dim1 = 1;
           }
-          cnt_flow_maps++;
+          cnt_flow1_maps++;
         }
-        if ((dreal.equals(Display.Flow1Y)) || (dreal.equals(Display.Flow2Y))
-            || (dreal.equals(Display.Flow1Azimuth))
-            || (dreal.equals(Display.Flow2Azimuth))) {
+        if ((dreal.equals(Display.Flow2X)) || dreal.equals(Display.Flow2Elevation)) {
+          if (flow_dim0 == -1) {
+            flow_dim0 = 0;
+          } else {
+            flow_dim0 = 0;
+            flow_dim1 = 1;
+          }
+          cnt_flow2_maps++;
+        }
+        if (dreal.equals(Display.Flow1Y) || dreal.equals(Display.Flow1Azimuth)) {
           if (flow_dim0 == -1) {
             flow_dim0 = 1;
           } else {
             flow_dim1 = 1;
           }
-          cnt_flow_maps++;
+          cnt_flow1_maps++;
         }
-        if ((dreal.equals(Display.Flow1Z)) || (dreal.equals(Display.Flow2Z))
-            || (dreal.equals(Display.Flow1Radial))
-            || (dreal.equals(Display.Flow2Radial))) {
+        if (dreal.equals(Display.Flow2Y) ||dreal.equals(Display.Flow2Azimuth)) {
+          if (flow_dim0 == -1) {
+            flow_dim0 = 1;
+          } else {
+            flow_dim1 = 1;
+          }
+          cnt_flow2_maps++;
+        }        
+        if (dreal.equals(Display.Flow1Z) || dreal.equals(Display.Flow1Radial)) {
           flow_dim1 = 2;
-          cnt_flow_maps++;
+          cnt_flow1_maps++;
+        }
+        if (dreal.equals(Display.Flow2Z) || dreal.equals(Display.Flow2Radial)) {
+          flow_dim1 = 2;
+          cnt_flow2_maps++;
         }
       }
     }
 
-    if (cnt_flow_maps > 2) {
-      throw new BadMappingException(
-          "only one or two ScalarMaps to Flow per data allowed if streamlines enabled");
+    if (cnt_flow1_maps > 2 || cnt_flow2_maps > 2) {
+      throw new BadMappingException("Streamlines: Flow tuple dimension must be two");
+    }
+    
+    if (flow_dim0 == -1 || flow_dim1 == -1) {
+      throw new BadMappingException("Streamlines: Flow tuple dimension must be two");
     }
     // - 2004-01-14 ------------------------------------------------------
 
