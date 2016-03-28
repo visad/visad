@@ -251,23 +251,23 @@ public abstract class ShadowTypeJ2D extends ShadowType {
   /** assemble Flow components;
       Flow components are 'single', so no compositing is required */
   public void assembleFlow(float[][] flow1_values,
-                float[][] flow2_values, float[] flowScale,
+                float[][] flow2_values, float[] flowScale, float[] arrowScale,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, boolean[][] range_select,
                 DataRenderer renderer, ShadowType shadow_api)
          throws VisADException, RemoteException {
-    adaptedShadowType.assembleFlow(flow1_values, flow2_values, flowScale,
+    adaptedShadowType.assembleFlow(flow1_values, flow2_values, flowScale, arrowScale,
                       display_values, valueArrayLength, valueToScalar,
                       display, default_values, range_select, renderer,
                       shadow_api);
   }
 
   public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
-                float flowScale, float[][] spatial_values,
+                float flowScale, float arrowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
-    return adaptedShadowType.makeFlow(which, flow_values, flowScale,
+    return adaptedShadowType.makeFlow(which, flow_values, flowScale, arrowScale,
            spatial_values, color_values, range_select);
   }
 
