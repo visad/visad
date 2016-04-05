@@ -2172,7 +2172,7 @@ if (range_select[0] != null) {
           }
           else {
             visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow2");
-            arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1], arrowScale[0],
+            arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1], arrowScale[1],
                               spatial_values, color_values, range_select);
             if (arrays != null) {
               for (int i=0; i<arrays.length; i++) {
