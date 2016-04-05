@@ -2087,7 +2087,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
    * is required
    */
   public void assembleFlow(float[][] flow1_values, float[][] flow2_values,
-      float[] flowScale, float[][] display_values, int valueArrayLength,
+      float[] flowScale, float[] arrowScale, float[][] display_values, int valueArrayLength,
       int[] valueToScalar, DisplayImpl display, float[] default_values,
       boolean[][] range_select, DataRenderer renderer, ShadowType shadow_api)
       throws VisADException, RemoteException {
@@ -2123,6 +2123,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
             ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
             FlowControl control = (FlowControl) map.getControl();
             flowScale[k] = control.getFlowScale();
+            arrowScale[k] = control.getArrowScale();
             int flow_index = real.getTupleIndex();
             ff_values[k][flow_index] = display_values[i];
             flen[k] = Math.max(flen[k], display_values[i].length);
@@ -2875,7 +2876,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
   /** which = 0 for Flow1 and which = 1 for Flow2 */
   public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
-      float flowScale, float[][] spatial_values, byte[][] color_values,
+      float flowScale, float arrowScale, float[][] spatial_values, byte[][] color_values,
       boolean[][] range_select) throws VisADException {
     if (flow_values[0] == null)
       return null;
@@ -2944,26 +2945,26 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
         coordinates[m++] = coordinates[n++];
         coordinates[m++] = coordinates[n++];
         boolean mode2d = display.getDisplayRenderer().getMode2D();
-        b0 = a0 = BACK_SCALE * f0;
-        b1 = a1 = BACK_SCALE * f1;
-        b2 = a2 = BACK_SCALE * f2;
+        b0 = a0 = BACK_SCALE * arrowScale * f0;
+        b1 = a1 = BACK_SCALE * arrowScale * f1;
+        b2 = a2 = BACK_SCALE * arrowScale * f2;
 
         if (mode2d
             || (Math.abs(f2) <= Math.abs(f0) && Math.abs(f2) <= Math.abs(f1))) {
-          a0 += PERP_SCALE * f1;
-          a1 -= PERP_SCALE * f0;
-          b0 -= PERP_SCALE * f1;
-          b1 += PERP_SCALE * f0;
+          a0 += PERP_SCALE * arrowScale * f1;
+          a1 -= PERP_SCALE * arrowScale * f0;
+          b0 -= PERP_SCALE * arrowScale * f1;
+          b1 += PERP_SCALE * arrowScale * f0;
         } else if (Math.abs(f1) <= Math.abs(f0)) {
-          a0 += PERP_SCALE * f2;
-          a2 -= PERP_SCALE * f0;
-          b0 -= PERP_SCALE * f2;
-          b2 += PERP_SCALE * f0;
+          a0 += PERP_SCALE * arrowScale * f2;
+          a2 -= PERP_SCALE * arrowScale * f0;
+          b0 -= PERP_SCALE * arrowScale * f2;
+          b2 += PERP_SCALE * arrowScale * f0;
         } else { // f0 is least
-          a1 += PERP_SCALE * f2;
-          a2 -= PERP_SCALE * f1;
-          b1 -= PERP_SCALE * f2;
-          b2 += PERP_SCALE * f1;
+          a1 += PERP_SCALE * arrowScale * f2;
+          a2 -= PERP_SCALE * arrowScale * f1;
+          b1 -= PERP_SCALE * arrowScale * f2;
+          b2 += PERP_SCALE * arrowScale * f1;
         }
 
         k = n;
@@ -3771,8 +3772,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];
     float[] flowScale = new float[2];
+    float[] arrowScale = new float[2];
     boolean[][] range_select = new boolean[1][];
-    shadow_api.assembleFlow(flow1_values, flow2_values, flowScale,
+    shadow_api.assembleFlow(flow1_values, flow2_values, flowScale, arrowScale,
         display_values, valueArrayLength, valueToScalar, display,
         default_values, range_select, renderer, shadow_api);
 
@@ -3860,7 +3862,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
       boolean anyFlowCreated = false;
       // try Flow1
-      arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
+      arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0], arrowScale[0],
           spatial_values, color_values, range_select);
       if (arrays != null) {
         for (int i = 0; i < arrays.length; i++) {
@@ -3872,7 +3874,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
         anyFlowCreated = true;
       }
       // try Flow2
-      arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
+      arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1], arrowScale[1],
           spatial_values, color_values, range_select);
       if (arrays != null) {
         for (int i = 0; i < arrays.length; i++) {

@@ -45,7 +45,7 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
   }
 
   public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
-                float flowScale, float[][] spatial_values,
+                float flowScale, float arrowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
 
