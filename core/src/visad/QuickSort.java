@@ -180,6 +180,34 @@ public class QuickSort {
     sort(a, p, 0, a.length-1);
     return p;
   }
+  
+  /**
+   * Sort the array in place and return an array of the
+   * orginal indices.
+   * @param  a  array of floats to sort
+   * @param start to stop (inclusive)
+   * @return  array of the original indices of each  element of a.
+   */
+  public static int[] sort(float a[], int start, int stop) throws VisADException {
+    int[] p = new int[a.length];
+    for (int i=0; i<a.length; i++) p[i] = i;
+    sort(a, p, start, stop);
+    return p;
+  }
+
+  /**
+   * Sort the array in place and return an array of the
+   * orginal indices.
+   * @param  a  array of doubles to sort
+   * @param start to stop (inclusive)
+   * @return  array of the original indices of each  element of a.
+   */
+  public static int[] sort(double a[], int start, int stop) throws VisADException {
+    int[] p = new int[a.length];
+    for (int i=0; i<a.length; i++) p[i] = i;
+    sort(a, p, start, stop);
+    return p;
+  }
 
   /* run 'java visad.QuickSort [elements]' to test the QuickSort class.
      [elements] defaults to 100000, or you can specify your own value. */
