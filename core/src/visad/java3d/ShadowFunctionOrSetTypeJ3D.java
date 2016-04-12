@@ -1508,13 +1508,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       if (!canUseTrajCache) {
          array = computeTrajectories(k, flowInfoList, times, timeSteps, auxArray);
          achrArrays = new ArrayList<float[]>();
-         trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);   
-         if (trajCachingEnabled) {
-           Trajectory.cacheTrajArray(trajCache, array);
-           Trajectory.cacheArray(trajCache, auxArray[0]);
-           Trajectory.cacheTrcrArray(trajCache, trcrArray, achrArrays);
+         if (trajectories.size() > 0) {
+            trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);   
+            if (trajCachingEnabled) {
+              Trajectory.cacheTrajArray(trajCache, array);
+              Trajectory.cacheArray(trajCache, auxArray[0]);
+              Trajectory.cacheTrcrArray(trajCache, trcrArray, achrArrays);
+            }
+            trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));      
          }
-         trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));        
       }
       else  {
          array = Trajectory.getCachedTraj(trajCache, k);
@@ -1611,7 +1613,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
          startClrs = new byte[clrDim][];
          if (startPts == null) { //get from domain set
-           float[][] vec = null;
+           float[][] vec;
            if (true) {
               float[][] flowVals = Trajectory.convertFlowUnit(info.flow_values, info.flow_units);
               vec = ShadowType.adjustFlowToEarth(info.which, flowVals, spatial_set0.getSamples(false), 1f, renderer);
@@ -1621,12 +1623,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          }
          else {
            /* TODO: assuming earth navigated display coordinate system*/
+           /*
            CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
            float[][] fltVals = new float[startPts.length][startPts[0].length];
            for (int i=0; i<fltVals.length; i++) {
              System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
            }
            startPts = dspCoordSys.toReference(fltVals);
+           */
 
            int[] clrIdxs;
            if (spatialSetTraj.getManifoldDimension() == 2) {
@@ -1641,6 +1645,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            if (clrDim == 4) startClrs[3] = new byte[num];
            for (int i=0; i<num; i++) {
              int clrIdx = clrIdxs[i];
+             if (clrIdx < 0) continue;
              startClrs[0][i] = color_values[0][clrIdx];
              startClrs[1][i] = color_values[1][clrIdx];
              startClrs[2][i] = color_values[2][clrIdx];
