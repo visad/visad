@@ -188,7 +188,7 @@ public class Trajectory {
          if (manifoldDim == 3) {
              lenZ = lens[2];
              if (zskip <= 0) {
-               zskip = lenZ/3;
+               zskip = 1;
              }
              getStartPointsFromDomain3D(trajForm, skip, zstart, zskip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs, flowValues, ribbonWidthFac);
          }
