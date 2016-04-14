@@ -303,6 +303,12 @@ public class TrajectoryParams {
       else if (this.startSkip != trajParams.startSkip) {
         return false;
       }
+      else if (this.zStart != trajParams.zStart) {
+        return false;
+      }      
+      else if (this.zStartSkip != trajParams.zStartSkip) {
+        return false;
+      }      
       else if (this.smoothParams != trajParams.smoothParams) {
         return false;
       }
@@ -312,7 +318,16 @@ public class TrajectoryParams {
       else if (this.doIntrp != trajParams.doIntrp) {
          return false;
       }
+      else if (this.direction != trajParams.direction) {
+         return false;
+      }
+      else if (this.markerEnabled != trajParams.markerEnabled) {
+         return false;
+      }
       else if (this.cylWidth != trajParams.cylWidth) {
+        return false;
+      }
+      else if (this.ribbonWidthFac != trajParams.ribbonWidthFac) {
         return false;
       }
     }
