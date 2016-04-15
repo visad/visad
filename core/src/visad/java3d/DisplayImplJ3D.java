@@ -788,7 +788,7 @@ public class DisplayImplJ3D extends DisplayImpl {
     return offsetMin;
   }
     
-   int getNumRenderersWithZoffset() {
+  int getNumRenderersWithZoffset() {
      Vector rendVec = getRendererVector();
      Iterator<DataRenderer> iter = rendVec.iterator();
      int num = 0;
@@ -806,10 +806,11 @@ public class DisplayImplJ3D extends DisplayImpl {
     * @param renderer
     * @param mode 
     */
-   public void setDepthBufferOffset(DataRenderer renderer) {
-     if (mode.getAutoDepthOffsetEnable()) {
-       float depthOffsetInc = mode.getDepthOffsetIncrement();
-       int numLayers = mode.getNumRenderersWithDepthOffset();
+  public void setDepthBufferOffset(DataRenderer renderer, GraphicsModeControl mode) {
+     GraphicsModeControlJ3D mode3d = (GraphicsModeControlJ3D) mode;
+     if (mode3d.getAutoDepthOffsetEnable()) {
+       float depthOffsetInc = mode3d.getDepthOffsetIncrement();
+       int numLayers = mode3d.getNumRenderersWithDepthOffset();
        float maxDepthOffset = numLayers*(-depthOffsetInc);
        
        if (!renderer.hasPolygonOffset()) {
@@ -825,8 +826,8 @@ public class DisplayImplJ3D extends DisplayImpl {
            renderer.setHasPolygonOffset(false);
          }
        }
-       mode.setPolygonOffset(renderer.getPolygonOffset(), false);
-       mode.setPolygonOffsetFactor(renderer.getPolygonOffsetFactor(), false);
+       mode3d.setPolygonOffset(renderer.getPolygonOffset(), false);
+       mode3d.setPolygonOffsetFactor(renderer.getPolygonOffsetFactor(), false);
      }
    }
    
