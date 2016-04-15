@@ -666,7 +666,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     GraphicsModeControl mode = (GraphicsModeControl)
           display.getGraphicsModeControl().clone();
     
-    display.setDepthBufferOffset(renderer);
+    display.setDepthBufferOffset(renderer, mode);
     
     // get some precomputed values useful for transform
     // mapping from ValueArray to MapVector

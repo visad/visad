@@ -3311,7 +3311,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @param renderer
    * @param mode 
    */
-  public void setDepthBufferOffset(DataRenderer renderer) {
+  public void setDepthBufferOffset(DataRenderer renderer, GraphicsModeControl mode) {
   }
 }
 
