@@ -321,6 +321,7 @@ public abstract class CalibratorGvar implements Calibrator {
     //System.out.println("####  len lookup = "+lookupTable.length+" "+lookupTable[3].length);
 
     // load gain and bias constants based on band requested
+    // If this is imager and band 6, change to band 5
     if (band != bandNum) {
       bandNum = band;
       if ((sid % 2) == 0) {
@@ -328,8 +329,12 @@ public abstract class CalibratorGvar implements Calibrator {
           gain = visGain1Coef[0];
           bias = visBiasCoef[0];
         } else {
+          if( band == 6) {
+            band = 5;
+          }
           gain = irGainCoef[0][band - 2];
           bias = irBiasCoef[0][band - 2];
+
           //System.out.println("####  band="+band+"  gain="+gain+"  bias"+bias);
         }
         scale = 32;
