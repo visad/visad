@@ -66,7 +66,6 @@ the examples as follows:
 
 	ant -Dvisad.dir=<YOUR VISAD DIR> build
 
-
 VisAD and Eclipse
 =================
 :Eclipse: http://www.eclipse.org
