@@ -468,7 +468,7 @@ public abstract class CalibratorGvar implements Calibrator {
     int[] cList;
 
     if(isPreCal){
-      if (band < 4 || band == 12) {
+      if (band == 1 || band == 12) {
         // Visible
         cList = new int[]{CAL_RAW, CAL_BRIT};
       } else {
@@ -476,7 +476,7 @@ public abstract class CalibratorGvar implements Calibrator {
         cList = new int[]{CAL_RAW, CAL_TEMP, CAL_BRIT};
       }
     } else {
-      if (band < 4 || band == 12) {
+      if (band == 1 || band == 12) {
         // Visible and near-visible (VIS006, VIS008, IR016, HRV)
         cList = new int[]{CAL_RAW, CAL_ALB, CAL_BRIT};
       } else {
