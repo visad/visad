@@ -70,6 +70,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   TrajectoryParams.SmoothParams smoothParams;
   int direction;
   float[][] startPts = null;
+  RealTupleType startPointType = Display.DisplaySpatialCartesianTuple;
   byte[][] startClrs = null;
   int clrDim;
   int numSpatialPts;
@@ -240,6 +241,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             ribbonWidthFac = trajParams.getRibbonWidthFactor();
             zStart = trajParams.getZStartIndex();
             zSkip = trajParams.getZStartSkip();
+            startPointType = trajParams.getStartType();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1622,6 +1624,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            Trajectory.getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec, ribbonWidthFac);
          }
          else {
+           if (!startPointType.equals(Display.DisplaySpatialCartesianTuple)) {
+             throw new VisADException("startPointType must be convertable"
+                     + " with (Display.XAxis, Display.YAxis, Display.ZAxis) ");
+           }
            /* TODO: assuming earth navigated display coordinate system*/
            /*
            CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
