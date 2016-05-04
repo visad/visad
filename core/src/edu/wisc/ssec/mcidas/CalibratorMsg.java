@@ -486,7 +486,7 @@ public class CalibratorMsg implements Calibrator {
                 break;
 
             case CAL_REFL:
-                unitStr = "dBz";
+                unitStr = "%";
                 break;
 
             case CAL_TEMP:
