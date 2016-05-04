@@ -50,6 +50,7 @@ public interface Calibrator {
   public static final int CAL_ALB  = 3;
   public static final int CAL_TEMP = 4;
   public static final int CAL_BRIT = 5;
+  public static final int CAL_REFL = 6;
   public static final int CAL_MAX  = 5;
 
   /** FY-2D */

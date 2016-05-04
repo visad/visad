@@ -499,7 +499,7 @@ public abstract class CalibratorGvar implements Calibrator {
         break;
 
       case CAL_RAD:
-        unitStr = "MW**";
+        unitStr = "mW/m^2/sr/cm-1";
         break;
 
       case CAL_ALB:
