@@ -908,6 +908,147 @@ public class Trajectory {
        return array;
      }
      
+     public static VisADGeometryArray makeDeformableRibbonNew(ArrayList<Trajectory> trajectories) {
+       VisADTriangleArray array = new VisADTriangleArray();
+       
+       int ntrajs = trajectories.size();
+       int ntris = (totNpairs/3)*2;
+       int num = ntris*3;
+       
+       float[] newCoords = new float[num*3];
+       java.util.Arrays.fill(newCoords, Float.NaN);
+       byte[] newColors = new byte[num*clrDim];
+       float[] newNormals = new float[num*3];      
+       
+       float[] A0 = new float[3];
+       float[] A1 = new float[3];
+       
+       float[] B0 = new float[3];
+       float[] B1 = new float[3];
+       
+       float[] C0 = new float[3];
+       float[] C1 = new float[3];
+       
+       // colors
+       byte ar0,ag0,ab0,ar1,ag1,ab1,br0,bg0,bb0,br1,bg1,bb1,cr0,cg0,cb0,cr1,cg1,cb1;
+       byte aa0 = -1;
+       byte aa1 = -1;
+       byte ba0 = -1;
+       byte ba1 = -1;
+       byte ca0 = -1;
+       byte ca1 = -1;
+
+       int numVerts = 0;
+       
+       for (int k=0; k<ntrajs/3; k++) {
+          int t = k*3;
+          Trajectory trajA = trajectories.get(t);
+          Trajectory trajB = trajectories.get(t+1);
+          Trajectory trajC = trajectories.get(t+2);
+          
+          int npairs = Math.min(trajA.npairs, trajB.npairs);
+          npairs = Math.min(npairs, trajC.npairs);
+          
+          for (int n=0; n<npairs; n++) {
+             int ia = trajA.indexes[n];
+             int ib = trajB.indexes[n];
+             int ic = trajC.indexes[n];
+             
+             int cia = 2*clrDim*ia/6;
+             int cib = 2*clrDim*ib/6;
+             int cic = 2*clrDim*ic/6;
+             
+             A0[0] = coordinates[ia];
+             A0[1] = coordinates[ia+1];
+             A0[2] = coordinates[ia+2];
+             A1[0] = coordinates[ia+3];
+             A1[1] = coordinates[ia+4];
+             A1[2] = coordinates[ia+5];
+             
+             B0[0] = coordinates[ib];
+             B0[1] = coordinates[ib+1];
+             B0[2] = coordinates[ib+2];
+             B1[0] = coordinates[ib+3];
+             B1[1] = coordinates[ib+4];
+             B1[2] = coordinates[ib+5];
+             
+             C0[0] = coordinates[ic];
+             C0[1] = coordinates[ic+1];
+             C0[2] = coordinates[ic+2];
+             B1[0] = coordinates[ic+3];
+             B1[1] = coordinates[ic+4];
+             B1[2] = coordinates[ic+5];            
+             
+             if (clrDim == 3) {
+                ar0 = colors[cia];
+                ag0 = colors[cia+1];
+                ab0 = colors[cia+2];
+                ar1 = colors[cia+3];
+                ag1 = colors[cia+4];
+                ab1 = colors[cia+5];
+             }
+             else {
+                ar0 = colors[cia];
+                ag0 = colors[cia+1];
+                ab0 = colors[cia+2];
+                aa0 = colors[cia+3];
+                ar1 = colors[cia+4];
+                ag1 = colors[cia+5];
+                ab1 = colors[cia+6];   
+                aa1 = colors[cia+7];
+             }
+             
+             if (clrDim == 3) {
+                br0 = colors[cib];
+                bg0 = colors[cib+1];
+                bb0 = colors[cib+2];
+                br1 = colors[cib+3];
+                bg1 = colors[cib+4];
+                bb1 = colors[cib+5];  
+             }
+             else {
+                br0 = colors[cib];
+                bg0 = colors[cib+1];
+                bb0 = colors[cib+2];
+                ba0 = colors[cib+3];
+                br1 = colors[cib+4];
+                bg1 = colors[cib+5];
+                bb1 = colors[cib+6];
+                ba1 = colors[cib+7];
+             }            
+             
+             if (clrDim == 3) {
+                cr0 = colors[cib];
+                cg0 = colors[cib+1];
+                cb0 = colors[cib+2];
+                cr1 = colors[cib+3];
+                cg1 = colors[cib+4];
+                cb1 = colors[cib+5];  
+             }
+             else {
+                cr0 = colors[cic];
+                cg0 = colors[cic+1];
+                cb0 = colors[cic+2];
+                ca0 = colors[cic+3];
+                cr1 = colors[cic+4];
+                cg1 = colors[cic+5];
+                cb1 = colors[cic+6];
+                ca1 = colors[cic+7];
+             } 
+             
+             int idx = numVerts*3;
+             int cidx = numVerts*clrDim;            
+             
+             
+             
+             
+             
+             
+          }
+       }
+       return array;
+     }
+     
      public static VisADGeometryArray makeFixedWidthRibbon(ArrayList<Trajectory> trajectories, float widthFac) {
         VisADTriangleArray array = new VisADTriangleArray();
         
