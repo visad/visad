@@ -89,6 +89,9 @@ public class CalibratorGvarG15 extends CalibratorGvar {
         float outVal;
 
         if ((sId % 2) == 0) {
+            if( band == 6) {
+                band = 5;
+            }
             expn = (imager15FK1[band - 1] / inVal) + 1.0;
             temp = imager15FK2[band - 1] / Math.log(expn);
             outVal = (float) ((temp - imager15TC1[band - 1]) / imager15TC2[band - 1]);

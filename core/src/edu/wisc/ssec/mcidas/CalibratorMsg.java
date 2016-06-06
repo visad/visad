@@ -225,7 +225,7 @@ public class CalibratorMsg implements Calibrator {
         }
         
         switch (curCalType) {
-            case CAL_ALB:
+            case CAL_REFL:
                 throw new UnsupportedOperationException(
                     "Calibration from reflectance not implemented"
                 );
@@ -269,7 +269,7 @@ public class CalibratorMsg implements Calibrator {
         } else {
             if (band < 4 || band == 12) {
                 // Visible and near-visible (VIS006, VIS008, IR016, HRV)
-                cList = new int[]{CAL_RAW, CAL_RAD, CAL_ALB, CAL_BRIT};
+                cList = new int[]{CAL_RAW, CAL_RAD, CAL_REFL, CAL_BRIT};
             } else {
                 // IR Channel
                 cList = new int[]{CAL_RAW, CAL_TEMP, CAL_RAD, CAL_BRIT};
@@ -313,7 +313,7 @@ public class CalibratorMsg implements Calibrator {
                 case CAL_RAD: // radiance
                     break;
             
-                case CAL_ALB: // reflectance
+                case CAL_REFL: // reflectance
                     pxl = (pxl / bandCoefs[band-1]) * 100.0;
                     if (pxl < 0) {
                         pxl = 0.0;
@@ -352,7 +352,7 @@ public class CalibratorMsg implements Calibrator {
                 case CAL_RAD: // radiance
                     break;
             
-                case CAL_ALB: // can't do reflectance
+                case CAL_REFL: // can't do reflectance
                     pxl = Double.NaN;
                     break;
                 
@@ -482,10 +482,10 @@ public class CalibratorMsg implements Calibrator {
                 break;
 
             case CAL_RAD:
-                unitStr = "MW**";
+                unitStr = "mW/m^2/sr/cm-1";
                 break;
 
-            case CAL_ALB:
+            case CAL_REFL:
                 unitStr = "%";
                 break;
 

@@ -50,6 +50,7 @@ public interface Calibrator {
   public static final int CAL_ALB  = 3;
   public static final int CAL_TEMP = 4;
   public static final int CAL_BRIT = 5;
+  public static final int CAL_REFL = 6;
   public static final int CAL_MAX  = 5;
 
   /** FY-2D */
@@ -63,7 +64,11 @@ public interface Calibrator {
   /** FY-2H */
   public static final int SENSOR_FY2H = 40;
   /** Meteosat Second Generation imager. */
-  public static final int SENSOR_MSG_IMGR = 51;
+  public static final int SENSOR_MSG8_IMGR = 51;
+  /** Meteosat Second Generation imager. */
+  public static final int SENSOR_MSG9_IMGR = 52;
+  /** Meteosat Second Generation imager. */
+  public static final int SENSOR_MSG10_IMGR = 53;
   /** GOES 8 imager. */
   public static final int SENSOR_GOES8_IMGR = 70;
   /** GOES 8 sounder. */

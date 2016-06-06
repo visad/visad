@@ -75,7 +75,9 @@ public final class CalibratorFactory {
 		Calibrator calibrator = null;
 	    switch (id) {
 	      
-	      case Calibrator.SENSOR_MSG_IMGR:
+	      case Calibrator.SENSOR_MSG8_IMGR:
+		  case Calibrator.SENSOR_MSG9_IMGR:
+		  case Calibrator.SENSOR_MSG10_IMGR:
 	    	  calibrator = new CalibratorMsg(cal);
 	    	  calibrator.setCalType(srcType);
 	    	  break;
@@ -156,7 +158,9 @@ public final class CalibratorFactory {
       case Calibrator.SENSOR_GOES8_SNDR:
       case Calibrator.SENSOR_GOES9_IMGR:
       case Calibrator.SENSOR_GOES9_SNDR:
-      case Calibrator.SENSOR_MSG_IMGR:
+      case Calibrator.SENSOR_MSG8_IMGR:
+	  case Calibrator.SENSOR_MSG9_IMGR:
+	  case Calibrator.SENSOR_MSG10_IMGR:
         return true;
       default:
         return false;

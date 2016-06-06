@@ -321,6 +321,7 @@ public abstract class CalibratorGvar implements Calibrator {
     //System.out.println("####  len lookup = "+lookupTable.length+" "+lookupTable[3].length);
 
     // load gain and bias constants based on band requested
+    // If this is imager and band 6, change to band 5
     if (band != bandNum) {
       bandNum = band;
       if ((sid % 2) == 0) {
@@ -328,8 +329,12 @@ public abstract class CalibratorGvar implements Calibrator {
           gain = visGain1Coef[0];
           bias = visBiasCoef[0];
         } else {
+          if( band == 6) {
+            band = 5;
+          }
           gain = irGainCoef[0][band - 2];
           bias = irBiasCoef[0][band - 2];
+
           //System.out.println("####  band="+band+"  gain="+gain+"  bias"+bias);
         }
         scale = 32;
@@ -463,7 +468,7 @@ public abstract class CalibratorGvar implements Calibrator {
     int[] cList;
 
     if(isPreCal){
-      if (band < 4 || band == 12) {
+      if (band == 1 || band == 12) {
         // Visible
         cList = new int[]{CAL_RAW, CAL_BRIT};
       } else {
@@ -471,7 +476,7 @@ public abstract class CalibratorGvar implements Calibrator {
         cList = new int[]{CAL_RAW, CAL_TEMP, CAL_BRIT};
       }
     } else {
-      if (band < 4 || band == 12) {
+      if (band == 1 || band == 12) {
         // Visible and near-visible (VIS006, VIS008, IR016, HRV)
         cList = new int[]{CAL_RAW, CAL_ALB, CAL_BRIT};
       } else {
@@ -494,7 +499,7 @@ public abstract class CalibratorGvar implements Calibrator {
         break;
 
       case CAL_RAD:
-        unitStr = "MW**";
+        unitStr = "mW/m^2/sr/cm-1";
         break;
 
       case CAL_ALB:
