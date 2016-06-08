@@ -149,6 +149,9 @@ public abstract class AREAnav
     /** Code value in AREA files used to designate ABIS */
     public static final int ABIS = 0x41424953;
 
+    /** AREA file value that corresponds to ABIN. */
+    public static final int ABIN = 1094863182;
+
     /** Code value for specifying Latitude/Longitude transformations */
     public static final int LL = 123;
 
@@ -631,6 +634,9 @@ public abstract class AREAnav
                 break;
             case ABIS:
                 anav = new ABISnav(navBlock);
+                break;
+            case ABIN:
+                anav = new ABINnav(navBlock);
                 break;
             default:
                 throw new McIDASException(
