@@ -14,6 +14,7 @@ import visad.VisADException;
 import visad.VisADGeometryArray;
 import visad.GraphicsModeControl;
 import visad.TrajectoryManager;
+import visad.ShadowType;
 import javax.media.j3d.*;
 
 
@@ -44,7 +45,7 @@ public class FixedSizeListener implements ControlListener {
   
   ArrayList<float[]> anchors;
   
-  ShadowTypeJ3D shadow;
+  ShadowType shadow;
   
   GraphicsModeControl mode;
   
@@ -59,7 +60,7 @@ public class FixedSizeListener implements ControlListener {
    *
    * @param p_cntrl
    */
-  FixedSizeListener(ProjectionControl p_cntrl, ShadowTypeJ3D shadow) {
+  FixedSizeListener(ProjectionControl p_cntrl, ShadowType shadow) {
     this.p_cntrl = p_cntrl;
     this.shadow = shadow;
     double[] matrix = p_cntrl.getMatrix();
