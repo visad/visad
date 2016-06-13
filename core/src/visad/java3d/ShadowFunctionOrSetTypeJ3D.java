@@ -1412,7 +1412,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   }
 
   public void postProcessTraj(Object group) throws VisADException {
-    int numChildren = swit.numChildren();
     try {
        doTrajectory();
     } catch (Exception e) {
