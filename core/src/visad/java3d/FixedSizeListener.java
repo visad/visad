@@ -6,16 +6,14 @@
 package visad.java3d;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.rmi.RemoteException;
 import visad.ControlEvent;
 import visad.ControlListener;
-import visad.DisplayListener;
-import visad.DisplayEvent;
 import visad.ProjectionControl;
 import visad.VisADException;
 import visad.VisADGeometryArray;
 import visad.GraphicsModeControl;
+import visad.TrajectoryManager;
 import javax.media.j3d.*;
 
 
@@ -110,7 +108,7 @@ public class FixedSizeListener implements ControlListener {
           constant_color = info.constant_color;
           BranchGroup branch = new BranchGroup();
           branch.setCapability(BranchGroup.ALLOW_DETACH);
-          array = Trajectory.scaleGeometry(array, anchors, (float)(first_scale/scale_a[0]));
+          array = TrajectoryManager.scaleGeometry(array, anchors, (float)(first_scale/scale_a[0]));
           shadow.addToGroup(branch, array, mode, constant_alpha, constant_color);
           try {
             ((BranchGroup)topBranch.getChild(0)).detach();
