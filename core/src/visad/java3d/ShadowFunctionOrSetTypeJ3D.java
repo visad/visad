@@ -50,72 +50,23 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   ShadowTypeJ3D Range; // null for ShadowSetTypeJ3D
 
   private Vector AccumulationVector = new Vector();
+  boolean post = false;
 
   boolean doTrajectory = false;
   boolean isAnimation1d = false;
   int domainLength = 0;
-  int dataDomainLength = 0;
   Set anim1DdomainSet;
   Set domainSet;
-  boolean post = false;
 
   double trajVisibilityTimeWindow;
-  double trajRefreshInterval;
-  double trajLifetime;
-  boolean manualIntrpPts;
-  int numIntrpPts;
-  int trajSkip;
-  TrajectoryParams.SmoothParams smoothParams;
-  int direction;
-  float[][] startPts = null;
-  RealTupleType startPointType = Display.DisplaySpatialCartesianTuple;
-  byte[][] startClrs = null;
-  int clrDim;
-  int numSpatialPts;
-  boolean trajDoIntrp = true;
-  float trcrSize = 1f;
-  boolean trcrEnabled;
-  double[] dspScale = new double[3];
-  float[] intrpU;
-  float[] intrpV;
-  float[] intrpW;
-  Interpolator uInterp;
-  Interpolator vInterp;
-  Interpolator wInterp;
-  float[][] values0;
-  float[][] values1;
-  float[][] values2;
-  float[][] values3;
-  float[][] values0_last;
-  ArrayList<Trajectory> trajectories;
-  double timeAccum = 0;
-  VisADGeometryArray array;
-  VisADGeometryArray trcrArray;
-  ArrayList<VisADGeometryArray> trcrArrays;
-  ArrayList<float[]> achrArrays;
-  boolean trajCachingEnabled = true;
-  boolean canUseTrajCache = false;
   FlowControl flowCntrl = null;
   ScalarMap flowMap = null;
-  boolean autoSizeTrcr = true;
   TrajectoryParams trajParams;
   
-  public static int LINE = 0;
-  public static int RIBBON = 1;
-  public static int CYLINDER = 2;
-  public static int DEFORM_RIBBON = 3;
   
-  int trajForm = LINE; // Default
-  float cylWidth = 0.01f;
-  float ribbonWidthFac = 1f;
-  int zStart = 0;
-  int zSkip = 0;
-
   List<BranchGroup> branches = null;
   Switch swit = null;
-
   Switch switB = null;
-
   SwitchListener switListen = null;
 
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
@@ -200,8 +151,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         timeMap = (ScalarMap) scalarMaps.elementAt(ani_map_idx);
       }
       
-      double[] mat = renderer.getDisplay().getProjectionControl().getMatrix();
-      MouseBehaviorJ3D.unmake_matrix(new double[3], dspScale, new double[3], mat);
       
       // check for trajectory
       for (int kk=0; kk<scalarMaps.size(); kk++) {
@@ -222,27 +171,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             doTrajectory = true;
             trajParams = flowCntrl.getTrajectoryParams();
             trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
-            trajRefreshInterval = trajParams.getTrajRefreshInterval();
-            trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
-            manualIntrpPts = trajParams.getManualIntrpPts();
-            numIntrpPts = trajParams.getNumIntrpPts();
-            trajSkip = trajParams.getStartSkip();
-            smoothParams = trajParams.getSmoothParams();
-            direction = trajParams.getDirection();
-            startPts = trajParams.getStartPoints();
-            trajDoIntrp = trajParams.getDoIntrp();
-            trcrSize = trajParams.getMarkerSize();
-            trcrEnabled = trajParams.getMarkerEnabled();
-            trajCachingEnabled = trajParams.getCachingEnabled();
-            trajForm = trajParams.getTrajectoryForm();
-            cylWidth = trajParams.getCylinderWidth();
-            ribbonWidthFac = trajParams.getRibbonWidthFactor();
-            zStart = trajParams.getZStartIndex();
-            zSkip = trajParams.getZStartSkip();
-            startPointType = trajParams.getStartType();
-            if (!trajDoIntrp) {
-              numIntrpPts = 1;
-            }
             break;
           }
           else {
@@ -262,7 +190,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
       // create and add switch with nodes for animation images
       domainLength = domainSet.getLength(); // num of domain nodes
-      dataDomainLength = domainLength;
       swit = (Switch) makeSwitch(domainLength);
       AnimationControlJ3D control = (AnimationControlJ3D)timeMap.getControl();
       
@@ -281,35 +208,19 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         switListen = new SwitchListener(swit, domainLength, whichVisible);
         ((AVControlJ3D) control).addPair((Switch) switListen, domainSet, renderer);
         ((AVControlJ3D) control).init();
+        
         BranchGroup branch = new BranchGroup();
         branch.setCapability(BranchGroup.ALLOW_DETACH);
         branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
         branch.addChild((Switch) swit);
+        
         ((Group) group).addChild(branch);
 
         // this node holds the trajectory tracer display geometry
         switB = (Switch) makeSwitch(domainLength);
         addSwitch(group, switB, control, domainSet, renderer);
       }
-      
 
-      /***
-          Old code:
-       // render frames
-      for (int i=0; i<domainLength; i++) {
-        BranchGroup node = (BranchGroup) swit.getChild(i);
-        // not necessary, but perhaps if this is modified
-        // int[] lat_lon_indices = renderer.getLatLonIndices();
-        BranchGroup branch = (BranchGroup) makeBranch();
-        recurseRange(branch, ((Field) data).getSample(i),
-                     value_array, default_values, renderer);
-        node.addChild(branch);
-        // not necessary, but perhaps if this is modified
-        // renderer.setLatLonIndices(lat_lon_indices);
-      }
-      ****/
-
-      //jeffmc:First construct the branches
       branches = new ArrayList<BranchGroup>();
       for (int i=0; i<domainLength; i++) {
           BranchGroup node = (BranchGroup) swit.getChild(i);
@@ -1464,22 +1375,30 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
   private void doTrajectory() throws VisADException, RemoteException {
     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
-    dataDomainLength = anim1DdomainSet.getLength();
+    int dataDomainLength = anim1DdomainSet.getLength();
+    boolean trcrEnabled = trajParams.getMarkerEnabled();
+    int trajForm = trajParams.getTrajectoryForm();
+    boolean autoSizeTrcr = true;
+    float trcrSize = trajParams.getMarkerSize();
+    double trajRefreshInterval = trajParams.getTrajRefreshInterval();
+    int direction = trajParams.getDirection();
     
     RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
     ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
+    MouseBehavior mouseBehav = renderer.getDisplay().getMouseBehavior();
     FixedSizeListener listener = null;
     
     TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength);
     
-    trcrEnabled = trcrEnabled && (trajForm == LINE);    
+    trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);    
     
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixedSizeListener(pCntrl, this);
       trajMan.setListener(pCntrl, listener, flowCntrl);
       listener.lock();
     }
-    double scale = TrajectoryManager.getScaleX(pCntrl); // current dispaly scale
+    double[] dspScale = TrajectoryManager.getScale(mouseBehav, pCntrl); // current dispaly scale
+    double scale = dspScale[0];
     
     trajMan.initCleanUp(flowMap, flowCntrl, pCntrl, display);
     
@@ -1487,9 +1406,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
     double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
-    timeAccum = 0;
+    double timeAccum = 0;
 
+    VisADGeometryArray array = null;
+    VisADGeometryArray trcrArray = null;
     VisADGeometryArray[] auxArray = new VisADGeometryArray[1];
+    ArrayList<float[]> achrArrays = null;
     
     for (int k=0; k<dataDomainLength-1; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
@@ -1499,7 +1421,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       array = trajMan.computeTrajectories(k, timeAccum, times, timeSteps, auxArray);
       achrArrays = new ArrayList<float[]>();
       if (trajMan.getNumberOfTrajectories() > 0) {
-        trcrArray = trajMan.makeTracerGeometry(trcrArrays, achrArrays, direction, trcrSize, dspScale, true);
+        trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
         trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));      
       }
       

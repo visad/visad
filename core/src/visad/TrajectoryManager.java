@@ -10,7 +10,6 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import visad.java3d.MouseBehaviorJ3D;
 
 
 /**
@@ -567,14 +566,24 @@ public class TrajectoryManager {
     return spatialSetTraj;
   }
   
-  public static double getScaleX(visad.ProjectionControl pCntrl) {
+//  public static double[] getScale(ProjectionControl pCntrl) {
+//    double[] matrix = pCntrl.getMatrix();
+//    double[] rot = new double[3];
+//    double[] trans = new double[3];
+//    double[] scale = new double[3];
+//
+//    MouseBehaviorJ3D.unmake_matrix(rot, scale, trans, matrix);
+//    return scale;
+//  }
+  
+  public static double[] getScale(MouseBehavior mouseBehav, ProjectionControl pCntrl) {
     double[] matrix = pCntrl.getMatrix();
-    double[] rot_a = new double[3];
-    double[] trans_a = new double[3];
-    double[] scale_a = new double[1];
+    double[] rot = new double[3];
+    double[] trans = new double[3];
+    double[] scale = new double[3];
 
-    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
-    return scale_a[0];
+    mouseBehav.instance_unmake_matrix(rot, scale, trans, matrix);
+    return scale;     
   }
   
   public void getStartPointsFromDomain(int trajForm, int skip, int zstart, int zskip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues, float ribbonWidthFac) throws VisADException {
@@ -1644,7 +1653,7 @@ public class TrajectoryManager {
     return array;
   } 
 
-  public VisADGeometryArray makeTracerGeometry(ArrayList<VisADGeometryArray> arrays, ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
+  public VisADGeometryArray makeTracerGeometry(ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
     int numTrajs = trajectories.size();
     VisADGeometryArray array = null;
     float[] coords;
