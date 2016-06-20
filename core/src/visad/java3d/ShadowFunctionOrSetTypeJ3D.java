@@ -1448,7 +1448,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       if (trcrEnabled) {
         BranchGroup trcrBG = addToDetachGroup(this, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         ((BranchGroup)switB.getChild(i)).addChild(trcrBG);
-        if (listener != null) {
+        if (listener != null && trcrArray != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         }
       }
@@ -1472,7 +1472,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       if (trcrEnabled) {
         BranchGroup trcrBG = addToDetachGroup(this, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         ((BranchGroup)switB.getChild(idx)).addChild(trcrBG);
-        if (listener != null) {
+        if (listener != null && trcrArray != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         }
       }
