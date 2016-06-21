@@ -42,10 +42,10 @@ public class TrajectoryManager {
   byte[][] startClrs;
   
   
-  public static int LINE = 0;
-  public static int RIBBON = 1;
-  public static int CYLINDER = 2;
-  public static int DEFORM_RIBBON = 3;
+  public static final int LINE = 0;
+  public static final int RIBBON = 1;
+  public static final int CYLINDER = 2;
+  public static final int DEFORM_RIBBON = 3;
   
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
@@ -378,21 +378,24 @@ public class TrajectoryManager {
        VisADGeometryArray array = null;
        
        switch (trajForm) {
-         case 0:
+         case LINE:
            array = makeGeometry();
+           clean();
            break;
-         case 1:
-           array = makeFixedWidthRibbon(trajectories, ribbonWidthFac);
+         case RIBBON:
+           array = makeFixedWidthRibbon();
+           clean();
            break;
-         case 2:
-           array = makeCylinder(trajectories, auxArray, cylWidth);
+         case CYLINDER:
+           array = makeCylinder(auxArray);
+           clean();
            break;
-         case 3:
-           array = makeDeformableRibbon(trajectories);
+         case DEFORM_RIBBON:
+           array = makeDeformableRibbon();
+           cleanDefStrp();
            break;
        }
 
-       trajectories = clean(trajForm, trajectories, trajLifetime);
        return array;
   } 
   
@@ -475,44 +478,25 @@ public class TrajectoryManager {
        (1) That have left the grid (marked offGrid).
        (2) That have time length (duration) greater than some threshold.
    */
-  public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories, double threshold) {
+  public void clean() {
     ArrayList<Trajectory> newList = new ArrayList<Trajectory>();
     Iterator<Trajectory> iter = trajectories.iterator();
     while (iter.hasNext() ) {
       Trajectory traj = iter.next();
-      if (!traj.offGrid && ((traj.currentTime - traj.initialTime) < threshold)) {
+      if (!traj.offGrid && ((traj.currentTime - traj.initialTime) < trajLifetime)) {
         newList.add(traj);
       }
     }
-    return newList;
+    trajectories = newList;
   }
-
-  public static ArrayList<Trajectory> clean(int trajType, ArrayList<Trajectory> trajectories, double threshold) {
-     ArrayList<Trajectory> newList = null;
-     switch (trajType) {
-        case 0:
-           newList = clean(trajectories, threshold);
-           break;
-        case 1:
-           newList = clean(trajectories, threshold);
-           break;
-        case 2:
-           newList = clean(trajectories, threshold);
-           break;
-        case 3:
-           newList = cleanDefStrp(trajectories, threshold);
-           break;
-     }
-     return newList;
-  }
-
-  public static ArrayList<Trajectory> cleanDefStrp(ArrayList<Trajectory> trajectories, double threshold) {
+  
+  public void cleanDefStrp() {
     Iterator<Trajectory> iter = trajectories.iterator();
     ArrayList<Trajectory>  removeList = new ArrayList<Trajectory>();
 
     while (iter.hasNext() ) {
       Trajectory traj = iter.next();
-      if (traj.offGrid || ((traj.currentTime - traj.initialTime) > threshold)) {
+      if (traj.offGrid || ((traj.currentTime - traj.initialTime) > trajLifetime)) {
         int idxA;
         int idxB;
         int idx = trajectories.indexOf(traj);
@@ -531,10 +515,8 @@ public class TrajectoryManager {
     for (int t=0; t<removeList.size(); t++) {
        trajectories.remove(removeList.get(t));
     }
-
-    return trajectories;
   }  
-  
+    
   public void updateInterpolators() {
     boolean[] needed = new boolean[numSpatialPts];
     java.util.Arrays.fill(needed, false);
@@ -565,16 +547,6 @@ public class TrajectoryManager {
     }
     return spatialSetTraj;
   }
-  
-//  public static double[] getScale(ProjectionControl pCntrl) {
-//    double[] matrix = pCntrl.getMatrix();
-//    double[] rot = new double[3];
-//    double[] trans = new double[3];
-//    double[] scale = new double[3];
-//
-//    MouseBehaviorJ3D.unmake_matrix(rot, scale, trans, matrix);
-//    return scale;
-//  }
   
   public static double[] getScale(MouseBehavior mouseBehav, ProjectionControl pCntrl) {
     double[] matrix = pCntrl.getMatrix();
@@ -939,7 +911,7 @@ public class TrajectoryManager {
     return array;
   }
 
-  public VisADGeometryArray makeFixedWidthRibbon(ArrayList<Trajectory> trajectories, float widthFac) {
+  public VisADGeometryArray makeFixedWidthRibbon() {
      VisADTriangleArray array = new VisADTriangleArray();
 
      int ntrajs = trajectories.size();
@@ -967,7 +939,7 @@ public class TrajectoryManager {
      byte a0 = -1;
      byte a1 = -1;
 
-     float width = widthFac*0.006f;
+     float width = ribbonWidthFac*0.006f;
 
      for (int t=0; t<ntrajs; t++) {
        Trajectory traj = trajectories.get(t);
@@ -1279,7 +1251,7 @@ public class TrajectoryManager {
      return array;
   }  
   
-     public VisADGeometryArray makeCylinder(ArrayList<Trajectory> trajectories, VisADGeometryArray[] auxArray, float cylWidth) {
+     public VisADGeometryArray makeCylinder(VisADGeometryArray[] auxArray) {
         VisADTriangleStripArray array = new VisADTriangleStripArray();
         VisADTriangleArray coneArray = new VisADTriangleArray();
         
@@ -1481,7 +1453,7 @@ public class TrajectoryManager {
        vertCnt[0] = vcnt;
      }
      
-  public VisADGeometryArray makeDeformableRibbon(ArrayList<Trajectory> trajectories) {
+  public VisADGeometryArray makeDeformableRibbon() {
     VisADTriangleArray array = new VisADTriangleArray();
 
     int ntrajs = trajectories.size();

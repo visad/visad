@@ -10,7 +10,8 @@ package visad;
  * @author rink
  */
 public class Trajectory {
-   
+  
+  /* The manager to which this trajectory belongs */
   TrajectoryManager trajMan;
   
   
