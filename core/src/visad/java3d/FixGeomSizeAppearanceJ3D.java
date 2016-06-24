@@ -18,7 +18,7 @@ import visad.MouseBehavior;
 import javax.media.j3d.*;
 
 
-public class FixGeomSizeAppearanceJ3D extends FixGeomSizeAppearance implements ControlListener {
+public class FixGeomSizeAppearanceJ3D extends FixGeomSizeAppearance {
   /**
    *
    *
