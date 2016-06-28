@@ -67,7 +67,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   List<BranchGroup> branches = null;
   Switch swit = null;
   Switch switB = null;
-  SwitchListener switListen = null;
+  TrajectoryAVHandlerJ3D avHandler = null;
 
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
                                     ShadowType parent)
@@ -205,8 +205,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         int[] whichVisible = new int[numNodes];
         for (int i=0; i<numNodes; i++) whichVisible[i] = -((numNodes-1) - i);
 
-        switListen = new SwitchListener(swit, domainLength, whichVisible);
-        ((AVControlJ3D) control).addPair((Switch) switListen, domainSet, renderer);
+        avHandler = new TrajectoryAVHandlerJ3D(swit, domainLength, whichVisible, trajParams.getDirection());
+        ((AVControlJ3D) control).addPair(swit, domainSet, renderer, avHandler);
         ((AVControlJ3D) control).init();
         
         BranchGroup branch = new BranchGroup();
@@ -1322,7 +1322,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     return false;
   }
 
-  public void postProcessTraj(Object group) throws VisADException {
+  public void postProcessTraj() throws VisADException {
     try {
        doTrajectory();
     } catch (Exception e) {
@@ -1330,27 +1330,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
   }
   
-  public static BranchGroup addToDetachGroup(ShadowType shadow, VisADGeometryArray trcrArray, ArrayList<float[]> achrArrays, GraphicsModeControl mode, float constant_alpha, float[] constant_color) throws VisADException {
-     BranchGroup branch = (BranchGroup) shadow.makeBranch();
-     branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-     branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-
-     /* This branch is detached from 'branch' during auto resizing. 
-        New resized trcrArray is then added back to 'branch' */
-     BranchGroup trcrBranch = (BranchGroup) shadow.makeBranch();
-
-     shadow.addToGroup(trcrBranch, trcrArray, mode, constant_alpha, constant_color);
-     branch.addChild(trcrBranch);
-
-     return branch;
-  }
-
-  
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
   public void postProcess(Object group) throws VisADException {
     if (doTrajectory) {
-      postProcessTraj(group);
+      postProcessTraj();
       return;
     }
     
@@ -1383,17 +1367,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     double trajRefreshInterval = trajParams.getTrajRefreshInterval();
     int direction = trajParams.getDirection();
     
-    RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
+    DataRenderer renderer = getLink().getRenderer();
     ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
     MouseBehavior mouseBehav = renderer.getDisplay().getMouseBehavior();
-    FixedSizeListener listener = null;
+    FixGeomSizeAppearance listener = null;
     
     TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength);
     
     trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);    
     
     if (autoSizeTrcr && trcrEnabled) {
-      listener = new FixedSizeListener(pCntrl, this);
+      listener = new FixGeomSizeAppearanceJ3D(pCntrl, this, mouseBehav);
       trajMan.setListener(pCntrl, listener, flowCntrl);
       listener.lock();
     }
@@ -1419,8 +1403,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       FlowInfo info = flowInfoList.get(i);
       
       array = trajMan.computeTrajectories(k, timeAccum, times, timeSteps, auxArray);
-      achrArrays = new ArrayList<float[]>();
       if (trajMan.getNumberOfTrajectories() > 0) {
+        achrArrays = new ArrayList<float[]>();
         trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
         trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));      
       }
@@ -1432,12 +1416,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       //array = (VisADLineArray) array.removeMissing();
       
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
-        if (direction > 0) {
-           switListen.allOffBelow.add(i);
-        }
-        else { //TODO: make this work eventually
-          //switListen.allOffAbove.add(i);
-        }
+        avHandler.setNoneVisibleIndex(i);
         timeAccum = 0.0;
       }
       timeAccum += timeSteps[i];
@@ -1446,8 +1425,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       final BranchGroup node = (BranchGroup) swit.getChild(i);
           
       if (trcrEnabled) {
-        BranchGroup trcrBG = addToDetachGroup(this, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
-        ((BranchGroup)switB.getChild(i)).addChild(trcrBG);
+        Object group = switB.getChild(i);
+        BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, info.constant_alpha, info.constant_color);
         if (listener != null && trcrArray != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         }
@@ -1464,14 +1443,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     } //---  domain length (time steps) outer time loop  -------------------------
         
-    if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
+    if (avHandler.getWindowSize() > 1) { //keep last tracer visible at the end if num visibility nodes > 1
       int idx = dataDomainLength-1;
       FlowInfo finfo = flowInfoList.get(idx);
       GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
 
       if (trcrEnabled) {
-        BranchGroup trcrBG = addToDetachGroup(this, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
-        ((BranchGroup)switB.getChild(idx)).addChild(trcrBG);
+        Object group = switB.getChild(idx);
+        BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, finfo.constant_alpha, finfo.constant_color);
         if (listener != null && trcrArray != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         }
@@ -1486,74 +1465,3 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
   }
 }
-
-
-  class SwitchListener extends Switch {
-    int numChildren;
-    int[] whichVisible;
-    Switch swit;
-    java.util.BitSet bits;
-
-    ArrayList<Integer> allOffBelow = new ArrayList<Integer>();
-
-    ArrayList<Integer> allOffAbove = new ArrayList<Integer>();
-
-    SwitchListener(Switch swit, int numChildren, int[] whichVisible) {
-      super();
-      this.numChildren = numChildren;
-      this.bits = new java.util.BitSet(numChildren);
-      this.swit = swit;
-      this.whichVisible = whichVisible;
-    }
-
-    public int numChildren() {
-      return numChildren;
-    }
-
-    public void setWhichChild(int index) {
-      if (index == Switch.CHILD_NONE) {
-        bits.clear();
-        swit.setWhichChild(Switch.CHILD_NONE);
-      }
-      else if (index >= 0) {
-        bits.clear();
-        for (int t=0; t<whichVisible.length; t++) {
-          int k_set = index + whichVisible[t];
-          if (k_set >= 0) {
-            bits.set(k_set);
-          }
-        }
-
-        int offBelow = 0;
-        for (int k=0; k<allOffBelow.size(); k++) {
-          int idx = allOffBelow.get(k).intValue();
-          if (index >= idx) {
-            offBelow = idx;
-          }
-        }
-        if (offBelow > 0) {
-          bits.clear(0, offBelow);
-        }
-
-        /* TODO: not working
-        bits.set(0, numChildren-1);
-        int offAbove = 0;
-        for (int k=0; k<allOffAbove.size(); k++) {
-          int idx = allOffAbove.get(k).intValue();
-          if (index <= idx) {
-            offAbove = idx;
-          }
-        }
-        if (offAbove > 0) {
-          bits.clear(offAbove, numChildren-1);
-        }
-        */
-
-        swit.setChildMask(bits);
-      }
-    }
-
-    public void setChildMask(java.util.BitSet bits) {
-      swit.setChildMask(bits);
-    }
-  }

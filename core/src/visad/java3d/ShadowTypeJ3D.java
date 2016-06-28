@@ -1368,7 +1368,31 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       return false;
     }
   }
+  
+  /** 
+   *   Convenience method that returns a Branch node, which may be parented,
+   *   and whose only child can be detached. Acts also as an id since its parent
+   *   may have multiple children. 
+   */
+  public BranchGroup addToDetachableGroup(Object group, VisADGeometryArray array,
+      GraphicsModeControl mode, float constant_alpha, float[] constant_color) throws VisADException {
+     
+    BranchGroup branch = (BranchGroup) makeBranch();
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 
+    /* For example, this branch is detached from 'branch' during auto resizing. 
+     * New resized trcrArray is then added back to 'branch' 
+     */
+    BranchGroup trcrBranch = (BranchGroup) makeBranch();
+
+    addToGroup(trcrBranch, array, mode, constant_alpha, constant_color);
+    branch.addChild(trcrBranch);
+    
+    ((BranchGroup)group).addChild(branch);
+    
+    return branch;     
+  }
   /**
    *
    *

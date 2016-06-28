@@ -4303,6 +4303,15 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
       throws VisADException {
     return false;
   }
+  
+  /* Convenience method that returns a Branch node, which may be parented,
+     and whose only child can be detached. Acts also as an id since its parent
+     may have multiple children */
+  public Object addToDetachableGroup(Object group, VisADGeometryArray array,
+      GraphicsModeControl mode, float constant_alpha, float[] constant_color)
+      throws VisADException {
+    return null;     
+  }
 
   //public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
   public void addLabelsToGroup(Object group, VisADGeometryArray[] arrays,

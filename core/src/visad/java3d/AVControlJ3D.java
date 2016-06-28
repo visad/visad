@@ -50,6 +50,10 @@ public abstract class AVControlJ3D extends Control implements AVControl {
   public void addPair(Switch sw, Set se, DataRenderer re) {
     switches.addElement(new SwitchSet(sw, se, re));
   }
+  
+  public void addPair(Switch sw, Set se, DataRenderer re, TrajectoryAVHandlerJ3D adptr) {
+    switches.addElement(new SwitchSet(sw, se, re, adptr));
+  }
 
   public void nullControl() {
     switches.removeAllElements();
@@ -109,14 +113,6 @@ public abstract class AVControlJ3D extends Control implements AVControl {
                              in, animation_set.getCoordinateSystem(),
                              animation_set.getSetUnits(),
                              null /* errors */, fvalues);
-/*
-System.out.println("animation_set = " + animation_set);
-System.out.println("transformCoordinates\n" + out + "\n" +
-set.getCoordinateSystem() + "\n" + set.getSetUnits()[0] + "\n" +
-in + "\n" + animation_set.getCoordinateSystem() + "\n" +
-animation_set.getSetUnits()[0] + "\n" + fvalues[0][0] + "\n" +
-values[0][0]);
-*/
       }
       else {
         // use RealType for value Unit and CoordinateSystem
@@ -148,35 +144,15 @@ values[0][0]);
         indices = new int[] {getIndexForRange(set, lower, upper)};
       }
 
-// System.out.println("indices = " + indices[0] + " value = " + value);
-// System.out.println("numChildren = " + ss.swit.numChildren());
       if (0 <= indices[0] && indices[0] < ss.swit.numChildren()) {
-        ss.swit.setWhichChild(indices[0]);
-// DisplayImpl.printStack("child " + indices[0]);
-/*
-if (animation_set == null) {
-// System.out.println("selectSwitches: ss.swit.setWhichChild(" +
-//                    indices[0] + ")");
-DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(" +
-                       indices[0] + ")");
-System.out.println("ss.swit.numChildren() = " + ss.swit.numChildren());
-}
-*/
+        ss.setWhichChild(indices[0]);
       }
       else {
-        ss.swit.setWhichChild(Switch.CHILD_NONE);
-        // DisplayImpl.printStack("CHILD_NONE");
-/*
-if (animation_set == null) {
-// System.out.println("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)");
-DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)");
-}
-*/
+        ss.setWhichChild(Switch.CHILD_NONE);
       }
     } // end while (pairs.hasMoreElements())
-// DisplayImpl.printStack("selectSwitches " + value);
   }
-
+  
   /** clear all 'pairs' in switches that involve re */
   public void clearSwitches(DataRenderer re) {
     Enumeration pairs = ((Vector) switches.clone()).elements();
@@ -224,11 +200,28 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
     Switch swit;
     Set set;
     DataRenderer renderer;
+    AVHandler handler;
 
     SwitchSet(Switch sw, Set se, DataRenderer re) {
       swit = sw;
       set = se;
       renderer = re;
+    }
+    
+    SwitchSet(Switch sw, Set se, DataRenderer re, AVHandler adptr) {
+      swit = sw;
+      set = se;
+      renderer = re;
+      handler = adptr;
+    }
+    
+    void setWhichChild(int idx) {
+      if (handler == null) {
+        swit.setWhichChild(idx);
+      }
+      else {
+        handler.setWhichChild(idx);
+      }       
     }
   }
 
