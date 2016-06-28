@@ -74,7 +74,7 @@ public class TrajectoryParams {
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
-  RealTupleType startType = null;
+  RealTupleType startType = Display.DisplaySpatialCartesianTuple;
 
   public TrajectoryParams() {
   }
@@ -258,6 +258,11 @@ public class TrajectoryParams {
   
   public boolean getMarkerEnabled() {
     return this.markerEnabled;
+  }
+  
+  public void setStartPoints(float[][] startPts) {
+    this.startPoints = startPts;
+    this.startType = Display.DisplaySpatialCartesianTuple;
   }
 
   public void setStartPoints(RealTupleType startType, float[][] startPts) {

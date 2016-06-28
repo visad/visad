@@ -32,14 +32,12 @@ import visad.util.ThreadManager;
 import javax.media.j3d.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
 import java.rmi.*;
 
 import java.awt.image.*;
-import java.util.Arrays;
 
 
 /**
@@ -52,72 +50,24 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   ShadowTypeJ3D Range; // null for ShadowSetTypeJ3D
 
   private Vector AccumulationVector = new Vector();
+  boolean post = false;
 
   boolean doTrajectory = false;
   boolean isAnimation1d = false;
   int domainLength = 0;
-  int dataDomainLength = 0;
   Set anim1DdomainSet;
   Set domainSet;
-  boolean post = false;
 
   double trajVisibilityTimeWindow;
-  double trajRefreshInterval;
-  double trajLifetime;
-  boolean manualIntrpPts;
-  int numIntrpPts;
-  int trajSkip;
-  TrajectoryParams.SmoothParams smoothParams;
-  int direction;
-  float[][] startPts = null;
-  byte[][] startClrs = null;
-  int clrDim;
-  int numSpatialPts;
-  boolean trajDoIntrp = true;
-  float trcrSize = 1f;
-  boolean trcrEnabled;
-  double[] dspScale = new double[3];
-  float[] intrpU;
-  float[] intrpV;
-  float[] intrpW;
-  Interpolation uInterp;
-  Interpolation vInterp;
-  Interpolation wInterp;
-  float[][] values0;
-  float[][] values1;
-  float[][] values2;
-  float[][] values3;
-  float[][] values0_last;
-  ArrayList<Trajectory> trajectories;
-  double timeAccum = 0;
-  VisADGeometryArray array;
-  VisADGeometryArray trcrArray;
-  ArrayList<VisADGeometryArray> trcrArrays;
-  ArrayList<float[]> achrArrays;
-  boolean trajCachingEnabled = true;
-  boolean canUseTrajCache = false;
   FlowControl flowCntrl = null;
   ScalarMap flowMap = null;
-  boolean autoSizeTrcr = true;
   TrajectoryParams trajParams;
   
-  public static int LINE = 0;
-  public static int RIBBON = 1;
-  public static int CYLINDER = 2;
-  public static int DEFORM_RIBBON = 3;
   
-  int trajForm = LINE; // Default
-  float cylWidth = 0.01f;
-  float ribbonWidthFac = 1f;
-  int zStart = 0;
-  int zSkip = 0;
-
   List<BranchGroup> branches = null;
   Switch swit = null;
-
   Switch switB = null;
-
-  SwitchListener switListen = null;
+  TrajectoryAVHandlerJ3D avHandler = null;
 
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
                                     ShadowType parent)
@@ -201,8 +151,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         timeMap = (ScalarMap) scalarMaps.elementAt(ani_map_idx);
       }
       
-      double[] mat = renderer.getDisplay().getProjectionControl().getMatrix();
-      MouseBehaviorJ3D.unmake_matrix(new double[3], dspScale, new double[3], mat);
       
       // check for trajectory
       for (int kk=0; kk<scalarMaps.size(); kk++) {
@@ -223,26 +171,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             doTrajectory = true;
             trajParams = flowCntrl.getTrajectoryParams();
             trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
-            trajRefreshInterval = trajParams.getTrajRefreshInterval();
-            trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
-            manualIntrpPts = trajParams.getManualIntrpPts();
-            numIntrpPts = trajParams.getNumIntrpPts();
-            trajSkip = trajParams.getStartSkip();
-            smoothParams = trajParams.getSmoothParams();
-            direction = trajParams.getDirection();
-            startPts = trajParams.getStartPoints();
-            trajDoIntrp = trajParams.getDoIntrp();
-            trcrSize = trajParams.getMarkerSize();
-            trcrEnabled = trajParams.getMarkerEnabled();
-            trajCachingEnabled = trajParams.getCachingEnabled();
-            trajForm = trajParams.getTrajectoryForm();
-            cylWidth = trajParams.getCylinderWidth();
-            ribbonWidthFac = trajParams.getRibbonWidthFactor();
-            zStart = trajParams.getZStartIndex();
-            zSkip = trajParams.getZStartSkip();
-            if (!trajDoIntrp) {
-              numIntrpPts = 1;
-            }
             break;
           }
           else {
@@ -262,7 +190,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
       // create and add switch with nodes for animation images
       domainLength = domainSet.getLength(); // num of domain nodes
-      dataDomainLength = domainLength;
       swit = (Switch) makeSwitch(domainLength);
       AnimationControlJ3D control = (AnimationControlJ3D)timeMap.getControl();
       
@@ -270,7 +197,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         addSwitch(group, swit, control, domainSet, renderer);
       }
       else {
-        double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
+        double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
         java.util.Arrays.sort(times);
         int len = times.length;
         double avgTimeStep = (times[len-1] - times[0])/(len-1);
@@ -278,38 +205,22 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         int[] whichVisible = new int[numNodes];
         for (int i=0; i<numNodes; i++) whichVisible[i] = -((numNodes-1) - i);
 
-        switListen = new SwitchListener(swit, domainLength, whichVisible);
-        ((AVControlJ3D) control).addPair((Switch) switListen, domainSet, renderer);
+        avHandler = new TrajectoryAVHandlerJ3D(swit, domainLength, whichVisible, trajParams.getDirection());
+        ((AVControlJ3D) control).addPair(swit, domainSet, renderer, avHandler);
         ((AVControlJ3D) control).init();
+        
         BranchGroup branch = new BranchGroup();
         branch.setCapability(BranchGroup.ALLOW_DETACH);
         branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
         branch.addChild((Switch) swit);
+        
         ((Group) group).addChild(branch);
 
         // this node holds the trajectory tracer display geometry
         switB = (Switch) makeSwitch(domainLength);
         addSwitch(group, switB, control, domainSet, renderer);
       }
-      
 
-      /***
-          Old code:
-       // render frames
-      for (int i=0; i<domainLength; i++) {
-        BranchGroup node = (BranchGroup) swit.getChild(i);
-        // not necessary, but perhaps if this is modified
-        // int[] lat_lon_indices = renderer.getLatLonIndices();
-        BranchGroup branch = (BranchGroup) makeBranch();
-        recurseRange(branch, ((Field) data).getSample(i),
-                     value_array, default_values, renderer);
-        node.addChild(branch);
-        // not necessary, but perhaps if this is modified
-        // renderer.setLatLonIndices(lat_lon_indices);
-      }
-      ****/
-
-      //jeffmc:First construct the branches
       branches = new ArrayList<BranchGroup>();
       for (int i=0; i<domainLength; i++) {
           BranchGroup node = (BranchGroup) swit.getChild(i);
@@ -1411,20 +1322,19 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     return false;
   }
 
-  public void postProcessTraj(Object group) throws VisADException {
-    int numChildren = swit.numChildren();
+  public void postProcessTraj() throws VisADException {
     try {
        doTrajectory();
     } catch (Exception e) {
        e.printStackTrace();
     }
   }
-
+  
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
   public void postProcess(Object group) throws VisADException {
     if (doTrajectory) {
-      postProcessTraj(group);
+      postProcessTraj();
       return;
     }
     
@@ -1448,88 +1358,55 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   }
 
   private void doTrajectory() throws VisADException, RemoteException {
-    RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
-    ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
-    FixedSizeListener listener = null;
+    ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+    int dataDomainLength = anim1DdomainSet.getLength();
+    boolean trcrEnabled = trajParams.getMarkerEnabled();
+    int trajForm = trajParams.getTrajectoryForm();
+    boolean autoSizeTrcr = true;
+    float trcrSize = trajParams.getMarkerSize();
+    double trajRefreshInterval = trajParams.getTrajRefreshInterval();
+    int direction = trajParams.getDirection();
     
-    trcrEnabled = trcrEnabled && (trajForm == LINE);    
+    DataRenderer renderer = getLink().getRenderer();
+    ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
+    MouseBehavior mouseBehav = renderer.getDisplay().getMouseBehavior();
+    FixGeomSizeAppearance listener = null;
+    
+    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength);
+    
+    trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);    
     
     if (autoSizeTrcr && trcrEnabled) {
-      listener = new FixedSizeListener(pCntrl, this);
-      Trajectory.setListener(pCntrl, listener, flowCntrl);
+      listener = new FixGeomSizeAppearanceJ3D(pCntrl, this, mouseBehav);
+      trajMan.setListener(pCntrl, listener, flowCntrl);
       listener.lock();
     }
-    double scale = Trajectory.getScaleX(pCntrl); // current dispaly scale
+    double[] dspScale = TrajectoryManager.getScale(mouseBehav, pCntrl); // current dispaly scale
+    double scale = dspScale[0];
     
-    initTrajectory(renderer);
-    Trajectory.initCleanUp(flowMap, flowCntrl, pCntrl, renderer.getDisplay());
+    trajMan.initCleanUp(flowMap, flowCntrl, pCntrl, display);
     
     double trcrSizeRatio = 1;
-    TrajectoryParams lastTrajParams = Trajectory.getLastTrajParams(flowCntrl, trajParams);
-    if (lastTrajParams != null) {
-      canUseTrajCache = lastTrajParams.equals(trajParams);
-      trcrSizeRatio = trajParams.getMarkerSize()/lastTrajParams.getMarkerSize();
-    }
-    
-    Object trajCache = null;
-    if (trajCachingEnabled) {
-       trajCache = Trajectory.setCache(flowCntrl, canUseTrajCache);
-    }
-    else {
-       canUseTrajCache = false;
-    }
-    
-    intrpU = new float[numSpatialPts];
-    intrpV = new float[numSpatialPts];
-    intrpW = new float[numSpatialPts];
 
-    uInterp = new Interpolation(trajDoIntrp, numSpatialPts);
-    vInterp = new Interpolation(trajDoIntrp, numSpatialPts);
-    wInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+    double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
+    double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
+    double timeAccum = 0;
 
-    values0 = null;
-    values1 = null;
-    values2 = null;
-    values3 = null;
-    values0_last = null;
-
-    double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
-    double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
-    timeAccum = 0;
-
-    ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
+    VisADGeometryArray array = null;
+    VisADGeometryArray trcrArray = null;
     VisADGeometryArray[] auxArray = new VisADGeometryArray[1];
+    ArrayList<float[]> achrArrays = null;
     
     for (int k=0; k<dataDomainLength-1; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
       FlowInfo info = flowInfoList.get(i);
       
-      if (!canUseTrajCache) {
-         array = computeTrajectories(k, flowInfoList, times, timeSteps, auxArray);
-         achrArrays = new ArrayList<float[]>();
-         if (trajectories.size() > 0) {
-            trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);   
-            if (trajCachingEnabled) {
-              Trajectory.cacheTrajArray(trajCache, array);
-              Trajectory.cacheArray(trajCache, auxArray[0]);
-              Trajectory.cacheTrcrArray(trajCache, trcrArray, achrArrays);
-            }
-            trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));      
-         }
-      }
-      else  {
-         array = Trajectory.getCachedTraj(trajCache, k);
-         auxArray[0] = Trajectory.getCachedArray(trajCache, k);
-         trcrArray = Trajectory.getCachedTrcr(trajCache, k);
-         achrArrays = Trajectory.getCachedAncr(trajCache, k);
-         if (trcrSizeRatio != 1.0) {
-           trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)trcrSizeRatio);            
-           Trajectory.cacheTrcrArray(trajCache, k, trcrArray, achrArrays);
-         }
-         if (autoSizeTrcr) {
-           trcrArray = Trajectory.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));
-         }
+      array = trajMan.computeTrajectories(k, timeAccum, times, timeSteps, auxArray);
+      if (trajMan.getNumberOfTrajectories() > 0) {
+        achrArrays = new ArrayList<float[]>();
+        trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
+        trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));      
       }
       
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
@@ -1539,12 +1416,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       //array = (VisADLineArray) array.removeMissing();
       
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
-        if (direction > 0) {
-           switListen.allOffBelow.add(i);
-        }
-        else { //TODO: make this work eventually
-          //switListen.allOffAbove.add(i);
-        }
+        avHandler.setNoneVisibleIndex(i);
         timeAccum = 0.0;
       }
       timeAccum += timeSteps[i];
@@ -1553,9 +1425,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       final BranchGroup node = (BranchGroup) swit.getChild(i);
           
       if (trcrEnabled) {
-        BranchGroup trcrBG = Trajectory.makeTracerBranch(this, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
-        ((BranchGroup)switB.getChild(i)).addChild(trcrBG);
-        if (listener != null) {
+        Object group = switB.getChild(i);
+        BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, info.constant_alpha, info.constant_color);
+        if (listener != null && trcrArray != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         }
       }
@@ -1571,15 +1443,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     } //---  domain length (time steps) outer time loop  -------------------------
         
-    if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
+    if (avHandler.getWindowSize() > 1) { //keep last tracer visible at the end if num visibility nodes > 1
       int idx = dataDomainLength-1;
       FlowInfo finfo = flowInfoList.get(idx);
       GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
 
       if (trcrEnabled) {
-        BranchGroup trcrBG = Trajectory.makeTracerBranch(this, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
-        ((BranchGroup)switB.getChild(idx)).addChild(trcrBG);
-        if (listener != null) {
+        Object group = switB.getChild(idx);
+        BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, finfo.constant_alpha, finfo.constant_color);
+        if (listener != null && trcrArray != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
         }
       }
@@ -1592,272 +1464,4 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        }
     }
   }
-  
-     private void initTrajectory(DataRenderer renderer) throws VisADException, RemoteException {
-         /* Get start points, use first spatial_set locs for now. 
-            Eventually want to include a time for start */
-         ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
-         FlowInfo info = flowInfoList.get(0);
-         Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
-         GriddedSet spatialSetTraj = Trajectory.makeSpatialSetTraj(spatial_set0);
-
-         byte[][] color_values = info.color_values;
-         if (info.trajColors != null) color_values = info.trajColors;
-         clrDim = color_values.length;
-
-         numSpatialPts = spatial_set0.getLength();
-         Trajectory.markGrid = new boolean[numSpatialPts];
-         Trajectory.markGridTime = new int[numSpatialPts];
-         java.util.Arrays.fill(Trajectory.markGrid, false);
-         java.util.Arrays.fill(Trajectory.markGridTime, 0);
-
-         startClrs = new byte[clrDim][];
-         if (startPts == null) { //get from domain set
-           float[][] vec;
-           if (true) {
-              float[][] flowVals = Trajectory.convertFlowUnit(info.flow_values, info.flow_units);
-              vec = ShadowType.adjustFlowToEarth(info.which, flowVals, spatial_set0.getSamples(false), 1f, renderer);
-           }
-           startPts = new float[3][];
-           Trajectory.getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec, ribbonWidthFac);
-         }
-         else {
-           /* TODO: assuming earth navigated display coordinate system*/
-           /*
-           CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
-           float[][] fltVals = new float[startPts.length][startPts[0].length];
-           for (int i=0; i<fltVals.length; i++) {
-             System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
-           }
-           startPts = dspCoordSys.toReference(fltVals);
-           */
-
-           int[] clrIdxs;
-           if (spatialSetTraj.getManifoldDimension() == 2) {
-               clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
-           } else {
-               clrIdxs = spatialSetTraj.valueToIndex(startPts);
-           }
-           int num = clrIdxs.length;
-           startClrs[0] = new byte[num];
-           startClrs[1] = new byte[num];
-           startClrs[2] = new byte[num];
-           if (clrDim == 4) startClrs[3] = new byte[num];
-           for (int i=0; i<num; i++) {
-             int clrIdx = clrIdxs[i];
-             if (clrIdx < 0) continue;
-             startClrs[0][i] = color_values[0][clrIdx];
-             startClrs[1][i] = color_values[1][clrIdx];
-             startClrs[2][i] = color_values[2][clrIdx];
-             if (clrDim == 4) startClrs[3][i] = color_values[3][clrIdx];
-           }
-         }
-     }
-     
-     private VisADGeometryArray computeTrajectories(int k, ArrayList<FlowInfo> flowInfoList, double[] times, double[] timeSteps, VisADGeometryArray[] auxArray) throws VisADException, RemoteException {
-          int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
-
-          FlowInfo info = flowInfoList.get(i);
-          byte[][] color_values = info.color_values;
-          Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
-          GriddedSet spatialSetTraj = Trajectory.makeSpatialSetTraj(spatial_set);
-          
-          if (!manualIntrpPts && trajDoIntrp) {
-            numIntrpPts = Trajectory.getNumIntrpPts(info, 50f, timeSteps[i]);
-          }
-          
-          float timeStep = (float) timeSteps[i]/numIntrpPts;
-
-          if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
-             trajectories = new ArrayList<Trajectory>();
-             java.util.Arrays.fill(Trajectory.markGrid, false);
-             if (direction > 0) {
-               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs, spatialSetTraj);
-             }
-             else { //TODO: make this work eventually
-               //Trajectory.makeTrajectories(direction*times[i], trajectories, trajSkip, color_values, setLocs, lens);
-             }
-          }
-
-          // commented out when not using markGrid logic for starting/ending trajs
-          //Trajectory.makeTrajectories(times[i], trajectories, 6, color_values, setLocs, lens);
-          /*
-          Trajectory.checkTime(i); // for steady-state only
-          if ((i % 4) == 0) { // use for steady-state wind field
-            Trajectory.makeTrajectories(direction*times[i], trajectories, trajSkip, color_values, setLocs, lens);
-          }
-          */
-
-          double x0 = (double) direction*i;
-          double x1 = (double) direction*(i+direction*1);
-          double x2 = (double) direction*(i+direction*2);
-
-
-          // Even time steps: access fields, update interpolator and compute.
-          // Odd time steps: just compute for second half of 3 point (2 gap) interval.
-          if ((k % 2) == 0) {
-            FlowInfo flwInfo;
-
-            if (values0 == null) {
-              flwInfo = flowInfoList.get(i);
-              values0 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-            }
-
-            if (values1 == null) {
-              flwInfo = flowInfoList.get(i+direction*1);
-              values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-            }
-
-            // make sure we don't access more data than we have, but keep iterating and 
-            // computing to the end to use the data we've already pulled in.
-            if (k < dataDomainLength-3) {
-                flwInfo = flowInfoList.get(i+direction*2);
-                values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-
-                // smoothing done here -----------------------
-                flwInfo = flowInfoList.get(i+direction*3);
-                values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-
-                if (values0_last != null) {
-                  values0 = Trajectory.smooth(values0_last, values0, values1, smoothParams);
-                }
-                values1 = Trajectory.smooth(values0, values1, values2, smoothParams);
-                values2 = Trajectory.smooth(values1, values2, values3, smoothParams);
-                // ------- end smoothing
-
-                // update interpolator 
-                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
-            }
-            
-            if (k == dataDomainLength-3) { // make sure we smoothly handle the last three time steps
-                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
-            }
-          }
-          else {
-            values0_last = values1;
-            values0 = values2;
-            values1 = values3;
-            
-            if (k == dataDomainLength-3) { // make sure we smootly handle the last three time steps
-                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
-            }
-          }
-
-          int numTrajectories = trajectories.size();
-          Trajectory.reset(trajectories, numTrajectories*numIntrpPts, clrDim);
-
-          for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
-            double dst = (x1 - x0)/numIntrpPts;
-            double xt = x0 + dst*ti;
-             
-            Trajectory.updateInterpolators(trajectories, numSpatialPts, uInterp, vInterp, wInterp);
-            
-            uInterp.interpolate(xt, intrpU);
-            vInterp.interpolate(xt, intrpV);
-            wInterp.interpolate(xt, intrpW);
-            
-            for (int t=0; t<numTrajectories; t++) {
-              Trajectory traj = trajectories.get(t);
-              traj.currentTimeIndex = direction*i;
-              traj.currentTime = direction*times[i];
-              traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, direction, timeStep);
-            }
-
-          } // inner time loop (time interpolation)
-
-          switch (trajForm) {
-            case 0:
-              array = Trajectory.makeGeometry();
-              break;
-            case 1:
-              array = Trajectory.makeFixedWidthRibbon(trajectories, ribbonWidthFac);
-              break;
-            case 2:
-              array = Trajectory.makeCylinder(trajectories, auxArray, cylWidth);
-              break;
-            case 3:
-              array = Trajectory.makeDeformableRibbon(trajectories);
-              break;
-          }
-          
-          trajectories = Trajectory.clean(trajForm, trajectories, trajLifetime);
-          return array;
-     }
-  }
-
-
-  class SwitchListener extends Switch {
-    int numChildren;
-    int[] whichVisible;
-    Switch swit;
-    java.util.BitSet bits;
-
-    ArrayList<Integer> allOffBelow = new ArrayList<Integer>();
-
-    ArrayList<Integer> allOffAbove = new ArrayList<Integer>();
-
-    SwitchListener(Switch swit, int numChildren, int[] whichVisible) {
-      super();
-      this.numChildren = numChildren;
-      this.bits = new java.util.BitSet(numChildren);
-      this.swit = swit;
-      this.whichVisible = whichVisible;
-    }
-
-    public int numChildren() {
-      return numChildren;
-    }
-
-    public void setWhichChild(int index) {
-      if (index == Switch.CHILD_NONE) {
-        bits.clear();
-        swit.setWhichChild(Switch.CHILD_NONE);
-      }
-      else if (index >= 0) {
-        bits.clear();
-        for (int t=0; t<whichVisible.length; t++) {
-          int k_set = index + whichVisible[t];
-          if (k_set >= 0) {
-            bits.set(k_set);
-          }
-        }
-
-        int offBelow = 0;
-        for (int k=0; k<allOffBelow.size(); k++) {
-          int idx = allOffBelow.get(k).intValue();
-          if (index >= idx) {
-            offBelow = idx;
-          }
-        }
-        if (offBelow > 0) {
-          bits.clear(0, offBelow);
-        }
-
-        /* TODO: not working
-        bits.set(0, numChildren-1);
-        int offAbove = 0;
-        for (int k=0; k<allOffAbove.size(); k++) {
-          int idx = allOffAbove.get(k).intValue();
-          if (index <= idx) {
-            offAbove = idx;
-          }
-        }
-        if (offAbove > 0) {
-          bits.clear(offAbove, numChildren-1);
-        }
-        */
-
-        swit.setChildMask(bits);
-      }
-    }
-
-    public void setChildMask(java.util.BitSet bits) {
-      swit.setChildMask(bits);
-    }
-  }
+}

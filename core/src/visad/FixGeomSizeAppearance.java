@@ -3,23 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package visad.java3d;
+package visad;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.rmi.RemoteException;
-import visad.ControlEvent;
-import visad.ControlListener;
-import visad.DisplayListener;
-import visad.DisplayEvent;
-import visad.ProjectionControl;
-import visad.VisADException;
-import visad.VisADGeometryArray;
-import visad.GraphicsModeControl;
 import javax.media.j3d.*;
 
 
-public class FixedSizeListener implements ControlListener {
+public class FixGeomSizeAppearance implements ControlListener {
 
   /**  */
   ArrayList<Object> FSTarray = new ArrayList<Object>();
@@ -31,7 +22,7 @@ public class FixedSizeListener implements ControlListener {
   double last_scale;
 
   /**  */
-  double first_scale = Double.NaN;
+  protected double first_scale = Double.NaN;
   
   double baseScale = Double.NaN;
   
@@ -42,11 +33,11 @@ public class FixedSizeListener implements ControlListener {
   
   VisADGeometryArray array;
   
-  BranchGroup topBranch;
+  Object topBranch;
   
   ArrayList<float[]> anchors;
   
-  ShadowTypeJ3D shadow;
+  protected ShadowType shadow;
   
   GraphicsModeControl mode;
   
@@ -56,19 +47,22 @@ public class FixedSizeListener implements ControlListener {
   
   private boolean locked = false;
   
+  MouseBehavior mouseBehav;
+  
   /**
    *
    *
    * @param p_cntrl
    */
-  FixedSizeListener(ProjectionControl p_cntrl, ShadowTypeJ3D shadow) {
+  public FixGeomSizeAppearance(ProjectionControl p_cntrl, ShadowType shadow, MouseBehavior mouseBehav) {
     this.p_cntrl = p_cntrl;
     this.shadow = shadow;
+    this.mouseBehav = mouseBehav;
     double[] matrix = p_cntrl.getMatrix();
     double[] rot_a = new double[3];
     double[] trans_a = new double[3];
     double[] scale_a = new double[1];
-    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+    mouseBehav.instance_unmake_matrix(rot_a, scale_a, trans_a, matrix);
     last_scale = scale_a[0];
     first_scale = last_scale;
   }
@@ -95,7 +89,7 @@ public class FixedSizeListener implements ControlListener {
     double[] trans_a = new double[3];
     double[] scale_a = new double[1];
 
-    MouseBehaviorJ3D.unmake_matrix(rot_a, scale_a, trans_a, matrix);
+    mouseBehav.instance_unmake_matrix(rot_a, scale_a, trans_a, matrix);
 
     // - identify scale change events.
     if (!visad.util.Util.isApproximatelyEqual(scale_a[0], last_scale)) {
@@ -108,24 +102,19 @@ public class FixedSizeListener implements ControlListener {
           mode = info.mode;
           constant_alpha = info.constant_alpha;
           constant_color = info.constant_color;
-          BranchGroup branch = new BranchGroup();
-          branch.setCapability(BranchGroup.ALLOW_DETACH);
-          array = Trajectory.scaleGeometry(array, anchors, (float)(first_scale/scale_a[0]));
-          shadow.addToGroup(branch, array, mode, constant_alpha, constant_color);
-          try {
-            ((BranchGroup)topBranch.getChild(0)).detach();
-            topBranch.addChild(branch);
-          }
-          catch (Exception exc) {
-             System.out.println(exc);
-          }
+          rescaleAndReplace(scale_a[0], topBranch, array, anchors, mode, constant_alpha, constant_color);
         }
         last_scale = scale_a[0];
       }
     }
   }
   
-  public void add(BranchGroup branch, VisADGeometryArray array, ArrayList<float[]> anchors, GraphicsModeControl mode, float constant_alpha, float[] constant_color) {
+  public void rescaleAndReplace(double scale, Object topBranch, VisADGeometryArray array, ArrayList<float[]> anchors, GraphicsModeControl mode, float constant_alpha, float[] constant_color) 
+       throws VisADException {
+    throw new VisADException("rescaleAndReplace unimplemented");
+  }
+  
+  public void add(Object branch, VisADGeometryArray array, ArrayList<float[]> anchors, GraphicsModeControl mode, float constant_alpha, float[] constant_color) {
      Info info = new Info();
      info.branch = branch;
      info.array = array;
@@ -150,7 +139,7 @@ public class FixedSizeListener implements ControlListener {
 }
 
 class Info {
-   BranchGroup branch;
+   Object branch;
    VisADGeometryArray array;
    ArrayList<float[]> anchors;
    GraphicsModeControl mode;
