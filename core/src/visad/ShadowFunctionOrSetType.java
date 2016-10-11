@@ -3475,7 +3475,7 @@ WLH 15 March 2000 */
           byteData[k++] = (byte) ((intData[i] >> 16) & 255);
         }
 */
-/* WLH 4 Nov 2000, from com.sun.j3d.utils.geometry.Text2D
+/* WLH 4 Nov 2000, from org.jogamp.java3d.utils.geometry.Text2D
         // For now, jdk 1.2 only handles ARGB format, not the RGBA we want
         BufferedImage bImage = new BufferedImage(width, height,
                                                  BufferedImage.TYPE_INT_ARGB);

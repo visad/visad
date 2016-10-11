@@ -29,7 +29,7 @@ package visad.cluster;
 import visad.*;
 import visad.java3d.*;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import java.awt.event.*;
 import java.awt.image.BufferedImage;

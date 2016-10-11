@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.java3d;
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 public class VisADBranchGroup extends BranchGroup {
   private double time;

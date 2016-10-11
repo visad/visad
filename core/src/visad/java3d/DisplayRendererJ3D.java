@@ -35,28 +35,28 @@ import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Background;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.GraphicsContext3D;
-import javax.media.j3d.Group;
-import javax.media.j3d.Node;
-import javax.media.j3d.OrderedGroup;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.SceneGraphObject;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Switch;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.View;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4d;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Background;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.GraphicsContext3D;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.OrderedGroup;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.SceneGraphObject;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Switch;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.View;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector4d;
 
 import visad.AxisScale;
 import visad.ColorAlphaControl;
@@ -690,19 +690,19 @@ public abstract class DisplayRendererJ3D
 
     // WLH 23 Oct 2001
     try {
-      Class modelClipClass = Class.forName("javax.media.j3d.ModelClip");
+      Class modelClipClass = Class.forName("org.jogamp.java3d.ModelClip");
       Class[] param = new Class[] {};
       Constructor modelClipConstructor = modelClipClass.getConstructor(param);
       param = new Class[] {int.class, boolean.class};
       modelClipSetEnable = modelClipClass.getMethod("setEnable", param);
-      param = new Class[] {int.class, javax.vecmath.Vector4d.class};
+      param = new Class[] {int.class, org.jogamp.vecmath.Vector4d.class};
       modelClipSetPlane = modelClipClass.getMethod("setPlane", param);
-      param = new Class[] {javax.media.j3d.Group.class};
+      param = new Class[] {org.jogamp.java3d.Group.class};
       modelClipAddScope = modelClipClass.getMethod("addScope", param);
       param = new Class[] {int.class};
       Method modelClipSetCapability =
         modelClipClass.getMethod("setCapability", param);
-      param = new Class[] {javax.media.j3d.Bounds.class};
+      param = new Class[] {org.jogamp.java3d.Bounds.class};
       Method modelClipSetInfluencingBounds =
         modelClipClass.getMethod("setInfluencingBounds", param);
       modelClip = modelClipConstructor.newInstance(new Object[] {});

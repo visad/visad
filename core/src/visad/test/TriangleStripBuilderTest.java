@@ -7,7 +7,7 @@ import java.io.File;
 import java.rmi.RemoteException;
 import java.util.logging.Logger;
 
-import javax.media.j3d.View;
+import org.jogamp.java3d.View;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;

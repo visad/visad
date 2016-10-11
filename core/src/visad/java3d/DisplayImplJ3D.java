@@ -70,11 +70,11 @@ import java.rmi.*;
 
 import java.awt.*;
 
-import javax.media.j3d.*;
-import com.sun.j3d.utils.applet.MainFrame;
+import org.jogamp.java3d.*;
+import org.jogamp.java3d.utils.applet.MainFrame;
 import java.util.Iterator;
 import java.util.Vector;
-// import com.sun.j3d.utils.applet.AppletFrame;
+// import org.jogamp.java3d.utils.applet.AppletFrame;
 
 /**
    DisplayImplJ3D is the VisAD class for displays that use
@@ -95,19 +95,19 @@ public class DisplayImplJ3D extends DisplayImpl {
    * @see GraphicsModeControlJ3D#setProjectionPolicy
    */
   public static final int PARALLEL_PROJECTION =
-    javax.media.j3d.View.PARALLEL_PROJECTION;
+    org.jogamp.java3d.View.PARALLEL_PROJECTION;
 
   /**
    * Use a perspective projection view. This is the default.
    * @see GraphicsModeControlJ3D#setProjectionPolicy
    */
   public static final int PERSPECTIVE_PROJECTION =
-    javax.media.j3d.View.PERSPECTIVE_PROJECTION;
+    org.jogamp.java3d.View.PERSPECTIVE_PROJECTION;
 
   /** Render polygonal primitives by filling the interior of the polygon
       @see GraphicsModeControlJ3D#setPolygonMode */
   public static final int POLYGON_FILL =
-    javax.media.j3d.PolygonAttributes.POLYGON_FILL;
+    org.jogamp.java3d.PolygonAttributes.POLYGON_FILL;
 
   /**
    * Render polygonal primitives as lines drawn between consecutive vertices
@@ -115,7 +115,7 @@ public class DisplayImplJ3D extends DisplayImpl {
    * @see GraphicsModeControlJ3D#setPolygonMode
    */
   public static final int POLYGON_LINE =
-    javax.media.j3d.PolygonAttributes.POLYGON_LINE;
+    org.jogamp.java3d.PolygonAttributes.POLYGON_LINE;
 
   /**
    * Render polygonal primitives as points drawn at the vertices of
@@ -123,21 +123,21 @@ public class DisplayImplJ3D extends DisplayImpl {
    * @see GraphicsModeControlJ3D#setPolygonMode
    */
   public static final int POLYGON_POINT =
-    javax.media.j3d.PolygonAttributes.POLYGON_POINT;
+    org.jogamp.java3d.PolygonAttributes.POLYGON_POINT;
 
   /**
    * Use the nicest available method for transparency.
    * @see GraphicsModeControlJ3D#setTransparencyMode
    */
   public static final int NICEST =
-    javax.media.j3d.TransparencyAttributes.NICEST;
+    org.jogamp.java3d.TransparencyAttributes.NICEST;
 
   /**
    * Use the fastest available method for transparency.
    * @see GraphicsModeControlJ3D#setTransparencyMode
    */
   public static final int FASTEST =
-    javax.media.j3d.TransparencyAttributes.FASTEST;
+    org.jogamp.java3d.TransparencyAttributes.FASTEST;
 
   /** Field for specifying unknown API type */
   public static final int UNKNOWN = 0;
@@ -157,7 +157,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final String PROP_GEOMETRY_BY_REF = "visad.java3d.geometryByRef";
   /**
    * Indicates whether to use geometry by reference when creating geometry arrays.
-   * @see javax.media.j3d.GeometryArray#BY_REFERENCE
+   * @see org.jogamp.java3d.GeometryArray#BY_REFERENCE
    */
   public static final boolean GEOMETRY_BY_REF;
   static {
@@ -174,7 +174,7 @@ public class DisplayImplJ3D extends DisplayImpl {
    * Indicates whether to allow non-power of two textures. This has been known
    * to cause some issues with Apple 32bit Macs eventhough the Canvas3D
    * properties indicate that NPOT is supported.
-   * @see javax.media.j3d.Canvas3D#queryProperties()
+   * @see org.jogamp.java3d.Canvas3D#queryProperties()
    */
   // FIXME:
   // This works with the Java3D 1.5.2 example TextureImageNPOT but does not work

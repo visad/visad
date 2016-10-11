@@ -132,7 +132,7 @@ public class PointJ3D implements ScreenAnnotation
   }
 
   /**
-   *  Make the PointJ3D into a {@link javax.media.j3d.Shape3D}.
+   *  Make the PointJ3D into a {@link org.jogamp.java3d.Shape3D}.
    *
    *  @param display  the VisAD display for this Point.
    *

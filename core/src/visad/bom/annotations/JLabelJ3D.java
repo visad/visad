@@ -33,7 +33,7 @@ import visad.java3d.DisplayImplJ3D;
 
 import java.awt.Font;
 
-import javax.media.j3d.Text3D;
+import org.jogamp.java3d.Text3D;
 
 /**
  *  Meant to encapsulate information representing a label which is
@@ -181,11 +181,11 @@ public class JLabelJ3D implements ScreenAnnotation
   }
 
   /**
-   *  Make the JLabelJ3D into a {@link javax.media.j3d.Shape3D}.
+   *  Make the JLabelJ3D into a {@link org.jogamp.java3d.Shape3D}.
    *
    *  @param display  the VisAD display for this Label.
    *
-   *  @return the JLabelJ3D description as a {@link javax.media.j3d.Shape3D}.
+   *  @return the JLabelJ3D description as a {@link org.jogamp.java3d.Shape3D}.
    *  
    *  @throws VisADException - VisAD couldn't make the geometry array.
    */

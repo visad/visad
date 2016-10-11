@@ -47,11 +47,11 @@ import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import javax.swing.*;
 
-import javax.vecmath.Color3f;
+import org.jogamp.vecmath.Color3f;
 
 
 

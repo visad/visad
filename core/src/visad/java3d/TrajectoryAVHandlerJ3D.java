@@ -6,7 +6,7 @@
 package visad.java3d;
 
 import java.util.ArrayList;
-import javax.media.j3d.Switch;
+import org.jogamp.java3d.Switch;
 import visad.AVHandler;
 
 /**
