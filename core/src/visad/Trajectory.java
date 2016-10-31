@@ -57,6 +57,8 @@ public class Trajectory {
   
   float[][] circleXYZ;
   float[][] last_circleXYZ;  
+  float[] lastTvec = new float[3];
+  float[] lastSvec;
   
   static float[][] circle;
   
@@ -218,13 +220,6 @@ public class Trajectory {
      if (circleXYZ == null) {
         circleXYZ = new float[3][npts];
      }
-     for (int k=0; k<npts; k++) {
-        float s = size*circle[0][k];
-        float t = size*circle[1][k];
-        circleXYZ[0][k] = pt1[0] + s*S[0] + t*T[0];
-        circleXYZ[1][k] = pt1[1] + s*S[1] + t*T[1];
-        circleXYZ[2][k] = pt1[2] + s*S[2] + t*T[2];
-     }
      if (last_circleXYZ == null) { // first time
         float[][] ptsXYZ = new float[3][npts];
         for (int k=0; k<npts; k++) {
@@ -238,6 +233,13 @@ public class Trajectory {
         System.arraycopy(ptsXYZ[0], 0, last_circleXYZ[0], 0, npts);
         System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
         System.arraycopy(ptsXYZ[2], 0, last_circleXYZ[2], 0, npts);
+     }
+     for (int k=0; k<npts; k++) {
+        float s = size*circle[0][k];
+        float t = size*circle[1][k];
+        circleXYZ[0][k] = pt1[0] + s*S[0] + t*T[0];
+        circleXYZ[1][k] = pt1[1] + s*S[1] + t*T[1];
+        circleXYZ[2][k] = pt1[2] + s*S[2] + t*T[2];
      }
 
     for (int k=0; k<npts; k++) {
@@ -306,6 +308,9 @@ public class Trajectory {
      System.arraycopy(circleXYZ[0], 0, last_circleXYZ[0], 0, npts);
      System.arraycopy(circleXYZ[1], 0, last_circleXYZ[1], 0, npts);
      System.arraycopy(circleXYZ[2], 0, last_circleXYZ[2], 0, npts);
+     lastTvec[0] = T[0];
+     lastTvec[1] = T[1];
+     lastTvec[2] = T[2];
 
      vertCnt[0] = vcnt;
      return array;
