@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import visad.data.text.TextAdapter;
 
 
 /**
@@ -53,6 +54,7 @@ public class TrajectoryManager {
   boolean manualIntrpPts;
   boolean trajDoIntrp = true;
   boolean trajCachingEnabled = false;
+  boolean doHysplit = true;
   float trcrSize = 1f;
   boolean trcrEnabled;
   int numIntrpPts;
@@ -68,6 +70,9 @@ public class TrajectoryManager {
   float[] intrpU;
   float[] intrpV;
   float[] intrpW;
+  float[] intrpU_1;
+  float[] intrpV_1;
+  float[] intrpW_1;  
   CubicInterpolator uInterp;
   CubicInterpolator vInterp;
   CubicInterpolator wInterp;
@@ -78,6 +83,7 @@ public class TrajectoryManager {
   float[][] values0_last;
   
   RealTupleType startPointType = Display.DisplaySpatialCartesianTuple;
+  ScalarMap altToZ;
   
   ArrayList<FlowInfo> flowInfoList;
   
@@ -90,8 +96,11 @@ public class TrajectoryManager {
   public static HashMap<ScalarMap, ScalarMapListener> removeListeners = new HashMap<ScalarMap, ScalarMapListener>();
   
   
-
   public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength) throws VisADException {
+    this(renderer, trajParams, flowInfoList, dataDomainLength, null);
+  }
+  
+  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, ScalarMap altToZ) throws VisADException {
       this.flowInfoList = flowInfoList;
       this.dataDomainLength = dataDomainLength;
       trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
@@ -116,6 +125,7 @@ public class TrajectoryManager {
       if (!trajDoIntrp) {
         numIntrpPts = 1;
       }
+      this.altToZ = altToZ;
             
       //ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
       FlowInfo info = flowInfoList.get(0);
@@ -131,6 +141,15 @@ public class TrajectoryManager {
       markGridTime = new int[numSpatialPts];
       java.util.Arrays.fill(markGrid, false);
       java.util.Arrays.fill(markGridTime, 0);
+      
+      startClrs = new byte[clrDim][];
+      try {
+        startPts = getStartPointsFromFile(renderer, altToZ, startClrs);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+      startPts = null;
 
       startClrs = new byte[clrDim][];
       if (startPts == null) { //get from domain set
@@ -143,20 +162,6 @@ public class TrajectoryManager {
         getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec, ribbonWidthFac);
       }
       else {
-        if (!startPointType.equals(Display.DisplaySpatialCartesianTuple)) {
-          throw new VisADException("startPointType must be convertable"
-                  + " with (Display.XAxis, Display.YAxis, Display.ZAxis) ");
-        }
-        /* TODO: assuming earth navigated display coordinate system*/
-        /*
-        CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
-        float[][] fltVals = new float[startPts.length][startPts[0].length];
-        for (int i=0; i<fltVals.length; i++) {
-          System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
-        }
-        startPts = dspCoordSys.toReference(fltVals);
-        */
-
         int[] clrIdxs;
         if (spatialSetTraj.getManifoldDimension() == 2) {
             clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
@@ -181,6 +186,12 @@ public class TrajectoryManager {
       intrpU = new float[numSpatialPts];
       intrpV = new float[numSpatialPts];
       intrpW = new float[numSpatialPts];
+      
+      if (doHysplit) {
+        intrpU_1 = new float[numSpatialPts];
+        intrpV_1 = new float[numSpatialPts];
+        intrpW_1 = new float[numSpatialPts];  
+      }
 
       uInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
       vInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
@@ -294,63 +305,41 @@ public class TrajectoryManager {
        double x0 = (double) direction*i;
        double x1 = (double) direction*(i+direction*1);
        double x2 = (double) direction*(i+direction*2);
+       double x3 = (double) direction*(i+direction*3);
 
 
-       // Even time steps: access fields, update interpolator and compute.
-       // Odd time steps: just compute for second half of 3 point (2 gap) interval.
-       if ((k % 2) == 0) {
-         FlowInfo flwInfo;
+       FlowInfo flwInfo;
 
-         if (values0 == null) {
-           flwInfo = flowInfoList.get(i);
-           values0 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-         }
+       if (k == 0) {
+         flwInfo = flowInfoList.get(i);
+         values0 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
-         if (values1 == null) {
-           flwInfo = flowInfoList.get(i+direction*1);
-           values1 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-         }
-
-         // make sure we don't access more data than we have, but keep iterating and 
-         // computing to the end to use the data we've already pulled in.
-         if (k < dataDomainLength-3) {
-             flwInfo = flowInfoList.get(i+direction*2);
-             values2 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-
-             // smoothing done here -----------------------
-             flwInfo = flowInfoList.get(i+direction*3);
-             values3 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-
-             if (values0_last != null) {
-               values0 = smooth(values0_last, values0, values1, smoothParams);
-             }
-             values1 = smooth(values0, values1, values2, smoothParams);
-             values2 = smooth(values1, values2, values3, smoothParams);
-             // ------- end smoothing
-
-             // update interpolator 
-             uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-             vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-             wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
-         }
-
-         if (k == dataDomainLength-3) { // make sure we smoothly handle the last three time steps
-             uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-             vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-             wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
-         }
+         flwInfo = flowInfoList.get(i+direction*1);
+         values1 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+         
+         flwInfo = flowInfoList.get(i+direction*2);
+         values2 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);         
        }
-       else {
-         values0_last = values1;
-         values0 = values2;
-         values1 = values3;
 
-         if (k == dataDomainLength-3) { // make sure we smootly handle the last three time steps
-             uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-             vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-             wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
-         }
+       if (k < dataDomainLength-3) {
+         flwInfo = flowInfoList.get(i+direction*3);
+         values3 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
        }
+             
+       if (values0_last != null) {
+         values0 = smooth(values0_last, values0, values1, smoothParams);
+       }
+       values1 = smooth(values0, values1, values2, smoothParams);
+       values2 = smooth(values1, values2, values3, smoothParams);
+       // ------- end smoothing
+
+       // update interpolator 
+       if (k < dataDomainLength-2) {
+         uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+         vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+         wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+       }
+
 
        int numTrajectories = trajectories.size();
        
@@ -366,6 +355,24 @@ public class TrajectoryManager {
          vInterp.interpolate(xt, intrpV);
          wInterp.interpolate(xt, intrpW);
 
+         if (doHysplit) { // NOAA HySplit
+           if (ti == numIntrpPts-1) {
+             System.arraycopy(values1[0], 0, intrpU_1, 0, intrpU_1.length);
+             System.arraycopy(values1[1], 0, intrpV_1, 0, intrpV_1.length);
+             System.arraycopy(values1[2], 0, intrpW_1, 0, intrpW_1.length);
+            
+           }
+           else {
+             uInterp.interpolate(xt+dst, intrpU_1);
+             vInterp.interpolate(xt+dst, intrpV_1);
+             wInterp.interpolate(xt+dst, intrpW_1);
+           }
+
+           intrpU = mean(intrpU, intrpU_1);         
+           intrpV = mean(intrpV, intrpV_1);         
+           intrpW = mean(intrpW, intrpW_1);
+         }
+
          for (int t=0; t<numTrajectories; t++) {
            Trajectory traj = trajectories.get(t);
            traj.currentTimeIndex = direction*i;
@@ -374,6 +381,15 @@ public class TrajectoryManager {
          }
 
        } // inner time loop (time interpolation)
+       
+       values0_last = values0;
+       values0 = values1;
+       values1 = values2;
+       values2 = values3;       
+       
+       uInterp.setLast(x1, values1[0]);
+       vInterp.setLast(x1, values1[1]);
+       wInterp.setLast(x1, values1[2]);
 
        VisADGeometryArray array = null;
        
@@ -773,6 +789,10 @@ public class TrajectoryManager {
   }
   
   public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2, TrajectoryParams.SmoothParams smoothParams) {
+    
+    if (smoothParams.equals(TrajectoryParams.SmoothParams.NONE)) {
+      return values1;
+    }
 
     float w0 = smoothParams.w0;
     float w1 = smoothParams.w1;
@@ -788,6 +808,32 @@ public class TrajectoryManager {
     }
 
     return new_values;
+  }  
+  
+  public static float[][] mean(float[][] values0, float[][] values1) {
+     int numPts = values0[0].length;
+     
+     float[][] meanValues = new float[3][numPts];
+     
+     for (int k=0; k<numPts; k++) {
+        meanValues[0][k] =  (values0[0][k] + values1[0][k])/2;
+        meanValues[1][k] =  (values0[1][k] + values1[1][k])/2;
+        meanValues[2][k] =  (values0[2][k] + values1[2][k])/2;
+     }
+     
+     return meanValues;
+  }
+  
+  public static float[] mean(float[] values0, float[] values1) {
+     int numPts = values0.length;
+     
+     float[] meanValues = new float[numPts];
+     
+     for (int k=0; k<numPts; k++) {
+        meanValues[k] =  (values0[k] + values1[k])/2;
+     }
+     
+     return meanValues;
   }  
   
   public void setListener(ProjectionControl pCntrl, ControlListener listener, FlowControl flowCntrl) {
@@ -1271,7 +1317,6 @@ public class TrajectoryManager {
         float[] coneNormals = new float[ntrajs*(numSides+1)*3*3];
         
         float[] uvecPath = new float[3];
-        float[] norm = new float[] {0f, 0f, 1f};
         byte[][] clr0 = new byte[clrDim][1];
         byte[][] clr1 = new byte[clrDim][1];
         float[] pt0 = new float[3];
@@ -1325,9 +1370,18 @@ public class TrajectoryManager {
             uvecPath[1] = (y1-y0)/mag;
             uvecPath[2] = (z1-z0)/mag;
             
-            float[] norm_x_trj = AxB(norm, uvecPath);
-            
-            float[] trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);
+            float[] norm;
+            float[] norm_x_trj;
+            float[] trj_x_norm_x_trj;
+            if (traj.last_circleXYZ == null) {
+              norm = new float[] {0f, 0f, 1f};
+              norm_x_trj = AxB(norm, uvecPath);
+              trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);               
+            }
+            else {
+              norm_x_trj = AxB(traj.lastTvec, uvecPath);
+              trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);
+            }
             
             pt0[0] = x0;
             pt0[1] = y0;
@@ -1346,14 +1400,16 @@ public class TrajectoryManager {
             clr1[2][0] = b1;
             if (clrDim == 4) clr1[3][0] = a1;        
             
+            cylWidth = 0.0040f;
             traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, idx);
             strips[strpCnt++] = (numSides+1)*2;
           }
           
+          float vFac = (float) (cylWidth/0.01);
           float[] vertex = new float[3];
-          vertex[0] = pt1[0] + uvecPath[0]*0.006f;
-          vertex[1] = pt1[1] + uvecPath[1]*0.006f;
-          vertex[2] = pt1[2] + uvecPath[2]*0.006f;
+          vertex[0] = pt1[0] + uvecPath[0]*0.006f*vFac;
+          vertex[1] = pt1[1] + uvecPath[1]*0.006f*vFac;
+          vertex[2] = pt1[2] + uvecPath[2]*0.006f*vFac;
           
           // build cone here. add to coneArray
           makeCone(traj.last_circleXYZ, vertex, clr0, coneCoords, coneColors, coneNormals, coneIdx);
@@ -1878,6 +1934,79 @@ public class TrajectoryManager {
      if (!removeListeners.containsKey(scalarMap)) {
        removeListeners.put(scalarMap, new ListenForRemove(scalarMap, flowCntrl, pCntrl, display));
      }     
+  }
+  
+  public float[][] getStartPointsFromFile(DataRenderer renderer, ScalarMap altToZ, byte[][] colors) throws VisADException, RemoteException {
+     //String filename = "/Users/rink/trajectoryStartPoints.txt";
+     String filename = "/Users/rink/testPoints.txt";
+     FieldImpl data = null;
+     try {
+       TextAdapter txtAdapter = new TextAdapter(filename);
+       data = (FieldImpl) txtAdapter.getData();
+     }
+     catch (Exception e) {
+       e.printStackTrace();
+     }
+     
+     int numPts = data.getLength();
+     ArrayList<float[]> keepPts = new ArrayList();
+     ArrayList<Float> keepVal = new ArrayList();
+     for (int k=0; k<numPts; k++) {
+       RealTuple tup = (RealTuple) data.getSample(k);
+       double[] vals = tup.getValues();
+          float[] locVal = new float[3];
+          locVal[0] = (float) vals[0];
+          locVal[1] = (float) vals[1];
+          locVal[2] = (float) vals[2];
+          keepPts.add(locVal);
+          //keepVal.add((float)vals[3]);
+     }
+     
+     float[][] latlonalt = new float[3][keepPts.size()];
+     float[] trcrVals = new float[keepPts.size()];
+     colors[0] = new byte[keepPts.size()];
+     colors[1] = new byte[keepPts.size()];
+     colors[2] = new byte[keepPts.size()];
+     if (colors.length == 4) colors[3] = new byte[keepPts.size()];
+     
+     for (int k=0; k<keepPts.size(); k++) {
+        float[] vals = keepPts.get(k);
+        latlonalt[0][k] = vals[1];
+        latlonalt[1][k] = vals[0];
+        latlonalt[2][k] = vals[2] + 200;
+        //float tval = keepVal.get(k);
+        //trcrVals[k] = tval;
+     }
+     
+     
+//     float[][] clrTbl = new float[colors.length][256];
+//     BaseColorControl.initTableVis5D(clrTbl);
+//     
+//     for (int i=0; i<trcrVals.length; i++) {
+//        float tval = trcrVals[i];
+//        if (tval > 1f) tval = 1f;
+//        int ci = (int) tval*256;
+//        
+//        colors[0][i] = (byte) (256f * clrTbl[0][ci]);
+//        colors[1][i] = (byte) (256f * clrTbl[1][ci]);
+//        colors[2][i] = (byte) (256f * clrTbl[2][ci]);
+//        System.out.println(colors[0][i]);
+//        System.out.println(colors[1][i]);
+//        System.out.println(colors[2][i]);
+//        if (colors.length == 4) colors[3][i] = (byte) (256f * clrTbl[3][ci]);
+//     }
+     
+     
+     latlonalt[2] = altToZ.scaleValues(latlonalt[2]);
+     
+     CoordinateSystem dspCoordSys = renderer.getDisplayCoordinateSystem();
+     float[][] fltVals = new float[3][latlonalt[0].length];
+     for (int i=0; i<latlonalt.length; i++) {
+       System.arraycopy(latlonalt[i], 0, fltVals[i], 0, fltVals[i].length);
+     }
+     float[][] xyz = dspCoordSys.toReference(fltVals);    
+     
+     return xyz;
   }
 }
 
