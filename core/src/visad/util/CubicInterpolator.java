@@ -13,10 +13,12 @@ public class CubicInterpolator {
       double x0 = 0;
       double x1 = 0;
       double x2 = 0;
+      double x1_last = 0;
 
       float[] values0 = null;
       float[] values1 = null;
       float[] values2 = null;
+      float[] values1_last = null;
 
       int numSpatialPts = 1;
 
@@ -38,19 +40,17 @@ public class CubicInterpolator {
       private void buildSolver() {
          double x0_p3 = x0*x0*x0;
          double x1_p3 = x1*x1*x1;
-         double x2_p3 = x2*x2*x2;
 
          double x0_p2 = x0*x0;
          double x1_p2 = x1*x1;
-         double x2_p2 = x2*x2;
 
          Matrix coeffs = new Matrix(new double[][]
               { {x0_p3, x0_p2, x0, 1},
                 {x1_p3, x1_p2, x1, 1},
-                {x2_p3, x2_p2, x2, 1},
-                {3*x0_p2, 2*x0, 1, 0}}, 4, 4);
+                {3*x0_p2, 2*x0, 1, 0},
+                {3*x1_p2, 2*x1, 1, 0}}, 4, 4);
 
-         solver = new LUDecomposition(coeffs);
+         solver = new LUDecomposition(coeffs);         
       }
 
       public void interpolate(double xt, float[] interpValues) {
@@ -88,7 +88,7 @@ public class CubicInterpolator {
          
          buildSolver();
       }
-      
+ 
       public void update(boolean[] needed) {
           java.util.Arrays.fill(this.needed, false);
           for (int k=0; k<numSpatialPts; k++) {
@@ -99,7 +99,7 @@ public class CubicInterpolator {
               }
           }
           if (doIntrp) {
-             getSolution();
+                getSolution();
           }
       }
       
@@ -108,17 +108,31 @@ public class CubicInterpolator {
             if (!this.needed[k]) {
                 continue;
             }
+            
+            double D1_1 = Double.NaN;
             double y0 = values0[k];
             double y1 = values1[k];
-            double y2 = values2[k];
+            double y2 = Double.NaN;
+            if (values2 != null) {
+               y2 = values2[k];
+            }
+            else {
+               D1_1 = 0;
+            }
 
-            // TODO: Initialize first derivative at first point with estimate from the
-            // first two data pts instead of using derivative from cubic polynomial fit
-            // at the last point.  This works pretty well, but can be improved.
-            double D1 = (y1 - y0)/(x1 - x0);
-            //double D1 = cubic_poly_D1(x0, solution[0][k], solution[1][k], solution[2][k]);     
+            double D1_0;
+            if (values1_last == null) {
+               D1_0 = (y1 - y0)/(x1 - x0);
+            }
+            else {
+               double y1_last = values1_last[k];
+               D1_0 = (y1 - y1_last)/(x1 - x1_last);
+            }
+            if (Double.isNaN(D1_1)) {
+               D1_1 = (y2 - y1)/(x2 - x1);
+            }
             
-            double[] sol = getSolution(y0, y1, y2, D1);
+            double[] sol = getSolution(y0, y1, D1_0, D1_1);
             solution[0][k] = sol[0];
             solution[1][k] = sol[1];
             solution[2][k] = sol[2];
@@ -127,10 +141,15 @@ public class CubicInterpolator {
             computed[k] = true;
          }
       }
-
-      private double[] getSolution(double y0, double y1, double y2, double D1) {
+      
+      public void setLast(double x1, float[] values1) {
+         x1_last = x1;
+         values1_last = values1;
+      }
+      
+      private double[] getSolution(double y0, double y1, double D1_0, double D1_1) {
         Matrix constants = new Matrix(new double[][]
-             { {y0}, {y1}, {y2}, {D1} }, 4, 1);
+             { {y0}, {y1}, {D1_0}, {D1_1} }, 4, 1);
 
         double[][] solution = (solver.solve(constants)).getArray();
 
