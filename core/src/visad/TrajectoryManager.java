@@ -48,6 +48,8 @@ public class TrajectoryManager {
   public static final int CYLINDER = 2;
   public static final int DEFORM_RIBBON = 3;
   
+  public static final String PPOP_TRAJECTORY_START_POINTS_FILE = "visad.trajectory.startPointsFile";
+  
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
   double trajLifetime;
@@ -127,7 +129,6 @@ public class TrajectoryManager {
       }
       this.altToZ = altToZ;
             
-      //ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
       FlowInfo info = flowInfoList.get(0);
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
       GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set0);
@@ -149,7 +150,6 @@ public class TrajectoryManager {
       catch (Exception e) {
         e.printStackTrace();
       }
-      startPts = null;
 
       startClrs = new byte[clrDim][];
       if (startPts == null) { //get from domain set
@@ -387,10 +387,6 @@ public class TrajectoryManager {
        values1 = values2;
        values2 = values3;       
        
-       uInterp.setLast(x1, values1[0]);
-       vInterp.setLast(x1, values1[1]);
-       wInterp.setLast(x1, values1[2]);
-
        VisADGeometryArray array = null;
        
        switch (trajForm) {
@@ -1937,8 +1933,18 @@ public class TrajectoryManager {
   }
   
   public float[][] getStartPointsFromFile(DataRenderer renderer, ScalarMap altToZ, byte[][] colors) throws VisADException, RemoteException {
-     //String filename = "/Users/rink/trajectoryStartPoints.txt";
-     String filename = "/Users/rink/testPoints.txt";
+     String filename = null;
+     
+     try {
+       filename = System.getProperty("visad.trajectory.startPointsFile", null);
+     }
+     catch (java.lang.SecurityException exc) {
+       exc.printStackTrace();        
+     }
+     if (filename == null) {
+        return null;
+     }
+     
      FieldImpl data = null;
      try {
        TextAdapter txtAdapter = new TextAdapter(filename);
@@ -1946,6 +1952,7 @@ public class TrajectoryManager {
      }
      catch (Exception e) {
        e.printStackTrace();
+       return null;
      }
      
      int numPts = data.getLength();
@@ -1973,28 +1980,26 @@ public class TrajectoryManager {
         float[] vals = keepPts.get(k);
         latlonalt[0][k] = vals[1];
         latlonalt[1][k] = vals[0];
-        latlonalt[2][k] = vals[2] + 200;
+        latlonalt[2][k] = vals[2];
         //float tval = keepVal.get(k);
         //trcrVals[k] = tval;
      }
      
+     // trcr quantity must already be scaled 0 -> 1
      
-//     float[][] clrTbl = new float[colors.length][256];
-//     BaseColorControl.initTableVis5D(clrTbl);
-//     
-//     for (int i=0; i<trcrVals.length; i++) {
-//        float tval = trcrVals[i];
-//        if (tval > 1f) tval = 1f;
-//        int ci = (int) tval*256;
-//        
-//        colors[0][i] = (byte) (256f * clrTbl[0][ci]);
-//        colors[1][i] = (byte) (256f * clrTbl[1][ci]);
-//        colors[2][i] = (byte) (256f * clrTbl[2][ci]);
-//        System.out.println(colors[0][i]);
-//        System.out.println(colors[1][i]);
-//        System.out.println(colors[2][i]);
-//        if (colors.length == 4) colors[3][i] = (byte) (256f * clrTbl[3][ci]);
-//     }
+     float[][] clrTbl = new float[colors.length][256];
+     BaseColorControl.initTableVis5D(clrTbl);
+     
+     for (int i=0; i<trcrVals.length; i++) {
+        float tval = trcrVals[i];
+        if (tval > 1f) tval = 1f;
+        int ci = (int) (tval*256f);
+        
+        colors[0][i] = (byte) (256f * clrTbl[0][ci]);
+        colors[1][i] = (byte) (256f * clrTbl[1][ci]);
+        colors[2][i] = (byte) (256f * clrTbl[2][ci]);
+        if (colors.length == 4) colors[3][i] = (byte) (256f * clrTbl[3][ci]);
+     }
      
      
      latlonalt[2] = altToZ.scaleValues(latlonalt[2]);
