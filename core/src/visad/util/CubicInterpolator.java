@@ -13,12 +13,14 @@ public class CubicInterpolator {
       double x0 = 0;
       double x1 = 0;
       double x2 = 0;
-      double x1_last = 0;
-
+      double x0_last = 0;
+      double x0_save;
+      
       float[] values0 = null;
       float[] values1 = null;
       float[] values2 = null;
-      float[] values1_last = null;
+      float[] values0_last = null;
+      float[] values0_save = null;
 
       int numSpatialPts = 1;
 
@@ -80,6 +82,11 @@ public class CubicInterpolator {
          this.values0 = values0;
          this.values1 = values1;
          this.values2 = values2;
+         
+         this.x0_last = x0_save;
+         this.x0_save = x0;
+         this.values0_last = values0_save;
+         this.values0_save = values0;
          Arrays.fill(computed, false);
          
          if (!doIntrp) {
@@ -110,27 +117,17 @@ public class CubicInterpolator {
             }
             
             double D1_1 = Double.NaN;
+            double D1_0 = Double.NaN;
             double y0 = values0[k];
             double y1 = values1[k];
-            double y2 = Double.NaN;
-            if (values2 != null) {
-               y2 = values2[k];
+            
+            if (values0_last == null) {
+               D1_0 = (values1[k] - values0[k])/(x1 - x0);
             }
             else {
-               D1_1 = 0;
+               D1_0 = (values1[k] - values0_last[k])/(x1 - x0_last);
             }
-
-            double D1_0;
-            if (values1_last == null) {
-               D1_0 = (y1 - y0)/(x1 - x0);
-            }
-            else {
-               double y1_last = values1_last[k];
-               D1_0 = (y1 - y1_last)/(x1 - x1_last);
-            }
-            if (Double.isNaN(D1_1)) {
-               D1_1 = (y2 - y1)/(x2 - x1);
-            }
+            D1_1 = (values2[k] - values0[k])/(x2 - x0);
             
             double[] sol = getSolution(y0, y1, D1_0, D1_1);
             solution[0][k] = sol[0];
@@ -140,11 +137,6 @@ public class CubicInterpolator {
             
             computed[k] = true;
          }
-      }
-      
-      public void setLast(double x1, float[] values1) {
-         x1_last = x1;
-         values1_last = values1;
       }
       
       private double[] getSolution(double y0, double y1, double D1_0, double D1_1) {
