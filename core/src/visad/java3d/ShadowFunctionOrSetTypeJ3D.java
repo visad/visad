@@ -29,7 +29,7 @@ package visad.java3d;
 import visad.*;
 import visad.util.ThreadManager;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +62,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   FlowControl flowCntrl = null;
   ScalarMap flowMap = null;
   TrajectoryParams trajParams;
-  ScalarMap altitudeToDisplayZ;
   
   
   List<BranchGroup> branches = null;
@@ -156,15 +155,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       // check for trajectory
       for (int kk=0; kk<scalarMaps.size(); kk++) {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
-        if (scalarMap.getScalarName().equals(RealType.Altitude.getName())) {
-           DisplayRealType dspType = scalarMap.getDisplayScalar();
-           RealType[] rtypes = dspType.getTuple().getCoordinateSystem().getReference().getRealComponents();
-           for (int t=0; t<rtypes.length; t++) {
-              if (rtypes[t].equals(Display.ZAxis)) {
-                 altitudeToDisplayZ = scalarMap;
-              }
-           }
-        }
         DisplayRealType dspType = scalarMap.getDisplayScalar();
         boolean isFlow = false;
         if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z)) {
@@ -1382,9 +1372,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     MouseBehavior mouseBehav = renderer.getDisplay().getMouseBehavior();
     FixGeomSizeAppearance listener = null;
     
-    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, altitudeToDisplayZ);
+    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength);
     
-    trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);
+    trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);    
     
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixGeomSizeAppearanceJ3D(pCntrl, this, mouseBehav);

@@ -522,7 +522,7 @@ public class AreaFile implements java.io.Serializable {
     int newDatOffset = startLine * lineLength;
     newDatOffset += linePrefixLength;
     newDatOffset += startElem * (origNumBands * dir[AD_DATAWIDTH]);
-    newDatOffset += bandIdx * dir[AD_DATAWIDTH];
+    newDatOffset += (band - 1) * dir[AD_DATAWIDTH];
 
     // reflect subset in directory
     dir[AD_DATAOFFSET] = newDatOffset;

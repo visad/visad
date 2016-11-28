@@ -30,7 +30,7 @@ package visad.java3d;
 import java.awt.*;
 import javax.swing.*;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 public class DisplayPanelJ3D extends JPanel {
 

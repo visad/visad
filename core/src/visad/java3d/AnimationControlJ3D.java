@@ -30,11 +30,11 @@ import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.WakeupOnElapsedTime;
-import javax.vecmath.Point3d;
+import org.jogamp.java3d.Behavior;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.WakeupOnElapsedTime;
+import org.jogamp.vecmath.Point3d;
 
 import visad.AnimationControl;
 import visad.AnimationSetControl;

@@ -55,11 +55,11 @@ import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.Group;
-import javax.media.j3d.Node;
-import javax.media.j3d.SceneGraphObject;
-import javax.media.j3d.VirtualUniverse;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.SceneGraphObject;
+import org.jogamp.java3d.VirtualUniverse;
 
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -78,7 +78,7 @@ import visad.data.bio.LociForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
 
-import com.sun.j3d.utils.universe.SimpleUniverse;
+import org.jogamp.java3d.utils.universe.SimpleUniverse;
 
 import java.util.logging.Formatter;
 import java.util.logging.ConsoleHandler;
@@ -251,8 +251,8 @@ public class Util {
    * @param canvas The Canvas3D to get properties from. If null Canvas3D
    *  properties are skipped.
    *
-   * @see javax.media.j3d.VirtualUniverse#getProperties()
-   * @see javax.media.j3d.Canvas3D#queryProperties()
+   * @see org.jogamp.java3d.VirtualUniverse#getProperties()
+   * @see org.jogamp.java3d.Canvas3D#queryProperties()
    */
   public static void printJ3DProperties(Canvas3D canvas) {
     printJ3DProperties(System.err, canvas);
@@ -703,9 +703,9 @@ public class Util {
    *         equal to the desired version number
    */
   public static boolean canDoJava3D(String version) {
-    Class testClass = canDoClass("javax.vecmath.Point3d");
+    Class testClass = canDoClass("org.jogamp.vecmath.Point3d");
     boolean b = (testClass != null)
-                ? (canDoClass("javax.media.j3d.SceneGraphObject") != null)
+                ? (canDoClass("org.jogamp.java3d.SceneGraphObject") != null)
                 : false;
     if (b) {
       Package p = testClass.getPackage();

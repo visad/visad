@@ -67,7 +67,7 @@ public class TrajectoryParams {
   boolean cachingEnabled = true;
   
   int trajForm = LINE;
-  float cylWidth = 0.00014f;
+  float cylWidth = 0.01f;
   float ribbonWidthFac = 1f;
   int zStart = 0;
   int zStartSkip = 0;

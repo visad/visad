@@ -28,22 +28,22 @@ package visad.java3d;
 
 import java.lang.reflect.Constructor;
 
-import javax.media.j3d.AmbientLight;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.DirectionalLight;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.Light;
-import javax.media.j3d.LineArray;
-import javax.media.j3d.LineAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.View;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.java3d.AmbientLight;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.DirectionalLight;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.Light;
+import org.jogamp.java3d.LineArray;
+import org.jogamp.java3d.LineAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.View;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3f;
 
 import visad.VisADError;
 
