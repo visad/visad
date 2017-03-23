@@ -58,6 +58,7 @@ public class TrajectoryParams {
   int numIntrpPts = 6;
   int startSkip = 2;
   SmoothParams smoothParams = SmoothParams.MEDIUM;
+  boolean forward = true;
   int direction = 1;  //1: forward, -1: backward
   boolean doIntrp = true;
   float markerSize = 1f;
@@ -85,6 +86,7 @@ public class TrajectoryParams {
     this.numIntrpPts = params.getNumIntrpPts();
     this.startSkip = params.getStartSkip();
     this.smoothParams = params.getSmoothParams();
+    this.forward = params.getDirectionFlag();
     this.direction = params.getDirection();
     this.doIntrp = params.getDoIntrp();
     this.markerSize = params.getMarkerSize();
@@ -150,7 +152,21 @@ public class TrajectoryParams {
   public void setTrajRefreshInterval(double trajRefreshInterval) {
     this.trajRefreshInterval = trajRefreshInterval;
   }
-
+  
+  public void setDirectionFlag(boolean forward) {
+     this.forward = forward;
+     if (forward) {
+        this.direction = 1;
+     }
+     else {
+        this.direction = -1;
+     }
+  }
+  
+  public boolean getDirectionFlag() {
+     return forward;
+  }
+  
   public void setDoIntrp(boolean yesno) {
     this.doIntrp = yesno;
   }
@@ -321,6 +337,9 @@ public class TrajectoryParams {
         return false;
       }
       else if (this.doIntrp != trajParams.doIntrp) {
+         return false;
+      }
+      else if (this.forward != trajParams.forward) {
          return false;
       }
       else if (this.direction != trajParams.direction) {
