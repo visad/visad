@@ -233,7 +233,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
       branches = new ArrayList<BranchGroup>();
       for (int i=0; i<domainLength; i++) {
-          BranchGroup node = (BranchGroup) swit.getChild(i);
+          //BranchGroup node = (BranchGroup) swit.getChild(i);
           BranchGroup branch = (BranchGroup) makeBranch();
           branches.add(branch);
       }
@@ -1382,7 +1382,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     MouseBehavior mouseBehav = renderer.getDisplay().getMouseBehavior();
     FixGeomSizeAppearance listener = null;
     
-    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, altitudeToDisplayZ);
+    double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
+    double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
+    
+    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ);
     
     trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);
     
@@ -1398,8 +1401,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     
     double trcrSizeRatio = 1;
 
-    double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
-    double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
     double timeAccum = 0;
 
     VisADGeometryArray array = null;
@@ -1407,7 +1408,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     VisADGeometryArray[] auxArray = new VisADGeometryArray[1];
     ArrayList<float[]> achrArrays = null;
     
-    for (int k=0; k<dataDomainLength-1; k++) {
+    for (int k=0; k<dataDomainLength; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
       FlowInfo info = flowInfoList.get(i);
@@ -1431,9 +1432,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
       timeAccum += timeSteps[i];
 
-      final BranchGroup branch = (BranchGroup) branches.get(i);
-      final BranchGroup node = (BranchGroup) swit.getChild(i);
-          
       if (trcrEnabled) {
         Object group = switB.getChild(i);
         BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, info.constant_alpha, info.constant_color);
@@ -1442,8 +1440,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         }
       }
 
+      BranchGroup branch = (BranchGroup) branches.get(i);
       addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
-      node.addChild(branch); 
+      BranchGroup node = (BranchGroup) swit.getChild(i);
+      node.addChild(branch);
       
       if (auxArray[0] != null) {
         BranchGroup auxBrnch = (BranchGroup) makeBranch();
@@ -1453,20 +1453,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     } //---  domain length (time steps) outer time loop  -------------------------
         
-    if (avHandler.getWindowSize() > 1) { //keep last tracer visible at the end if num visibility nodes > 1
-      int idx = dataDomainLength-1;
-      FlowInfo finfo = flowInfoList.get(idx);
-      GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
-
-      if (trcrEnabled) {
-        Object group = switB.getChild(idx);
-        BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, finfo.constant_alpha, finfo.constant_color);
-        if (listener != null && trcrArray != null) {
-          listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
-        }
-      }
-    }
-    
     if (listener != null) {
        if (listener.isLocked()) {
           listener.update();

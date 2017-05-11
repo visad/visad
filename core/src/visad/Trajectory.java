@@ -21,6 +21,9 @@ public class Trajectory {
   /* grid point neighbors and interp weights for current location */
   int[] startCell;
   float[] cellWeights;
+  
+  int[][] indices = new int[1][];
+  float[][] weights = new float[1][];
 
   /* unit vector from last to current location*/
   float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
@@ -34,7 +37,7 @@ public class Trajectory {
   float[] stopPts = new float[3];
   float[][] startPts2D = new float[2][1];
   float[][] startPts3D = new float[3][1];
-
+  
   /* first and current time and associated set indices */
   public int initialTimeIndex = 0;
   public int currentTimeIndex = 0;
@@ -46,6 +49,12 @@ public class Trajectory {
      cannot be determined - Trajectory obj will be removed from list.
   */
   boolean offGrid = false;
+  
+  int clrDim;
+  
+  GriddedSet spatial_set;
+  
+  int manifoldDimension;
 
   int npairs = 0;
   int[] indexes = new int[60];
@@ -62,15 +71,16 @@ public class Trajectory {
   
   static float[][] circle;
   
-  
   public Trajectory(TrajectoryManager trajMan, float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor, double initialTime) {
     startPts[0] = startX;
     startPts[1] = startY;
     startPts[2] = startZ;
     this.startCell = startCell;
     this.cellWeights = cellWeights;
+    this.indices[0] = startCell;
+    this.weights[0] = cellWeights;
 
-    int clrDim = startColor.length;
+    clrDim = startColor.length;
     stopColor = new byte[clrDim];
 
     this.startColor = startColor;   
@@ -80,21 +90,18 @@ public class Trajectory {
   
   public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, int direction, float timeStep)
            throws VisADException {
+     
      if (offGrid) return;
 
-     int[][] indices = new int[1][];
-     float[][] weights = new float[1][];
-     float[] intrpFlow = new float[3];
-     int clrDim = color_values.length;
+     clrDim = color_values.length;
      float[] intrpClr = new float[clrDim];
+     this.spatial_set = spatial_set;
+     this.manifoldDimension = spatial_set.getManifoldDimension();
 
-     int manifoldDimension = spatial_set.getManifoldDimension();
-
-     indices[0] = startCell;
-     weights[0] = cellWeights;
 
      float[][] flowLoc = new float[3][1];
      float[][] flowVec = new float[3][1];
+     float[] intrpFlow = new float[3];
 
      if (indices[0] != null) {
         java.util.Arrays.fill(intrpFlow, 0f);
@@ -147,35 +154,8 @@ public class Trajectory {
         uVecPath[0] /= mag;
         uVecPath[1] /= mag;
         uVecPath[2] /= mag;
-
-        startPts[0] = stopPts[0];
-        startPts[1] = stopPts[1];
-        startPts[2] = stopPts[2];
-
-        startColor[0] = stopColor[0];
-        startColor[1] = stopColor[1];
-        startColor[2] = stopColor[2];
-        if (clrDim == 4) {
-          startColor[3] = stopColor[3];
-        }
-
-        if (manifoldDimension == 2) {
-           startPts2D[0][0] = startPts[0];
-           startPts2D[1][0] = startPts[1];
-           spatial_set.valueToInterp(startPts2D, indices, weights, guess2D);
-        }
-        else if (manifoldDimension == 3) {
-           startPts3D[0][0] = startPts[0];
-           startPts3D[1][0] = startPts[1];
-           startPts3D[2][0] = startPts[2];
-           spatial_set.valueToInterp(startPts3D, indices, weights, guess3D);
-        }
-
-        startCell = indices[0];
-        cellWeights = weights[0];
-        if (indices[0] == null) {
-           offGrid = true;
-        }
+        
+        update();
      }
 
   }
@@ -196,7 +176,39 @@ public class Trajectory {
         System.arraycopy(indexes, 0, tmp, 0, npairs);
         indexes = tmp;
      }     
-  } 
+  }
+  
+  private void update() throws VisADException {
+     
+     startPts[0] = stopPts[0];
+     startPts[1] = stopPts[1];
+     startPts[2] = stopPts[2];
+
+     startColor[0] = stopColor[0];
+     startColor[1] = stopColor[1];
+     startColor[2] = stopColor[2];
+     if (clrDim == 4) {
+       startColor[3] = stopColor[3];
+     }
+
+     if (manifoldDimension == 2) {
+        startPts2D[0][0] = startPts[0];
+        startPts2D[1][0] = startPts[1];
+        spatial_set.valueToInterp(startPts2D, indices, weights, guess2D);
+     }
+     else if (manifoldDimension == 3) {
+        startPts3D[0][0] = startPts[0];
+        startPts3D[1][0] = startPts[1];
+        startPts3D[2][0] = startPts[2];
+        spatial_set.valueToInterp(startPts3D, indices, weights, guess3D);
+     }
+
+     startCell = indices[0];
+     cellWeights = weights[0];
+     if (indices[0] == null) {
+        offGrid = true;
+     }     
+  }
   
   public VisADGeometryArray makeCylinderStrip(float[] T, float[] S, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
               int npts, float[] coords, byte[] colors, float[] normls, int[] vertCnt) {
