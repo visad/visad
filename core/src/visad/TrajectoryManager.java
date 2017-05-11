@@ -43,10 +43,11 @@ public class TrajectoryManager {
   byte[][] startClrs;
   
   
-  public static final int LINE = 0;
-  public static final int RIBBON = 1;
-  public static final int CYLINDER = 2;
-  public static final int DEFORM_RIBBON = 3;
+  public static final int LINE = TrajectoryParams.LINE;
+  public static final int RIBBON = TrajectoryParams.RIBBON;
+  public static final int CYLINDER = TrajectoryParams.CYLINDER;
+  public static final int DEFORM_RIBBON = TrajectoryParams.DEFORM_RIBBON;
+  public static final int POINT = TrajectoryParams.POINT;
   
   public static final String PPOP_TRAJECTORY_START_POINTS_FILE = "visad.trajectory.startPointsFile";
   
@@ -98,11 +99,11 @@ public class TrajectoryManager {
   public static HashMap<ScalarMap, ScalarMapListener> removeListeners = new HashMap<ScalarMap, ScalarMapListener>();
   
   
-  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength) throws VisADException {
-    this(renderer, trajParams, flowInfoList, dataDomainLength, null);
+  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time) throws VisADException {
+    this(renderer, trajParams, flowInfoList, dataDomainLength, time, null);
   }
   
-  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, ScalarMap altToZ) throws VisADException {
+  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time, ScalarMap altToZ) throws VisADException {
       this.flowInfoList = flowInfoList;
       this.dataDomainLength = dataDomainLength;
       trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
@@ -144,14 +145,16 @@ public class TrajectoryManager {
       java.util.Arrays.fill(markGridTime, 0);
       
       startClrs = new byte[clrDim][];
-      try {
-        startPts = getStartPointsFromFile(renderer, altToZ, startClrs);
-      }
-      catch (Exception e) {
-        e.printStackTrace();
+      
+      if (startPts == null) {
+        try {
+          startPts = getStartPointsFromFile(renderer, altToZ, startClrs);
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
       }
 
-      startClrs = new byte[clrDim][];
       if (startPts == null) { //get from domain set
         float[][] vec;
         if (true) {
@@ -201,7 +204,12 @@ public class TrajectoryManager {
       values1 = null;
       values2 = null;
       values3 = null;
-      values0_last = null;      
+      values0_last = null;
+      
+      /* initialize and create a Trajectory for each start point */
+      trajectories = new ArrayList<Trajectory>();
+      java.util.Arrays.fill(markGrid, false);
+      makeTrajectories(direction*time, startPts, startClrs, spatialSetTraj);
   }  
   
   public void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
@@ -271,6 +279,7 @@ public class TrajectoryManager {
   public VisADGeometryArray computeTrajectories(int k, double timeAccum, double[] times, double[] timeSteps, VisADGeometryArray[] auxArray) throws VisADException, RemoteException {
        int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
+       VisADGeometryArray array = null;
        FlowInfo info = flowInfoList.get(i);
        byte[][] color_values = info.color_values;
        Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
@@ -282,15 +291,15 @@ public class TrajectoryManager {
 
        float timeStep = (float) timeSteps[i]/numIntrpPts;
 
-       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
+       if ((timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
           trajectories = new ArrayList<Trajectory>();
           java.util.Arrays.fill(markGrid, false);
-          if (direction > 0) {
-            makeTrajectories(direction*times[i], startPts, startClrs, spatialSetTraj);
-          }
-          else { //TODO: make this work eventually
-            //Trajectory.makeTrajectories(direction*times[i], trajectories, trajSkip, color_values, setLocs, lens);
-          }
+          makeTrajectories(direction*times[i], startPts, startClrs, spatialSetTraj);
+       }
+       
+       if (trajForm == POINT) {
+          array = makePointGeometry();
+          return array;
        }
 
        // commented out when not using markGrid logic for starting/ending trajs
@@ -386,8 +395,6 @@ public class TrajectoryManager {
        values0 = values1;
        values1 = values2;
        values2 = values3;       
-       
-       VisADGeometryArray array = null;
        
        switch (trajForm) {
          case LINE:
@@ -1675,7 +1682,39 @@ public class TrajectoryManager {
     array.vertexCount = numVerts;
 
     return array;
-  } 
+  }
+  
+  public VisADGeometryArray makePointGeometry() {
+     int numTrajs = trajectories.size();
+     
+     float[] allCoords = new float[3*numTrajs];
+     byte[] allColors = new byte[3*numTrajs];
+     
+     for (int k=0; k<numTrajs; k++) {
+        Trajectory traj = trajectories.get(k);
+        int idx = k*3;
+        float x = traj.startPts[0];
+        float y = traj.startPts[1];
+        float z = traj.startPts[2];
+        allCoords[idx] = x;
+        allCoords[idx+1] = y;
+        allCoords[idx+2] = z;
+        
+        byte r = traj.startColor[0];
+        byte g = traj.startColor[1];
+        byte b = traj.startColor[2];
+        allColors[idx] = r;
+        allColors[idx+1] = g;
+        allColors[idx+2] = b;
+     }
+     
+     VisADGeometryArray array = new VisADPointArray();
+     array.vertexCount = numTrajs;
+     array.coordinates = allCoords;
+     array.colors = allColors;
+     
+     return array;
+  }
 
   public VisADGeometryArray makeTracerGeometry(ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
     int numTrajs = trajectories.size();
