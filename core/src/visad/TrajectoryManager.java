@@ -299,7 +299,6 @@ public class TrajectoryManager {
        
        if (trajForm == POINT) {
           array = makePointGeometry();
-          return array;
        }
 
        // commented out when not using markGrid logic for starting/ending trajs
