@@ -1387,7 +1387,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     
     TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ);
     
-    trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);
+    trcrEnabled = (trcrEnabled && (trajForm == TrajectoryManager.LINE)) && trajForm != TrajectoryManager.POINT;
     
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixGeomSizeAppearanceJ3D(pCntrl, this, mouseBehav);
@@ -1421,7 +1421,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
       
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
-      mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
 
       // something weird with this, everything being removed ?
       //array = (VisADLineArray) array.removeMissing();
