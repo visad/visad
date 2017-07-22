@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2017 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -29,7 +29,7 @@ package visad.java3d;
 import visad.*;
 import visad.util.ThreadManager;
 
-import org.jogamp.java3d.*;
+import javax.media.j3d.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +62,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   FlowControl flowCntrl = null;
   ScalarMap flowMap = null;
   TrajectoryParams trajParams;
+  ScalarMap altitudeToDisplayZ;
   
   
   List<BranchGroup> branches = null;
@@ -155,6 +156,15 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       // check for trajectory
       for (int kk=0; kk<scalarMaps.size(); kk++) {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
+        if (scalarMap.getScalarName().equals(RealType.Altitude.getName())) {
+           DisplayRealType dspType = scalarMap.getDisplayScalar();
+           RealType[] rtypes = dspType.getTuple().getCoordinateSystem().getReference().getRealComponents();
+           for (int t=0; t<rtypes.length; t++) {
+              if (rtypes[t].equals(Display.ZAxis)) {
+                 altitudeToDisplayZ = scalarMap;
+              }
+           }
+        }
         DisplayRealType dspType = scalarMap.getDisplayScalar();
         boolean isFlow = false;
         if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z)) {
@@ -223,7 +233,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
       branches = new ArrayList<BranchGroup>();
       for (int i=0; i<domainLength; i++) {
-          BranchGroup node = (BranchGroup) swit.getChild(i);
+          //BranchGroup node = (BranchGroup) swit.getChild(i);
           BranchGroup branch = (BranchGroup) makeBranch();
           branches.add(branch);
       }
@@ -1372,9 +1382,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     MouseBehavior mouseBehav = renderer.getDisplay().getMouseBehavior();
     FixGeomSizeAppearance listener = null;
     
-    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength);
+    double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
+    double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
     
-    trcrEnabled = trcrEnabled && (trajForm == TrajectoryManager.LINE);    
+    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ);
+    
+    trcrEnabled = (trcrEnabled && (trajForm == TrajectoryManager.LINE)) && trajForm != TrajectoryManager.POINT;
     
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixGeomSizeAppearanceJ3D(pCntrl, this, mouseBehav);
@@ -1388,8 +1401,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     
     double trcrSizeRatio = 1;
 
-    double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
-    double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
     double timeAccum = 0;
 
     VisADGeometryArray array = null;
@@ -1397,7 +1408,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     VisADGeometryArray[] auxArray = new VisADGeometryArray[1];
     ArrayList<float[]> achrArrays = null;
     
-    for (int k=0; k<dataDomainLength-1; k++) {
+    for (int k=0; k<dataDomainLength; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
       FlowInfo info = flowInfoList.get(i);
@@ -1410,7 +1421,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
       
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
-      mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
 
       // something weird with this, everything being removed ?
       //array = (VisADLineArray) array.removeMissing();
@@ -1421,9 +1431,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
       timeAccum += timeSteps[i];
 
-      final BranchGroup branch = (BranchGroup) branches.get(i);
-      final BranchGroup node = (BranchGroup) swit.getChild(i);
-          
       if (trcrEnabled) {
         Object group = switB.getChild(i);
         BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, info.constant_alpha, info.constant_color);
@@ -1432,8 +1439,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         }
       }
 
+      BranchGroup branch = (BranchGroup) branches.get(i);
       addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
-      node.addChild(branch); 
+      BranchGroup node = (BranchGroup) swit.getChild(i);
+      node.addChild(branch);
       
       if (auxArray[0] != null) {
         BranchGroup auxBrnch = (BranchGroup) makeBranch();
@@ -1443,20 +1452,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     } //---  domain length (time steps) outer time loop  -------------------------
         
-    if (avHandler.getWindowSize() > 1) { //keep last tracer visible at the end if num visibility nodes > 1
-      int idx = dataDomainLength-1;
-      FlowInfo finfo = flowInfoList.get(idx);
-      GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
-
-      if (trcrEnabled) {
-        Object group = switB.getChild(idx);
-        BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, finfo.constant_alpha, finfo.constant_color);
-        if (listener != null && trcrArray != null) {
-          listener.add(trcrBG, trcrArray, achrArrays, mode, finfo.constant_alpha, finfo.constant_color);
-        }
-      }
-    }
-    
     if (listener != null) {
        if (listener.isLocked()) {
           listener.update();

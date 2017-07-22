@@ -2,8 +2,8 @@
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
-Copyright (C) 2015 Nick Rasmussen
-VisAD is Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
+Copyright (C) 2017 Nick Rasmussen
+VisAD is Copyright (C) 1996 - 2017 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
 
 This program is free software; you can redistribute it and/or modify

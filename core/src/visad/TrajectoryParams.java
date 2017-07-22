@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2017 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -48,16 +48,18 @@ public class TrajectoryParams {
     }
   }
   
-  public static int LINE = 0;
-  public static int RIBBON = 1;
-  public static int CYLINDER = 2;
-  public static int DEFORM_RIBBON = 3;
+  public static final int LINE = 0;
+  public static final int RIBBON = 1;
+  public static final int CYLINDER = 2;
+  public static final int DEFORM_RIBBON = 3;
+  public static final int POINT = 4;
 
   double trajVisibilityTimeWindow = 86400.0;
   double trajRefreshInterval = 86400.0;
   int numIntrpPts = 6;
   int startSkip = 2;
   SmoothParams smoothParams = SmoothParams.MEDIUM;
+  boolean forward = true;
   int direction = 1;  //1: forward, -1: backward
   boolean doIntrp = true;
   float markerSize = 1f;
@@ -85,6 +87,7 @@ public class TrajectoryParams {
     this.numIntrpPts = params.getNumIntrpPts();
     this.startSkip = params.getStartSkip();
     this.smoothParams = params.getSmoothParams();
+    this.forward = params.getDirectionFlag();
     this.direction = params.getDirection();
     this.doIntrp = params.getDoIntrp();
     this.markerSize = params.getMarkerSize();
@@ -150,7 +153,21 @@ public class TrajectoryParams {
   public void setTrajRefreshInterval(double trajRefreshInterval) {
     this.trajRefreshInterval = trajRefreshInterval;
   }
-
+  
+  public void setDirectionFlag(boolean forward) {
+     this.forward = forward;
+     if (forward) {
+        this.direction = 1;
+     }
+     else {
+        this.direction = -1;
+     }
+  }
+  
+  public boolean getDirectionFlag() {
+     return forward;
+  }
+  
   public void setDoIntrp(boolean yesno) {
     this.doIntrp = yesno;
   }
@@ -321,6 +338,9 @@ public class TrajectoryParams {
         return false;
       }
       else if (this.doIntrp != trajParams.doIntrp) {
+         return false;
+      }
+      else if (this.forward != trajParams.forward) {
          return false;
       }
       else if (this.direction != trajParams.direction) {
