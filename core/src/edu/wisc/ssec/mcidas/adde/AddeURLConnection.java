@@ -681,8 +681,7 @@ public class AddeURLConnection extends URLConnection
     dos.writeInt(compressionType);   // DRM 03-Mar-2001
 
     // client IP address
-    InetAddress lh = InetAddress.getLocalHost();
-    ipa = lh.getAddress();
+    ipa = t.getLocalAddress().getAddress();
     dos.write(ipa, 0, ipa.length);
 
     // gotta send 4 user bytes, ADDE protocol expects it
