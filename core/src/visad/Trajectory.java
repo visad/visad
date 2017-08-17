@@ -66,8 +66,6 @@ public class Trajectory {
   
   float[][] circleXYZ;
   float[][] last_circleXYZ;  
-  float[] lastTvec = new float[3];
-  float[] lastSvec;
   
   static float[][] circle;
   
@@ -210,19 +208,30 @@ public class Trajectory {
      }     
   }
   
-  public VisADGeometryArray makeCylinderStrip(float[] T, float[] S, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
+  public VisADGeometryArray makeCylinderStrip(float[] uvecPath, float[] uvecPathNext, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
               int npts, float[] coords, byte[] colors, float[] normls, int[] vertCnt) {
      VisADTriangleStripArray array = new VisADTriangleStripArray();
+     
+     double[] planeNormal = new double[3];
+     if (uvecPath[0]==uvecPathNext[0] && uvecPath[1]==uvecPathNext[1] && uvecPath[2]==uvecPathNext[2]) {
+       planeNormal[0] = uvecPath[0];
+       planeNormal[1] = uvecPath[1];
+       planeNormal[2] = uvecPath[2];
+     }
+     else {
+       planeNormal = TrajectoryManager.getBisectPlaneNormal(uvecPath, uvecPathNext);
+     }
+     double[] bisectPlaneCoeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(planeNormal, new double[] {pt1[0], pt1[1], pt1[2]});
 
      int clrDim = clr0.length;
 
-      if (circle == null) {
-        circle = new float[2][npts];
-        float intrvl = (float) (2*Math.PI)/(npts-1);
-        for (int i=0; i<npts; i++) {
-           circle[0][i] = (float) Math.cos(intrvl*i);  // s
-           circle[1][i] = (float) Math.sin(intrvl*i);  // t
-        }
+     if (circle == null) { // static because only need to do this once
+       circle = new float[2][npts];
+       float intrvl = (float) (2*Math.PI)/(npts-1);
+       for (int i=0; i<npts; i++) {
+         circle[0][i] = (float) Math.cos(intrvl*i);  // s
+         circle[1][i] = (float) Math.sin(intrvl*i);  // t
+       }
      }
 
      int vcnt = vertCnt[0];
@@ -233,6 +242,13 @@ public class Trajectory {
         circleXYZ = new float[3][npts];
      }
      if (last_circleXYZ == null) { // first time
+        float[] norm = new float[] {0f, 0f, 1f};
+        float[] norm_x_trj;
+        float[] trj_x_norm_x_trj;
+        norm_x_trj = TrajectoryManager.AxB(norm, uvecPath);
+        trj_x_norm_x_trj = TrajectoryManager.AxB(uvecPath, norm_x_trj);
+        float[] T = trj_x_norm_x_trj;
+        float[] S = norm_x_trj;
         float[][] ptsXYZ = new float[3][npts];
         for (int k=0; k<npts; k++) {
            float s = size*circle[0][k];
@@ -246,14 +262,71 @@ public class Trajectory {
         System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
         System.arraycopy(ptsXYZ[2], 0, last_circleXYZ[2], 0, npts);
      }
+     else {
+       //double[] coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, lastMinDistPt);
+       //double[] P = TrajectoryManager.getLinePlaneIntersect(coeffs, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, new double[] {pt0[0], pt0[1], pt0[2]});
+       double[] P = new double[] {pt0[0], pt0[1], pt0[2]};
+       
+       float[] norm = new float[] {0f, 0f, 1f};
+       float[] norm_x_trj;
+       float[] trj_x_norm_x_trj;
+       norm_x_trj = TrajectoryManager.AxB(norm, uvecPath);
+       trj_x_norm_x_trj = TrajectoryManager.AxB(uvecPath, norm_x_trj);        
+       float[] T = trj_x_norm_x_trj;
+       float[] S = norm_x_trj;
+       float[][] ptsXYZ = new float[3][npts];
+       for (int k=0; k<npts; k++) {
+           float s = size*circle[0][k];
+           float t = size*circle[1][k];
+           ptsXYZ[0][k] = ((float)P[0]) + s*S[0] + t*T[0];
+           ptsXYZ[1][k] = ((float)P[1]) + s*S[1] + t*T[1];
+           ptsXYZ[2][k] = ((float)P[2]) + s*S[2] + t*T[2];
+       }
+       last_circleXYZ = new float[3][npts];
+       System.arraycopy(ptsXYZ[0], 0, last_circleXYZ[0], 0, npts);
+       System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
+       System.arraycopy(ptsXYZ[2], 0, last_circleXYZ[2], 0, npts);        
+     }
+     
+     /* Not yet
+     double minDist = Double.MAX_VALUE;
+     double[] minDistPt = new double[3];
      for (int k=0; k<npts; k++) {
-        float s = size*circle[0][k];
-        float t = size*circle[1][k];
-        circleXYZ[0][k] = pt1[0] + s*S[0] + t*T[0];
-        circleXYZ[1][k] = pt1[1] + s*S[1] + t*T[1];
-        circleXYZ[2][k] = pt1[2] + s*S[2] + t*T[2];
+        double a = bisectPlaneCoeffs[0];
+        double b = bisectPlaneCoeffs[1];
+        double c = bisectPlaneCoeffs[2];
+        double d = bisectPlaneCoeffs[3];
+        double[] pt = new double[] {last_circleXYZ[0][k], last_circleXYZ[1][k], last_circleXYZ[2][k]};
+        double[] P = TrajectoryManager.getLinePlaneIntersect(a, b, c, d, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, pt);
+        double delx = pt[0] - P[0];
+        double dely = pt[1] - P[1];
+        double delz = pt[2] - P[2];
+        double dist = Math.sqrt(delx*delx + dely*dely + delz*delz);
+        if (dist < minDist) {
+           minDist = dist;
+           minDistPt[0] = P[0];
+           minDistPt[1] = P[1];
+           minDistPt[2] = P[2];
+        }
+     }
+     lastMinDistPt[0] = minDistPt[0];
+     lastMinDistPt[1] = minDistPt[1];
+     lastMinDistPt[2] = minDistPt[2];
+     
+     double[] coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, minDistPt);
+     */
+     double[] coeffs = bisectPlaneCoeffs;
+     
+     for (int k=0; k<npts; k++) {
+        double[] pt = new double[] {last_circleXYZ[0][k], last_circleXYZ[1][k], last_circleXYZ[2][k]};
+        double[] P = TrajectoryManager.getLinePlaneIntersect(coeffs, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, pt);
+        circleXYZ[0][k] = (float) P[0];
+        circleXYZ[1][k] = (float) P[1];
+        circleXYZ[2][k] = (float) P[2];        
      }
 
+     
+    // render cylinder
     for (int k=0; k<npts; k++) {
        float x = last_circleXYZ[0][k];
        float y = last_circleXYZ[1][k];
@@ -320,9 +393,6 @@ public class Trajectory {
      System.arraycopy(circleXYZ[0], 0, last_circleXYZ[0], 0, npts);
      System.arraycopy(circleXYZ[1], 0, last_circleXYZ[1], 0, npts);
      System.arraycopy(circleXYZ[2], 0, last_circleXYZ[2], 0, npts);
-     lastTvec[0] = T[0];
-     lastTvec[1] = T[1];
-     lastTvec[2] = T[2];
 
      vertCnt[0] = vcnt;
      return array;

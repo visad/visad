@@ -915,11 +915,22 @@ public class TrajectoryManager {
   }
   
   public static float[] AxB(float[] A, float[] B) {
+     return AxB(A, B, true);
+  }
+  
+  public static float[] AxB(float[] A, float[] B, boolean unit) {
     float[] axb = new float[3];
 
     axb[0] =   A[1] * B[2] - A[2] * B[1];
     axb[1] = -(A[0] * B[2] - A[2] * B[0]);
     axb[2] =   A[0] * B[1] - A[1] * B[0];
+    
+    if (unit) {
+      float mag = (float) Math.sqrt(axb[0]*axb[0] + axb[1]*axb[1] + axb[2]*axb[2]);
+      axb[0] /= mag;
+      axb[1] /= mag;
+      axb[2] /= mag;
+    }
 
     return axb;
   }
@@ -928,11 +939,104 @@ public class TrajectoryManager {
     float ab = A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
     return ab;
   }
+  
+  public static float vecMag(float[] vec) {
+     float x = vec[0];
+     float y = vec[1];
+     float z = vec[2];
+     return (float) Math.sqrt(x*x + y*y + z*z);
+  }
+  
+  public static double vecMag(double[] vec) {
+     double x = vec[0];
+     double y = vec[1];
+     double z = vec[2];
+     return Math.sqrt(x*x + y*y + z*z);
+  }
+  
+  public static double[] getPlaneCoeffsFromNormalAndPoint(double[] normal, double[] pt) {
+     double[] coeffs = new double[4];
+     double a = normal[0];
+     double b = normal[1];
+     double c = normal[2];
+     double d = -(a*pt[0] + b*pt[1] + c*pt[2]);
+     
+     coeffs[0] = a;
+     coeffs[1] = b;
+     coeffs[2] = c;
+     coeffs[3] = d;
+     
+     return coeffs;
+  }
+  
+  public static double[] getBisectPlaneNormal(float[] uvecA, float[] uvecB) {
+     if (visad.util.Util.isApproximatelyEqual(uvecA[0], uvecB[0]) &&
+         visad.util.Util.isApproximatelyEqual(uvecA[1], uvecB[1]) &&
+         visad.util.Util.isApproximatelyEqual(uvecA[2], uvecB[2])) {
+        return new double[] {uvecA[0], uvecA[1], uvecA[2]};
+     }
+     
+     float[] uA = new float[3];
+     uA[0] = -uvecA[0];
+     uA[1] = -uvecA[1];
+     uA[2] = -uvecA[2];
+     
+     float[] uAxuB = AxB(uA, uvecB);
+     
+     float delx = uvecB[0] - uA[0];
+     float dely = uvecB[1] - uA[1];
+     float delz = uvecB[2] - uA[2];
+     
+     delx /= 2;
+     dely /= 2;
+     delz /= 2;
+     
+     float xp = uA[0] + delx;
+     float yp = uA[1] + dely;
+     float zp = uA[2] + delz;
+     
+     float mag = (float) Math.sqrt(xp*xp + yp*yp + zp*zp);
+     xp /= mag;
+     yp /= mag;
+     zp /= mag;
+     
+     float[] planeNormal = AxB(uAxuB, new float[] {xp, yp, zp});
+     
+     return new double[] {planeNormal[0], planeNormal[1], planeNormal[2]};
+  }
+  
+  public static double[] getLinePlaneIntersect(double[] planeCoeffs, double[] uVecLine, double[] linePt) {
+     return getLinePlaneIntersect(planeCoeffs[0], planeCoeffs[1], planeCoeffs[2], planeCoeffs[3], uVecLine, linePt);
+  }
+  
+  public static double[] getLinePlaneIntersect(double a, double b, double c, double d, double[] uVecLine, double[] linePt) {
+     double[] P = new double[3];
+     
+     double t = -(d + a*linePt[0] + b*linePt[1] + c*linePt[2])/(a*uVecLine[0] + b*uVecLine[1] + c*uVecLine[2]);
+     
+     P[0] = linePt[0] + t*uVecLine[0];
+     P[1] = linePt[1] + t*uVecLine[1];
+     P[2] = linePt[2] + t*uVecLine[2];
+     
+     return P;
+  }
+  
+  public static float[] getRotatedVecInPlane(float[] T, float[] S, float[] P, float[] V, float theta, float[] rotV) {
+     double[] TT = new double[] {T[0], T[1], T[2]};
+     double[] SS = new double[] {S[0], S[1], S[2]};
+     double[] PP = P == null ? null : new double[] {P[0], P[1], P[2]};
+     double[] VV = new double[] {V[0], V[1], V[2]};
+     double[] rotVV = rotV == null ? null : new double[] {rotV[0], rotV[1], rotV[2]};
+     
+     rotVV = getRotatedVecInPlane(TT, SS, PP, VV, theta, rotVV);
+     return new float[] {(float) rotVV[0], (float) rotVV[1], (float) rotVV[2]};
+  }  
 
   public static double[] getRotatedVecInPlane(double[] T, double[] S, double[] P, double[] V, double theta, double[] rotV) {
      if (rotV == null) rotV = new double[3];
+     if (P == null) P = new double[] {0,0,0};
 
-     double s = V[0]*Math.cos(theta) + V[1]*Math.sin(theta);
+     double s = V[0]*Math.cos(theta) - V[1]*Math.sin(theta);
      double t = V[0]*Math.sin(theta) + V[1]*Math.cos(theta);
 
      double x = P[0] + s*S[0] + t*T[0];
@@ -1318,7 +1422,15 @@ public class TrajectoryManager {
         byte[] coneColors = new byte[ntrajs*(numSides+1)*3*clrDim];
         float[] coneNormals = new float[ntrajs*(numSides+1)*3*3];
         
+        
+        numv = (totNpairs-1)*(numSides+1)*2;
+        float[] elbowCoords = new float[numv*3];
+        byte[] elbowColors = new byte[numv*clrDim];
+        float[] elbowNormals = new float[numv*3]; 
+        int[] elbowStrips = new int[totNpairs-1];
+        
         float[] uvecPath = new float[3];
+        float[] uvecPathNext = new float[3];
         byte[][] clr0 = new byte[clrDim][1];
         byte[][] clr1 = new byte[clrDim][1];
         float[] pt0 = new float[3];
@@ -1346,6 +1458,32 @@ public class TrajectoryManager {
             float x1 = coordinates[i+3];
             float y1 = coordinates[i+4];
             float z1 = coordinates[i+5];
+
+            float mag = (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) + (z1-z0)*(z1-z0);
+            mag = (float) Math.sqrt(mag);
+            uvecPath[0] = (x1-x0)/mag;
+            uvecPath[1] = (y1-y0)/mag;
+            uvecPath[2] = (z1-z0)/mag;            
+            
+            if (k < traj.npairs-1) {
+               i = traj.indexes[k+1];
+               float x2 = coordinates[i];
+               float y2 = coordinates[i+1];
+               float z2 = coordinates[i+2];
+               float x3 = coordinates[i+3];
+               float y3 = coordinates[i+4];
+               float z3 = coordinates[i+5];
+               mag = (x3-x2)*(x3-x2) + (y3-y2)*(y3-y2) + (z3-z2)*(z3-z2);
+               mag = (float) Math.sqrt(mag);
+               uvecPathNext[0] = (x3-x2)/mag;
+               uvecPathNext[1] = (y3-y2)/mag;
+               uvecPathNext[2] = (z3-z2)/mag;                          
+            }
+            else {
+               uvecPathNext[0] = uvecPath[0];
+               uvecPathNext[1] = uvecPath[1];
+               uvecPathNext[2] = uvecPath[2];
+            }
             
             if (clrDim == 3) {
                r0 = colors[ci];
@@ -1366,25 +1504,6 @@ public class TrajectoryManager {
                a1 = colors[ci+7];
             }
             
-            float mag = (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) + (z1-z0)*(z1-z0);
-            mag = (float) Math.sqrt(mag);
-            uvecPath[0] = (x1-x0)/mag;
-            uvecPath[1] = (y1-y0)/mag;
-            uvecPath[2] = (z1-z0)/mag;
-            
-            float[] norm;
-            float[] norm_x_trj;
-            float[] trj_x_norm_x_trj;
-            if (traj.last_circleXYZ == null) {
-              norm = new float[] {0f, 0f, 1f};
-              norm_x_trj = AxB(norm, uvecPath);
-              trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);               
-            }
-            else {
-              norm_x_trj = AxB(traj.lastTvec, uvecPath);
-              trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);
-            }
-            
             pt0[0] = x0;
             pt0[1] = y0;
             pt0[2] = z0;
@@ -1402,8 +1521,8 @@ public class TrajectoryManager {
             clr1[2][0] = b1;
             if (clrDim == 4) clr1[3][0] = a1;        
             
-            cylWidth = 0.0040f;
-            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, idx);
+            cylWidth = 0.0060f;
+            traj.makeCylinderStrip(uvecPath, uvecPathNext, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, idx);
             strips[strpCnt++] = (numSides+1)*2;
           }
           
