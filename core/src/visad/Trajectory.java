@@ -225,15 +225,6 @@ public class Trajectory {
 
      int clrDim = clr0.length;
 
-     if (circle == null) { // static because only need to do this once
-       circle = new float[2][npts];
-       float intrvl = (float) (2*Math.PI)/(npts-1);
-       for (int i=0; i<npts; i++) {
-         circle[0][i] = (float) Math.cos(intrvl*i);  // s
-         circle[1][i] = (float) Math.sin(intrvl*i);  // t
-       }
-     }
-
      int vcnt = vertCnt[0];
      int idx = 3*vcnt;
      int cidx = clrDim*vcnt;
@@ -243,20 +234,7 @@ public class Trajectory {
      }
      if (last_circleXYZ == null) { // first time
         float[] norm = new float[] {0f, 0f, 1f};
-        float[] norm_x_trj;
-        float[] trj_x_norm_x_trj;
-        norm_x_trj = TrajectoryManager.AxB(norm, uvecPath);
-        trj_x_norm_x_trj = TrajectoryManager.AxB(uvecPath, norm_x_trj);
-        float[] T = trj_x_norm_x_trj;
-        float[] S = norm_x_trj;
-        float[][] ptsXYZ = new float[3][npts];
-        for (int k=0; k<npts; k++) {
-           float s = size*circle[0][k];
-           float t = size*circle[1][k];
-           ptsXYZ[0][k] = pt0[0] + s*S[0] + t*T[0];
-           ptsXYZ[1][k] = pt0[1] + s*S[1] + t*T[1];
-           ptsXYZ[2][k] = pt0[2] + s*S[2] + t*T[2];
-        }
+        float[][] ptsXYZ = makeCircle(size, uvecPath, norm ,npts, pt0);
         last_circleXYZ = new float[3][npts];
         System.arraycopy(ptsXYZ[0], 0, last_circleXYZ[0], 0, npts);
         System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
@@ -265,23 +243,10 @@ public class Trajectory {
      else {
        //double[] coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, lastMinDistPt);
        //double[] P = TrajectoryManager.getLinePlaneIntersect(coeffs, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, new double[] {pt0[0], pt0[1], pt0[2]});
-       double[] P = new double[] {pt0[0], pt0[1], pt0[2]};
+       float[] P = new float[] {pt0[0], pt0[1], pt0[2]};
        
        float[] norm = new float[] {0f, 0f, 1f};
-       float[] norm_x_trj;
-       float[] trj_x_norm_x_trj;
-       norm_x_trj = TrajectoryManager.AxB(norm, uvecPath);
-       trj_x_norm_x_trj = TrajectoryManager.AxB(uvecPath, norm_x_trj);        
-       float[] T = trj_x_norm_x_trj;
-       float[] S = norm_x_trj;
-       float[][] ptsXYZ = new float[3][npts];
-       for (int k=0; k<npts; k++) {
-           float s = size*circle[0][k];
-           float t = size*circle[1][k];
-           ptsXYZ[0][k] = ((float)P[0]) + s*S[0] + t*T[0];
-           ptsXYZ[1][k] = ((float)P[1]) + s*S[1] + t*T[1];
-           ptsXYZ[2][k] = ((float)P[2]) + s*S[2] + t*T[2];
-       }
+       float[][] ptsXYZ = makeCircle(size, uvecPath, norm ,npts, P);
        last_circleXYZ = new float[3][npts];
        System.arraycopy(ptsXYZ[0], 0, last_circleXYZ[0], 0, npts);
        System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
@@ -396,6 +361,42 @@ public class Trajectory {
 
      vertCnt[0] = vcnt;
      return array;
-  }  
+  }
+  
+  /**
+   * 
+   * @param radius
+   * @param uvec unit vector normal to plane containing circle
+   * @param norm unit vector perpendicular to uvec
+   * @param npts number of points around
+   * @param center
+   * @return 
+   */  
+  public static float[][] makeCircle(float radius, float[] uvec, float[] norm, int npts, float[] center) {
+    if (circle == null) { // static because only need to do this once
+       circle = new float[2][npts];
+       float intrvl = (float) (2*Math.PI)/(npts-1);
+       for (int i=0; i<npts; i++) {
+         circle[0][i] = (float) Math.cos(intrvl*i);  // s
+         circle[1][i] = (float) Math.sin(intrvl*i);  // t
+       }
+     }
+    //float[] norm = new float[] {0f, 0f, 1f};
+    float[] norm_x_trj;
+    float[] trj_x_norm_x_trj;
+    norm_x_trj = TrajectoryManager.AxB(norm, uvec);
+    trj_x_norm_x_trj = TrajectoryManager.AxB(uvec, norm_x_trj);
+    float[] T = trj_x_norm_x_trj;
+    float[] S = norm_x_trj;
+    float[][] ptsXYZ = new float[3][npts];
+    for (int k=0; k<npts; k++) {
+      float s = radius*circle[0][k];
+      float t = radius*circle[1][k];
+      ptsXYZ[0][k] = center[0] + s*S[0] + t*T[0];
+      ptsXYZ[1][k] = center[1] + s*S[1] + t*T[1];
+      ptsXYZ[2][k] = center[2] + s*S[2] + t*T[2];
+    }
+    return ptsXYZ;
+  }
    
 }
