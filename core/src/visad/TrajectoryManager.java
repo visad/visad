@@ -954,6 +954,14 @@ public class TrajectoryManager {
      return Math.sqrt(x*x + y*y + z*z);
   }
   
+  /**
+   * Determine a plane from the vector normal and point the plane should contain in form:
+   * ax + by + cz + d = 0
+   * 
+   * @param normal vector normal to plane
+   * @param pt point on the plane
+   * @return {a, b, c, d} 
+   */
   public static double[] getPlaneCoeffsFromNormalAndPoint(double[] normal, double[] pt) {
      double[] coeffs = new double[4];
      double a = normal[0];
@@ -969,6 +977,13 @@ public class TrajectoryManager {
      return coeffs;
   }
   
+  /**
+   * Determine the plane that bisects the angle at a vertex formed by intersecting lines
+   * specified as two unit vectors (this plane is normal to the plane containing the vectors).
+   * @param uvecA
+   * @param uvecB
+   * @return The unit vector normal to the bisecting plane
+   */
   public static double[] getBisectPlaneNormal(float[] uvecA, float[] uvecB) {
      if (visad.util.Util.isApproximatelyEqual(uvecA[0], uvecB[0]) &&
          visad.util.Util.isApproximatelyEqual(uvecA[1], uvecB[1]) &&
@@ -1005,6 +1020,14 @@ public class TrajectoryManager {
      return new double[] {planeNormal[0], planeNormal[1], planeNormal[2]};
   }
   
+  /**
+   * Determine intersection point between a plane and a ray.
+   *   
+   * @param planeCoeffs [a, b, c, d]: ax + by + cz + d = 0
+   * @param uVecLine unit vector specifying direction or ray
+   * @param linePt vertex of the ray.
+   * @return point where ray intersects plane
+   */  
   public static double[] getLinePlaneIntersect(double[] planeCoeffs, double[] uVecLine, double[] linePt) {
      return getLinePlaneIntersect(planeCoeffs[0], planeCoeffs[1], planeCoeffs[2], planeCoeffs[3], uVecLine, linePt);
   }
@@ -1021,17 +1044,6 @@ public class TrajectoryManager {
      return P;
   }
   
-  public static float[] getRotatedVecInPlane(float[] T, float[] S, float[] P, float[] V, float theta, float[] rotV) {
-     double[] TT = new double[] {T[0], T[1], T[2]};
-     double[] SS = new double[] {S[0], S[1], S[2]};
-     double[] PP = P == null ? null : new double[] {P[0], P[1], P[2]};
-     double[] VV = new double[] {V[0], V[1], V[2]};
-     double[] rotVV = rotV == null ? null : new double[] {rotV[0], rotV[1], rotV[2]};
-     
-     rotVV = getRotatedVecInPlane(TT, SS, PP, VV, theta, rotVV);
-     return new float[] {(float) rotVV[0], (float) rotVV[1], (float) rotVV[2]};
-  }  
-
   public static double[] getRotatedVecInPlane(double[] T, double[] S, double[] P, double[] V, double theta, double[] rotV) {
      if (rotV == null) rotV = new double[3];
      if (P == null) P = new double[] {0,0,0};
@@ -1465,7 +1477,7 @@ public class TrajectoryManager {
             uvecPath[1] = (y1-y0)/mag;
             uvecPath[2] = (z1-z0)/mag;            
             
-            if (k < traj.npairs-1) {
+            if (k < traj.npairs-1) { // next coord pair
                i = traj.indexes[k+1];
                float x2 = coordinates[i];
                float y2 = coordinates[i+1];
