@@ -65,9 +65,11 @@ public class Trajectory {
   float[] lastPtCC = null;
   
   float[][] circleXYZ;
-  float[][] last_circleXYZ;  
-  float[] lastTvec = new float[3];
-  float[] lastSvec;
+  float[][] last_circleXYZ;
+  float[][] lastFwdFace;
+  float[] lastCntr;
+  
+  double[] lastMinDistPt = new double[3];
   
   static float[][] circle;
   
@@ -210,51 +212,185 @@ public class Trajectory {
      }     
   }
   
-  public VisADGeometryArray makeCylinderStrip(float[] T, float[] S, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
-              int npts, float[] coords, byte[] colors, float[] normls, int[] vertCnt) {
-     VisADTriangleStripArray array = new VisADTriangleStripArray();
-
+  public void makeCylinderStrip(int q, float[] uvecPath, float[] uvecPathNext, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
+              int npts, float[] coords, byte[] colors, float[] normls, float[] elbowCoords, byte[] elbowColors, float[] elbowNormals, int[] vertCnt, int[] elbowVertCnt, int npairs, int[] elbowStrips, int[] elbowStripCnt) {
+     
      int clrDim = clr0.length;
-
-      if (circle == null) {
-        circle = new float[2][npts];
-        float intrvl = (float) (2*Math.PI)/(npts-1);
-        for (int i=0; i<npts; i++) {
-           circle[0][i] = (float) Math.cos(intrvl*i);  // s
-           circle[1][i] = (float) Math.sin(intrvl*i);  // t
-        }
+     
+     float[] cntr = new float[3];
+     
+     boolean doElbow = true;
+     double[] planeNormal = new double[3];
+     if ( q == npairs-1) { 
+       planeNormal[0] = uvecPath[0];
+       planeNormal[1] = uvecPath[1];
+       planeNormal[2] = uvecPath[2];
+       doElbow = false;
      }
+     else {
+       planeNormal = TrajectoryManager.getBisectPlaneNormal(uvecPath, uvecPathNext);
+     }
+     double[] bisectPlaneCoeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(planeNormal, new double[] {pt1[0], pt1[1], pt1[2]});
 
-     int vcnt = vertCnt[0];
-     int idx = 3*vcnt;
-     int cidx = clrDim*vcnt;
-
+     
      if (circleXYZ == null) {
         circleXYZ = new float[3][npts];
      }
-     if (last_circleXYZ == null) { // first time
-        float[][] ptsXYZ = new float[3][npts];
-        for (int k=0; k<npts; k++) {
-           float s = size*circle[0][k];
-           float t = size*circle[1][k];
-           ptsXYZ[0][k] = pt0[0] + s*S[0] + t*T[0];
-           ptsXYZ[1][k] = pt0[1] + s*S[1] + t*T[1];
-           ptsXYZ[2][k] = pt0[2] + s*S[2] + t*T[2];
-        }
+     if (last_circleXYZ == null) {
+        last_circleXYZ = new float[3][npts];        
+     }
+     if (q == 0) { // first time
+        float[] norm = new float[] {0f, 0f, 1f};
+        float[][] ptsXYZ = makeCircle(size, uvecPath, norm ,npts, pt0);
         last_circleXYZ = new float[3][npts];
         System.arraycopy(ptsXYZ[0], 0, last_circleXYZ[0], 0, npts);
         System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
         System.arraycopy(ptsXYZ[2], 0, last_circleXYZ[2], 0, npts);
+        lastCntr = new float[3];
+        lastCntr[0] = pt0[0];
+        lastCntr[1] = pt0[1];
+        lastCntr[2] = pt0[2];
+        if (lastFwdFace == null) {
+           lastFwdFace = new float[3][npts];
+        }
+        else {
+          makeCylinderSegment(lastFwdFace, pt0, clr0, last_circleXYZ, pt0, clr0, elbowCoords, elbowNormals, elbowColors, elbowVertCnt);
+          elbowStrips[elbowStripCnt[0]++] = npts*2;
+        }
      }
+     else {
+       double[] coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, lastMinDistPt);
+       double[] P = TrajectoryManager.getLinePlaneIntersect(coeffs, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, new double[] {pt0[0], pt0[1], pt0[2]});
+       float[] Pf = new float[] {(float)P[0], (float)P[1], (float)P[2]};
+       lastCntr[0] = (float) P[0];
+       lastCntr[1] = (float) P[1];
+       lastCntr[2] = (float) P[2];
+       
+       float[] norm = new float[] {0f, 0f, 1f};
+       float[][] ptsXYZ = makeCircle(size, uvecPath, norm ,npts, lastCntr);
+       last_circleXYZ = new float[3][npts];
+       System.arraycopy(ptsXYZ[0], 0, last_circleXYZ[0], 0, npts);
+       System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
+       System.arraycopy(ptsXYZ[2], 0, last_circleXYZ[2], 0, npts);        
+     }
+     
+     
+     double minDist = Double.MAX_VALUE;
+     double[] minDistPt = new double[3];
+     int minDistIdx;
      for (int k=0; k<npts; k++) {
-        float s = size*circle[0][k];
-        float t = size*circle[1][k];
-        circleXYZ[0][k] = pt1[0] + s*S[0] + t*T[0];
-        circleXYZ[1][k] = pt1[1] + s*S[1] + t*T[1];
-        circleXYZ[2][k] = pt1[2] + s*S[2] + t*T[2];
+        double[] pt = new double[] {last_circleXYZ[0][k], last_circleXYZ[1][k], last_circleXYZ[2][k]};
+        double[] P = TrajectoryManager.getLinePlaneIntersect(bisectPlaneCoeffs, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, pt);
+        double delx = pt[0] - P[0];
+        double dely = pt[1] - P[1];
+        double delz = pt[2] - P[2];
+        double dist = Math.sqrt(delx*delx + dely*dely + delz*delz);
+        if (dist < minDist) {
+           minDist = dist;
+           minDistPt[0] = P[0];
+           minDistPt[1] = P[1];
+           minDistPt[2] = P[2];
+           minDistIdx = k;
+        }
      }
+     lastMinDistPt[0] = minDistPt[0];
+     lastMinDistPt[1] = minDistPt[1];
+     lastMinDistPt[2] = minDistPt[2];
+     
+     double[] coeffs;
+     if (q == npairs-1) {
+       coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, new double[] {pt1[0], pt1[1], pt1[2]});
+     }
+     else {
+       coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, minDistPt);        
+     }
+     
+     for (int k=0; k<npts; k++) {
+        double[] pt = new double[] {last_circleXYZ[0][k], last_circleXYZ[1][k], last_circleXYZ[2][k]};
+        double[] P = TrajectoryManager.getLinePlaneIntersect(coeffs, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, pt);
+        circleXYZ[0][k] = (float) P[0];
+        circleXYZ[1][k] = (float) P[1];
+        circleXYZ[2][k] = (float) P[2];        
+     }
+     double[] P  = TrajectoryManager.getLinePlaneIntersect(coeffs, new double[] {uvecPath[0], uvecPath[1], uvecPath[2]}, new double[] {pt0[0], pt0[1], pt0[2]});
+     cntr[0] = (float) P[0];
+     cntr[1] = (float) P[1];
+     cntr[2] = (float) P[2];
 
+     makeCylinderSegment(last_circleXYZ, lastCntr, clr0, circleXYZ, cntr, clr1, coords, normls, colors, vertCnt);
+  
+     
+    
+    /* this is the next cylinder back face */
+    coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {uvecPathNext[0], uvecPathNext[1], uvecPathNext[2]}, minDistPt);
+    P = TrajectoryManager.getLinePlaneIntersect(coeffs, new double[] {uvecPathNext[0], uvecPathNext[1], uvecPathNext[2]}, new double[] {pt1[0], pt1[1], pt1[2]});
+    float[] Pfnext = new float[] {(float)P[0], (float)P[1], (float)P[2]};
+    lastCntr[0] = (float) P[0];
+    lastCntr[1] = (float) P[1];
+    lastCntr[2] = (float) P[2];
+       
+    float[] norm = new float[] {0f, 0f, 1f};
+    float[][] ptsXYZ = makeCircle(size, uvecPathNext, norm ,npts, lastCntr);
+    System.arraycopy(ptsXYZ[0], 0, last_circleXYZ[0], 0, npts);
+    System.arraycopy(ptsXYZ[1], 0, last_circleXYZ[1], 0, npts);
+    System.arraycopy(ptsXYZ[2], 0, last_circleXYZ[2], 0, npts);
+    
+    
+    /* construct elbow */
+    if (doElbow) {
+      makeCylinderSegment(circleXYZ, cntr, clr1, last_circleXYZ, lastCntr, clr1, elbowCoords, elbowNormals, elbowColors, elbowVertCnt);
+      elbowStrips[elbowStripCnt[0]++] = (npts*2);
+    }
+    
+    System.arraycopy(circleXYZ[0], 0, lastFwdFace[0], 0, npts);
+    System.arraycopy(circleXYZ[1], 0, lastFwdFace[1], 0, npts);
+    System.arraycopy(circleXYZ[2], 0, lastFwdFace[2], 0, npts);
+    
+  }
+  
+  /**
+   * 
+   * @param radius
+   * @param uvec unit vector normal to plane containing circle
+   * @param norm unit vector perpendicular to uvec
+   * @param npts number of points around
+   * @param center
+   * @return 
+   */  
+  public static float[][] makeCircle(float radius, float[] uvec, float[] norm, int npts, float[] center) {
+    if (circle == null) { // static because only need to do this once
+       circle = new float[2][npts];
+       float intrvl = (float) (2*Math.PI)/(npts-1);
+       for (int i=0; i<npts; i++) {
+         circle[0][i] = (float) Math.cos(intrvl*i);  // s
+         circle[1][i] = (float) Math.sin(intrvl*i);  // t
+       }
+     }
+    //float[] norm = new float[] {0f, 0f, 1f};
+    float[] norm_x_trj;
+    float[] trj_x_norm_x_trj;
+    norm_x_trj = TrajectoryManager.AxB(norm, uvec);
+    trj_x_norm_x_trj = TrajectoryManager.AxB(uvec, norm_x_trj);
+    float[] T = trj_x_norm_x_trj;
+    float[] S = norm_x_trj;
+    float[][] ptsXYZ = new float[3][npts];
     for (int k=0; k<npts; k++) {
+      float s = radius*circle[0][k];
+      float t = radius*circle[1][k];
+      ptsXYZ[0][k] = center[0] + s*S[0] + t*T[0];
+      ptsXYZ[1][k] = center[1] + s*S[1] + t*T[1];
+      ptsXYZ[2][k] = center[2] + s*S[2] + t*T[2];
+    }
+    return ptsXYZ;
+  }
+  
+  
+  public static void makeCylinderSegment(float[][] last_circleXYZ, float[] pt0, byte[][] clr0, float[][] circleXYZ, float[] pt1, byte[][] clr1, float[] coords, float[] normls, byte[] colors, int[] vcnt_a) {
+     int clrDim = clr0.length;
+     int npts = last_circleXYZ[0].length;
+     int vcnt = vcnt_a[0];
+     
+     for (int k=0; k<npts; k++) {
        float x = last_circleXYZ[0][k];
        float y = last_circleXYZ[1][k];
        float z = last_circleXYZ[2][k];
@@ -265,13 +401,16 @@ public class Trajectory {
 
        float mag = (float) Math.sqrt(delx*delx+dely*dely+delz*delz);
 
+       int idx = vcnt*3;
+       int cidx = vcnt*clrDim;
+       
        normls[idx] = delx/mag;
        coords[idx++] = x;
        normls[idx] = dely/mag;
        coords[idx++] = y;
        normls[idx] = delz/mag;
        coords[idx++] = z;
-
+       
        if (clrDim == 3) {
           colors[cidx++] = clr0[0][0];
           colors[cidx++] = clr0[1][0];
@@ -315,17 +454,7 @@ public class Trajectory {
        }
        vcnt++;
     }
-
-
-     System.arraycopy(circleXYZ[0], 0, last_circleXYZ[0], 0, npts);
-     System.arraycopy(circleXYZ[1], 0, last_circleXYZ[1], 0, npts);
-     System.arraycopy(circleXYZ[2], 0, last_circleXYZ[2], 0, npts);
-     lastTvec[0] = T[0];
-     lastTvec[1] = T[1];
-     lastTvec[2] = T[2];
-
-     vertCnt[0] = vcnt;
-     return array;
-  }  
+    vcnt_a[0] = vcnt;
+  }
    
 }

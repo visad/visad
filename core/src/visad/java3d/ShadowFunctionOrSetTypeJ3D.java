@@ -1405,7 +1405,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     VisADGeometryArray array = null;
     VisADGeometryArray trcrArray = null;
-    VisADGeometryArray[] auxArray = new VisADGeometryArray[1];
+    VisADGeometryArray[] auxArray = new VisADGeometryArray[2];
     ArrayList<float[]> achrArrays = null;
     
     for (int k=0; k<dataDomainLength; k++) {
@@ -1441,15 +1441,18 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
       BranchGroup branch = (BranchGroup) branches.get(i);
       addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
+      if (auxArray[1] != null) { // cylinder elbows
+        addToGroup(branch, auxArray[1], mode, info.constant_alpha, info.constant_color);         
+      }      
       BranchGroup node = (BranchGroup) swit.getChild(i);
       node.addChild(branch);
       
-      if (auxArray[0] != null) {
+      if (auxArray[0] != null) { // cylinder cone
         BranchGroup auxBrnch = (BranchGroup) makeBranch();
         addToGroup(auxBrnch, auxArray[0], mode, info.constant_alpha, info.constant_color);  
         ((BranchGroup)switB.getChild(i)).addChild(auxBrnch);
       }
-
+      
     } //---  domain length (time steps) outer time loop  -------------------------
         
     if (listener != null) {
