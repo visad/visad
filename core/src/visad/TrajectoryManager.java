@@ -405,7 +405,7 @@ public class TrajectoryManager {
            clean();
            break;
          case CYLINDER:
-           array = makeCylinder(auxArray);
+           array = makeCylinder(k, auxArray);
            clean();
            break;
          case DEFORM_RIBBON:
@@ -1415,8 +1415,9 @@ public class TrajectoryManager {
      return array;
   }  
   
-     public VisADGeometryArray makeCylinder(VisADGeometryArray[] auxArray) {
+     public VisADGeometryArray makeCylinder(int q, VisADGeometryArray[] auxArray) {
         VisADTriangleStripArray array = new VisADTriangleStripArray();
+        VisADTriangleStripArray elbowArray = new VisADTriangleStripArray();
         VisADTriangleArray coneArray = new VisADTriangleArray();
         
         int ntrajs = trajectories.size();
@@ -1435,11 +1436,20 @@ public class TrajectoryManager {
         float[] coneNormals = new float[ntrajs*(numSides+1)*3*3];
         
         
-        numv = (totNpairs-1)*(numSides+1)*2;
+        if (q == 0) {
+          numv = (totNpairs-ntrajs)*(numSides+1)*2;
+        }
+        else {
+          numv = (totNpairs)*(numSides+1)*2;
+        }
         float[] elbowCoords = new float[numv*3];
         byte[] elbowColors = new byte[numv*clrDim];
-        float[] elbowNormals = new float[numv*3]; 
-        int[] elbowStrips = new int[totNpairs-1];
+        float[] elbowNormals = new float[numv*3];
+        int numElbowStrips = totNpairs;
+        if (q == 0) {
+          numElbowStrips = totNpairs-ntrajs;
+        }
+        int[] elbowStrips = new int[numElbowStrips];
         
         float[] uvecPath = new float[3];
         float[] uvecPathNext = new float[3];
@@ -1451,7 +1461,9 @@ public class TrajectoryManager {
         
         
         int[] idx = new int[] {0};
+        int[] elbowIdx = new int[] {0};
         int strpCnt = 0;
+        int[] elbowStrpCnt = new int[] {0};
         int[] coneIdx = new int[] {0};
         byte r0,g0,b0,r1,g1,b1;
         byte a0 = -1;
@@ -1534,7 +1546,7 @@ public class TrajectoryManager {
             if (clrDim == 4) clr1[3][0] = a1;        
             
             cylWidth = 0.0060f;
-            traj.makeCylinderStrip(uvecPath, uvecPathNext, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, idx);
+            traj.makeCylinderStrip(k, uvecPath, uvecPathNext, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, elbowCoords, elbowColors, elbowNormals, idx, elbowIdx, traj.npairs, elbowStrips, elbowStrpCnt);
             strips[strpCnt++] = (numSides+1)*2;
           }
           
@@ -1551,7 +1563,7 @@ public class TrajectoryManager {
         array.coordinates = coords;
         array.normals = normals;
         array.colors = newColors;
-        array.vertexCount = idx[0];
+        array.vertexCount = coords.length/3;
         array.stripVertexCounts = strips;
         
         coneArray.coordinates = coneCoords;
@@ -1559,7 +1571,14 @@ public class TrajectoryManager {
         coneArray.colors = coneColors;
         coneArray.vertexCount = coneIdx[0];
         
+        elbowArray.coordinates = elbowCoords;
+        elbowArray.normals = elbowNormals;
+        elbowArray.colors = elbowColors;
+        elbowArray.vertexCount = elbowCoords.length/3;
+        elbowArray.stripVertexCounts = elbowStrips;
+        
         auxArray[0] = coneArray;
+        auxArray[1] = elbowArray;
         
         return array; 
      }
