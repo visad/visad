@@ -276,10 +276,21 @@ public class TrajectoryManager {
                                         info.renderer, false, true, timeStep);
   }
   
-  public VisADGeometryArray computeTrajectories(int k, double timeAccum, double[] times, double[] timeSteps, VisADGeometryArray[] auxArray) throws VisADException, RemoteException {
+  /**
+   * 
+   * @param k outer dimension (time) index
+   * @param timeAccum accumulated time (see refresh interval)
+   * @param times time at each k
+   * @param timeSteps step at each k
+   * @return
+   * @throws VisADException
+   * @throws RemoteException 
+   */
+  public VisADGeometryArray[] computeTrajectories(int k, double timeAccum, double[] times, double[] timeSteps) throws VisADException, RemoteException {
        int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
        VisADGeometryArray array = null;
+       VisADGeometryArray[] arrays = null;
        FlowInfo info = flowInfoList.get(i);
        byte[][] color_values = info.color_values;
        Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
@@ -405,7 +416,7 @@ public class TrajectoryManager {
            clean();
            break;
          case CYLINDER:
-           array = makeCylinder(k, auxArray);
+           arrays = makeCylinder();
            clean();
            break;
          case DEFORM_RIBBON:
@@ -413,8 +424,12 @@ public class TrajectoryManager {
            cleanDefStrp();
            break;
        }
+       
+       if (arrays == null) {
+          arrays = new VisADGeometryArray[] {array};
+       }
 
-       return array;
+       return arrays;
   } 
   
   public void makeTrajectories(double time, float[][] startPts, byte[][] color_values, GriddedSet spatial_set) throws VisADException  {
@@ -1415,7 +1430,7 @@ public class TrajectoryManager {
      return array;
   }  
   
-     public VisADGeometryArray makeCylinder(int q, VisADGeometryArray[] auxArray) {
+     public VisADGeometryArray[] makeCylinder() {
         VisADTriangleStripArray array = new VisADTriangleStripArray();
         VisADTriangleStripArray elbowArray = new VisADTriangleStripArray();
         VisADTriangleArray coneArray = new VisADTriangleArray();
@@ -1436,20 +1451,10 @@ public class TrajectoryManager {
         float[] coneNormals = new float[ntrajs*(numSides+1)*3*3];
         
         
-        if (q == 0) {
-          numv = (totNpairs-ntrajs)*(numSides+1)*2;
-        }
-        else {
-          numv = (totNpairs)*(numSides+1)*2;
-        }
         float[] elbowCoords = new float[numv*3];
         byte[] elbowColors = new byte[numv*clrDim];
         float[] elbowNormals = new float[numv*3];
-        int numElbowStrips = totNpairs;
-        if (q == 0) {
-          numElbowStrips = totNpairs-ntrajs;
-        }
-        int[] elbowStrips = new int[numElbowStrips];
+        int[] elbowStrips = new int[totNpairs];
         
         float[] uvecPath = new float[3];
         float[] uvecPathNext = new float[3];
@@ -1571,16 +1576,32 @@ public class TrajectoryManager {
         coneArray.colors = coneColors;
         coneArray.vertexCount = coneIdx[0];
         
+        if (elbowIdx[0] < elbowCoords.length/3) {
+           float[] tmp = new float[elbowIdx[0]*3];
+           System.arraycopy(elbowCoords, 0, tmp, 0, tmp.length);
+           elbowCoords = tmp;
+           
+           tmp = new float[elbowIdx[0]*3];
+           System.arraycopy(elbowNormals, 0, tmp, 0, tmp.length);
+           elbowNormals = tmp;
+           
+           byte[] btmp = new byte[elbowIdx[0]*clrDim];
+           System.arraycopy(elbowColors, 0, btmp, 0, btmp.length);
+           elbowColors = btmp;
+        }
+        if (elbowStrpCnt[0] < elbowStrips.length) {
+           int[] tmp = new int[elbowStrpCnt[0]];
+           System.arraycopy(elbowStrips, 0, tmp, 0, tmp.length);
+           elbowStrips = tmp;
+        }
+        
         elbowArray.coordinates = elbowCoords;
         elbowArray.normals = elbowNormals;
         elbowArray.colors = elbowColors;
         elbowArray.vertexCount = elbowCoords.length/3;
         elbowArray.stripVertexCounts = elbowStrips;
         
-        auxArray[0] = coneArray;
-        auxArray[1] = elbowArray;
-        
-        return array; 
+        return new VisADGeometryArray[] {array, coneArray, elbowArray}; 
      }
      
      public void makeCone(float[][] basePts, float[] vertex, byte[][] color, float[] coords, byte[] colors, float[] normals, int[] vertCnt) {
