@@ -1551,7 +1551,7 @@ public class TrajectoryManager {
             if (clrDim == 4) clr1[3][0] = a1;        
             
             cylWidth = 0.0060f;
-            traj.makeCylinderStrip(k, uvecPath, uvecPathNext, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, elbowCoords, elbowColors, elbowNormals, idx, elbowIdx, traj.npairs, elbowStrips, elbowStrpCnt);
+            traj.makeCylinderStrip(k, uvecPath, uvecPathNext, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, elbowCoords, elbowColors, elbowNormals, idx, elbowIdx, elbowStrips, elbowStrpCnt);
             strips[strpCnt++] = (numSides+1)*2;
           }
           
