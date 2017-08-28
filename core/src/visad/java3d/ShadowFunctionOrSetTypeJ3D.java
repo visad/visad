@@ -1439,13 +1439,18 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       BranchGroup branch = (BranchGroup) branches.get(i);
       addToGroup(branch, arrays[0], mode, info.constant_alpha, info.constant_color);
       if (trajForm == TrajectoryManager.CYLINDER) {
-        // cylinder front cone
-        addToGroup(branch, arrays[1], mode, info.constant_alpha, info.constant_color);                  
         // cylinder elbows
-        addToGroup(branch, arrays[2], mode, info.constant_alpha, info.constant_color);         
+        addToGroup(branch, arrays[2], mode, info.constant_alpha, info.constant_color);                  
       }
       BranchGroup node = (BranchGroup) swit.getChild(i);
       node.addChild(branch);
+      
+      if (trajForm == TrajectoryManager.CYLINDER) {
+        BranchGroup auxBrnch = (BranchGroup) makeBranch();
+        // cylinder cone
+        addToGroup(auxBrnch, arrays[1], mode, info.constant_alpha, info.constant_color);  
+        ((BranchGroup)switB.getChild(i)).addChild(auxBrnch);
+      }      
       
     } //---  domain length (time steps) outer time loop  -------------------------
         
