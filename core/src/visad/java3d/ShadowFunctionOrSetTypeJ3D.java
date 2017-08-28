@@ -1403,7 +1403,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     double timeAccum = 0;
 
-    VisADGeometryArray array = null;
+    VisADGeometryArray[] arrays;
     VisADGeometryArray trcrArray = null;
     VisADGeometryArray[] auxArray = new VisADGeometryArray[2];
     ArrayList<float[]> achrArrays = null;
@@ -1413,7 +1413,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       
       FlowInfo info = flowInfoList.get(i);
       
-      array = trajMan.computeTrajectories(k, timeAccum, times, timeSteps, auxArray);
+      arrays = trajMan.computeTrajectories(k, timeAccum, times, timeSteps);
       if (trajMan.getNumberOfTrajectories() > 0) {
         achrArrays = new ArrayList<float[]>();
         trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
@@ -1422,9 +1422,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
 
-      // something weird with this, everything being removed ?
-      //array = (VisADLineArray) array.removeMissing();
-      
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
         avHandler.setNoneVisibleIndex(i);
         timeAccum = 0.0;
@@ -1440,18 +1437,20 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
 
       BranchGroup branch = (BranchGroup) branches.get(i);
-      addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
-      if (auxArray[1] != null) { // cylinder elbows
-        addToGroup(branch, auxArray[1], mode, info.constant_alpha, info.constant_color);         
-      }      
+      addToGroup(branch, arrays[0], mode, info.constant_alpha, info.constant_color);
+      if (trajForm == TrajectoryManager.CYLINDER) {
+        // cylinder elbows
+        addToGroup(branch, arrays[2], mode, info.constant_alpha, info.constant_color);                  
+      }
       BranchGroup node = (BranchGroup) swit.getChild(i);
       node.addChild(branch);
       
-      if (auxArray[0] != null) { // cylinder cone
+      if (trajForm == TrajectoryManager.CYLINDER) {
         BranchGroup auxBrnch = (BranchGroup) makeBranch();
-        addToGroup(auxBrnch, auxArray[0], mode, info.constant_alpha, info.constant_color);  
+        // cylinder cone
+        addToGroup(auxBrnch, arrays[1], mode, info.constant_alpha, info.constant_color);  
         ((BranchGroup)switB.getChild(i)).addChild(auxBrnch);
-      }
+      }      
       
     } //---  domain length (time steps) outer time loop  -------------------------
         

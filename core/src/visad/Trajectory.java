@@ -213,7 +213,7 @@ public class Trajectory {
   }
   
   public void makeCylinderStrip(int q, float[] uvecPath, float[] uvecPathNext, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
-              int npts, float[] coords, byte[] colors, float[] normls, float[] elbowCoords, byte[] elbowColors, float[] elbowNormals, int[] vertCnt, int[] elbowVertCnt, int npairs, int[] elbowStrips, int[] elbowStripCnt) {
+              int npts, float[] coords, byte[] colors, float[] normls, float[] elbowCoords, byte[] elbowColors, float[] elbowNormals, int[] vertCnt, int[] elbowVertCnt, int[] elbowStrips, int[] elbowStripCnt) {
      
      int clrDim = clr0.length;
      
