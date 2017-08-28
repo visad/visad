@@ -1,8 +1,29 @@
+//
+// TrajectoryManager.java
+//
+
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2017 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
 package visad;
 
 import visad.util.CubicInterpolator;
@@ -1576,6 +1597,7 @@ public class TrajectoryManager {
         coneArray.colors = coneColors;
         coneArray.vertexCount = coneIdx[0];
         
+        // No elbow at pair index=0 (at beginning of each time step)
         if (elbowIdx[0] < elbowCoords.length/3) {
            float[] tmp = new float[elbowIdx[0]*3];
            System.arraycopy(elbowCoords, 0, tmp, 0, tmp.length);
@@ -1589,6 +1611,7 @@ public class TrajectoryManager {
            System.arraycopy(elbowColors, 0, btmp, 0, btmp.length);
            elbowColors = btmp;
         }
+        // No elbow at pair index=0 (at beginning of each time step)
         if (elbowStrpCnt[0] < elbowStrips.length) {
            int[] tmp = new int[elbowStrpCnt[0]];
            System.arraycopy(elbowStrips, 0, tmp, 0, tmp.length);
