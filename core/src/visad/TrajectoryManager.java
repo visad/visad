@@ -1084,8 +1084,8 @@ public class TrajectoryManager {
    * @param T (SxT) right-handed in the plane. Must be 3D unit vectors
    * @param S
    * @param P Origin, can be null
-   * @param V The 3D vector to rotate
-   * @param theta Counter-clockwise rotation in the S,T plane
+   * @param V The 2D (in S,T coordinates) vector to rotate
+   * @param theta Counter-clockwise (> 0) rotation in the S,T plane
    * @param rotV The rotated vector, can be null
    * @return The rotated 3D vector
    */  
