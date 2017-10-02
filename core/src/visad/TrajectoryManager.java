@@ -1079,13 +1079,22 @@ public class TrajectoryManager {
      
      return P;
   }
-  
+
+  /**
+   * @param T (SxT) right-handed in the plane. Must be 3D unit vectors
+   * @param S
+   * @param P Origin, can be null
+   * @param V The 3D vector to rotate
+   * @param theta Counter-clockwise rotation in the S,T plane
+   * @param rotV The rotated vector, can be null
+   * @return The rotated 3D vector
+   */  
   public static double[] getRotatedVecInPlane(double[] T, double[] S, double[] P, double[] V, double theta, double[] rotV) {
      if (rotV == null) rotV = new double[3];
      if (P == null) P = new double[] {0,0,0};
 
-     double s = V[0]*Math.cos(theta) - V[1]*Math.sin(theta);
-     double t = V[0]*Math.sin(theta) + V[1]*Math.cos(theta);
+     double s = V[0]*Math.cos(theta) - V[1]*Math.sin(theta); // x
+     double t = V[0]*Math.sin(theta) + V[1]*Math.cos(theta); // y
 
      double x = P[0] + s*S[0] + t*T[0];
      double y = P[1] + s*S[1] + t*T[1];
