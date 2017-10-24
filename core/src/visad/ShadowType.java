@@ -4325,9 +4325,14 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
       throws VisADException {
     return addToGroup(group, array, mode, constant_alpha, constant_color);
   }
+  
+  public Object createImage(int data_width, int data_height, int texture_width,
+                     int texture_height, byte[][] color_values) throws VisADException {
+     return null;
+  }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-      BufferedImage image, GraphicsModeControl mode, float constant_alpha,
+      Object image, GraphicsModeControl mode, float constant_alpha,
       float[] constant_color, int texture_width, int texture_height)
       throws VisADException {
   }

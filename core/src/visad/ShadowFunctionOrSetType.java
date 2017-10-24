@@ -3868,13 +3868,9 @@ WLH 15 March 2000 */
       qarray.colors = colors;
       qarray.normals = normals;
                                                                                                                                     
-      BufferedImage image =
-         createImage(data_width, data_height, texture_width,
-                     texture_height, color_values);
-      shadow_api.textureToGroup(group, qarray, image, mode,
-                                constant_alpha, constant_color,
-                                texture_width, texture_height);
-
+      Object image = shadow_api.createImage(data_width, data_height, texture_width, texture_height, color_values);
+      
+      shadow_api.textureToGroup(group, qarray, image, mode, constant_alpha, constant_color, texture_width, texture_height);
   }
 
   private void buildCurvedTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,

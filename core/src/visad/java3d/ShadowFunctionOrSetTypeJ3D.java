@@ -589,27 +589,33 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       return text.getSelectedMapVector();
     }
   }
+  
+  public Object createImage(int data_width, int data_height, int texture_width,
+                     int texture_height, byte[][] color_values) throws VisADException {
+     return adaptedShadowType.createImage(data_width, data_height, texture_width, texture_height, color_values);
+  }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-                            BufferedImage image, GraphicsModeControl mode,
+                            Object image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height, boolean byReference, boolean yUp, VisADImageTile tile) throws VisADException {
     textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, byReference, yUp, tile, false);
   }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-                            BufferedImage image, GraphicsModeControl mode,
+                            Object image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height) throws VisADException {
     textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, false, false, null, false);
   }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-                            BufferedImage image, GraphicsModeControl mode,
+                            Object img, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height, 
                             boolean byReference, boolean yUp, VisADImageTile tile, boolean smoothen)
          throws VisADException {
+    BufferedImage image = (BufferedImage) img;
     GeometryArray geometry = display.makeGeometry(array);
     // System.out.println("texture geometry");
     // create basic Appearance
