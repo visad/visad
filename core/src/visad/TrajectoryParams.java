@@ -77,6 +77,9 @@ public class TrajectoryParams {
   // these are endPoints if direction is backward
   float[][] startPoints = null;
   RealTupleType startType = Display.DisplaySpatialCartesianTuple;
+  
+  // terrain (lower boundary) Implicit: meters above MSL
+  float[] terrain = null;
 
   public TrajectoryParams() {
   }
@@ -289,6 +292,15 @@ public class TrajectoryParams {
 
   public float[][] getStartPoints() {
     return startPoints;
+  }
+  
+  public void setTerrain(float[] values) {
+     terrain = new float[values.length];
+     System.arraycopy(values, 0, terrain, 0, values.length);
+  }
+  
+  public float[] getTerrain() {
+     return terrain;
   }
  
   public RealTupleType getStartType() {
