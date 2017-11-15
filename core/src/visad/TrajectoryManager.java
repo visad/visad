@@ -113,6 +113,8 @@ public class TrajectoryManager {
   
   ArrayList<Trajectory> trajectories;
   
+  float[] terrain;
+  
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
   
@@ -150,6 +152,12 @@ public class TrajectoryManager {
         numIntrpPts = 1;
       }
       this.altToZ = altToZ;
+      float[] terrain = trajParams.getTerrain();
+      if (terrain != null) {
+         System.out.println(terrain[terrain.length/2]);
+         this.terrain = altToZ.scaleValues(terrain);
+         System.out.println(terrain[this.terrain.length/2]);         
+      }
             
       FlowInfo info = flowInfoList.get(0);
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
@@ -417,7 +425,7 @@ public class TrajectoryManager {
            Trajectory traj = trajectories.get(t);
            traj.currentTimeIndex = direction*i;
            traj.currentTime = direction*times[i];
-           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, direction, timeStep);
+           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, terrain, direction, timeStep);
          }
 
        } // inner time loop (time interpolation)

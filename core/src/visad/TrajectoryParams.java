@@ -105,6 +105,7 @@ public class TrajectoryParams {
     this.ribbonWidthFac = params.getRibbonWidthFactor();
     this.zStart = params.getZStartIndex();
     this.zStartSkip = params.getZStartSkip();
+    this.terrain = params.getTerrain();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
