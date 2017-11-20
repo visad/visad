@@ -154,9 +154,7 @@ public class TrajectoryManager {
       this.altToZ = altToZ;
       float[] terrain = trajParams.getTerrain();
       if (terrain != null) {
-         System.out.println(terrain[terrain.length/2]);
          this.terrain = altToZ.scaleValues(terrain);
-         System.out.println(terrain[this.terrain.length/2]);         
       }
             
       FlowInfo info = flowInfoList.get(0);

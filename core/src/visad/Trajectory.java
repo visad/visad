@@ -180,7 +180,7 @@ public class Trajectory {
 
   }
   
-  public void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
+  private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
 
      indexes[npairs] = trajMan.getCoordinateCount();
 
@@ -211,20 +211,6 @@ public class Trajectory {
        startColor[3] = stopColor[3];
      }
 
-     // this probably not needed here, done already
-     if (manifoldDimension == 2) {
-        startPts2D[0][0] = startPts[0];
-        startPts2D[1][0] = startPts[1];
-        spatial_set.valueToInterp(startPts2D, indices, weights, guess2D);
-     }
-     else if (manifoldDimension == 3) {
-        startPts3D[0][0] = startPts[0];
-        startPts3D[1][0] = startPts[1];
-        startPts3D[2][0] = startPts[2];
-        spatial_set.valueToInterp(startPts3D, indices, weights, guess3D);
-     }
-     //-----------------
-
      startCell = indices[0];
      cellWeights = weights[0];
      if (indices[0] == null) {
@@ -239,26 +225,29 @@ public class Trajectory {
      if (terrain != null && indices[0] != null ) {
         int[] lens = spatial_set.getLengths();
         float[][] spatial_values = spatial_set.getSamples(false);
+        int dir = (spatial_values[2][0] < spatial_values[2][lens[0]*lens[1]]) ? 1 : -1;
 
-        float parcelHgt = stopPts[2];
-
-        // get cell terrain
+        // get interpolated terrain and parcel height at this grid cell
         float cellTerrain = 0;
+        float parcelHgt = 0;
         for (int k=0; k<indices[0].length; k++) {
            int idx = indices[0][k];
+           parcelHgt += spatial_values[2][idx]*weights[0][k];
+           
            idx = idx % lens[0]*lens[1];
            int gy = idx/lens[0];
            int gx = idx % lens[0];
            int tidx = gy*lens[0] + gx;
+           
            cellTerrain += terrain[tidx]*weights[0][k];
         }
 
-        float diff = parcelHgt - cellTerrain; 
+        float diff = parcelHgt - cellTerrain;
 
         while (diff < 0f) { // need a iter limit just in case?
 
            for (int k=0; k<indices[0].length; k++) {
-              indices[0][k] += lens[0]*lens[1];
+              indices[0][k] += dir*lens[0]*lens[1];
            }
 
            parcelHgt = 0;
