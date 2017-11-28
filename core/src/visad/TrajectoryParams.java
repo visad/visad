@@ -79,7 +79,7 @@ public class TrajectoryParams {
   RealTupleType startType = Display.DisplaySpatialCartesianTuple;
   
   // terrain (lower boundary) Implicit: meters above MSL
-  float[] terrain = null;
+  FlatField terrain = null;
 
   public TrajectoryParams() {
   }
@@ -295,12 +295,11 @@ public class TrajectoryParams {
     return startPoints;
   }
   
-  public void setTerrain(float[] values) {
-     terrain = new float[values.length];
-     System.arraycopy(values, 0, terrain, 0, values.length);
+  public void setTerrain(FlatField terrain) {
+     this.terrain = terrain;
   }
   
-  public float[] getTerrain() {
+  public FlatField getTerrain() {
      return terrain;
   }
  
