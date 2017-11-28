@@ -113,7 +113,8 @@ public class TrajectoryManager {
   
   ArrayList<Trajectory> trajectories;
   
-  float[] terrain;
+  FlatField terrain;
+  Gridded2DSet spatialSetTerrain;
   
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
@@ -123,10 +124,10 @@ public class TrajectoryManager {
   
   
   public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time) throws VisADException {
-    this(renderer, trajParams, flowInfoList, dataDomainLength, time, null);
+    this(renderer, trajParams, flowInfoList, dataDomainLength, time, null, null);
   }
   
-  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time, ScalarMap altToZ) throws VisADException {
+  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time, ScalarMap altToZ, CoordinateSystem dspCoordSys) throws VisADException {
       this.flowInfoList = flowInfoList;
       this.dataDomainLength = dataDomainLength;
       trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
@@ -152,14 +153,16 @@ public class TrajectoryManager {
         numIntrpPts = 1;
       }
       this.altToZ = altToZ;
-      float[] terrain = trajParams.getTerrain();
+      terrain = trajParams.getTerrain();
       if (terrain != null) {
-         this.terrain = altToZ.scaleValues(terrain);
+         terrain = (FlatField) terrain.clone();
+         altToZ.scaleValues(terrain.getFloats(false)[0], false);
       }
             
       FlowInfo info = flowInfoList.get(0);
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
       GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set0);
+      spatialSetTerrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
 
       byte[][] color_values = info.color_values;
       if (info.trajColors != null) color_values = info.trajColors;
@@ -423,7 +426,7 @@ public class TrajectoryManager {
            Trajectory traj = trajectories.get(t);
            traj.currentTimeIndex = direction*i;
            traj.currentTime = direction*times[i];
-           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, terrain, direction, timeStep);
+           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, spatialSetTerrain, terrain, direction, timeStep);
          }
 
        } // inner time loop (time interpolation)
@@ -606,6 +609,32 @@ public class TrajectoryManager {
       spatialSetTraj = spatial_set;
     }
     return spatialSetTraj;
+  }
+  
+  private static Gridded2DSet terrainToSpatial(FlatField terrain, GriddedSet spatialSet, CoordinateSystem dspCoordSys) throws VisADException {
+    RealTupleType domain = ((FunctionType)terrain.getType()).getDomain();
+    CoordinateSystem coordSys = domain.getCoordinateSystem();
+    RealTupleType reference = coordSys.getReference();
+
+
+    Gridded2DSet domSet = (Gridded2DSet) terrain.getDomainSet();
+    
+    float[][] grdVals = domSet.getSamples(false);
+    float[][] refVals = coordSys.toReference(grdVals);
+    float[][] dspVals = dspCoordSys.toReference(refVals);
+
+    RealType[] rTypes = dspCoordSys.getReference().getRealComponents();
+    RealTupleType dspXY = new RealTupleType(rTypes[0], rTypes[1]);
+    
+    int[] lens = domSet.getLengths();
+    dspVals = new float[2][lens[0]*lens[1]];
+    float[][] vals = spatialSet.getSamples(false);
+    System.arraycopy(vals[0], 0, dspVals[0], 0, lens[0]*lens[1]);
+    System.arraycopy(vals[1], 0, dspVals[1], 0, lens[0]*lens[1]);
+    Gridded2DSet terrainSpatialSet = new Gridded2DSet(dspXY, dspVals, lens[0], lens[1]);
+    
+       
+    return terrainSpatialSet; 
   }
   
   public static double[] getScale(MouseBehavior mouseBehav, ProjectionControl pCntrl) {
@@ -1586,7 +1615,6 @@ public class TrajectoryManager {
             clr1[2][0] = b1;
             if (clrDim == 4) clr1[3][0] = a1;        
             
-            cylWidth = 0.0060f;
             traj.makeCylinderStrip(k, uvecPath, uvecPathNext, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, elbowCoords, elbowColors, elbowNormals, idx, elbowIdx, elbowStrips, elbowStrpCnt);
             strips[strpCnt++] = (numSides+1)*2;
           }
@@ -2183,7 +2211,7 @@ public class TrajectoryManager {
      String filename = null;
      
      try {
-       filename = System.getProperty("visad.trajectory.startPointsFile", null);
+       filename = System.getProperty(PPOP_TRAJECTORY_START_POINTS_FILE, null);
      }
      catch (java.lang.SecurityException exc) {
        exc.printStackTrace();        
