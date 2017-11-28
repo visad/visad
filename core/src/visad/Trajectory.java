@@ -90,7 +90,7 @@ public class Trajectory {
     this.trajMan = trajMan;
   }
   
-  public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, float[] terrain, int direction, float timeStep)
+  public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, Gridded2DSet spatialSetTerrain, FlatField terrain, int direction, float timeStep)
            throws VisADException {
      
      if (offGrid) return;
@@ -161,7 +161,7 @@ public class Trajectory {
            pts3D[2][0] = stopPts[2];
            spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
 
-           terrainAdjust(terrain, color_values);
+           adjustFlowAtTerrain(spatialSetTerrain, terrain.getFloats(false)[0], color_values);
         }    
         
         addPair(startPts, stopPts, startColor, stopColor);
@@ -218,7 +218,7 @@ public class Trajectory {
      }     
   }
   
-  private void terrainAdjust(float[] terrain, byte[][] color_values) throws VisADException {
+  private void adjustFlowAtTerrain(Gridded2DSet spatialSetTerrain, float[] terrain, byte[][] color_values) throws VisADException {
      // Do terrain adjustment here
      float[] intrpClr = new float[clrDim];
      
@@ -229,37 +229,28 @@ public class Trajectory {
 
         // get interpolated terrain and parcel height at this grid cell
         float cellTerrain = 0;
-        float parcelHgt = 0;
-        for (int k=0; k<indices[0].length; k++) {
-           int idx = indices[0][k];
-           parcelHgt += spatial_values[2][idx]*weights[0][k];
-           
-           idx = idx % lens[0]*lens[1];
-           int gy = idx/lens[0];
-           int gx = idx % lens[0];
-           int tidx = gy*lens[0] + gx;
-           
-           cellTerrain += terrain[tidx]*weights[0][k];
-        }
+        float parcelHgt = stopPts[2];
+        float parcelX = stopPts[0];
+        float parcelY = stopPts[1];
+        int tidx = (spatialSetTerrain.valueToIndex(new float[][] {{parcelX}, {parcelY}}))[0];
+        cellTerrain = terrain[tidx];
+        
 
         float diff = parcelHgt - cellTerrain;
 
-        while (diff < 0f) { // need a iter limit just in case?
+        if (diff < 0f) {
+           
+           stopPts[2] += -diff + 0.006;
+           float[][] pts3D = new float[3][1];
+           pts3D[0][0] = stopPts[0];
+           pts3D[1][0] = stopPts[1];
+           pts3D[2][0] = stopPts[2];
+           
+           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);          
 
-           for (int k=0; k<indices[0].length; k++) {
-              indices[0][k] += dir*lens[0]*lens[1];
-           }
-
-           parcelHgt = 0;
-           float parcelX = 0;
-           float parcelY = 0;
            java.util.Arrays.fill(intrpClr, 0);
            for (int k=0; k<indices[0].length; k++) {
               int idx = indices[0][k];
-              parcelX += spatial_values[0][idx]*weights[0][k];
-              parcelY += spatial_values[1][idx]*weights[0][k];
-              parcelHgt += spatial_values[2][idx]*weights[0][k];
-              
               intrpClr[0] += weights[0][k]*ShadowType.byteToFloat(color_values[0][idx]);
               intrpClr[1] += weights[0][k]*ShadowType.byteToFloat(color_values[1][idx]);
               intrpClr[2] += weights[0][k]*ShadowType.byteToFloat(color_values[2][idx]);
@@ -267,9 +258,6 @@ public class Trajectory {
                 intrpClr[3] += weights[0][k]*ShadowType.byteToFloat(color_values[3][idx]);
               }                         
            }
-           stopPts[0] = parcelX;
-           stopPts[1] = parcelY;
-           stopPts[2] = parcelHgt;
            
            stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
            stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
@@ -277,10 +265,8 @@ public class Trajectory {
            if (clrDim == 4) {
              stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
            }
-
-           diff = parcelHgt - cellTerrain;
         }
-
+     
      }   
   }
   
