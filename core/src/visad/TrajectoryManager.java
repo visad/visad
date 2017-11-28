@@ -162,7 +162,9 @@ public class TrajectoryManager {
       FlowInfo info = flowInfoList.get(0);
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
       GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set0);
-      spatialSetTerrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
+      if (terrain != null) {
+        spatialSetTerrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
+      }
 
       byte[][] color_values = info.color_values;
       if (info.trajColors != null) color_values = info.trajColors;

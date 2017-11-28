@@ -161,7 +161,9 @@ public class Trajectory {
            pts3D[2][0] = stopPts[2];
            spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
 
-           adjustFlowAtTerrain(spatialSetTerrain, terrain.getFloats(false)[0], color_values);
+           if (spatialSetTerrain != null) {
+             adjustFlowAtTerrain(spatialSetTerrain, terrain.getFloats(false)[0], color_values);
+           }
         }    
         
         addPair(startPts, stopPts, startColor, stopColor);
