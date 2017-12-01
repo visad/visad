@@ -163,7 +163,7 @@ public class TrajectoryManager {
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
       GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set0);
       if (terrain != null) {
-        spatialSetTerrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
+        terrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
       }
 
       byte[][] color_values = info.color_values;
@@ -613,8 +613,9 @@ public class TrajectoryManager {
     return spatialSetTraj;
   }
   
-  private static Gridded2DSet terrainToSpatial(FlatField terrain, GriddedSet spatialSet, CoordinateSystem dspCoordSys) throws VisADException {
+  private static FlatField terrainToSpatial(FlatField terrain, GriddedSet spatialSet, CoordinateSystem dspCoordSys) throws VisADException {
     RealTupleType domain = ((FunctionType)terrain.getType()).getDomain();
+    MathType range = ((FunctionType)terrain.getType()).getRange();
     CoordinateSystem coordSys = domain.getCoordinateSystem();
     RealTupleType reference = coordSys.getReference();
 
@@ -629,14 +630,16 @@ public class TrajectoryManager {
     RealTupleType dspXY = new RealTupleType(rTypes[0], rTypes[1]);
     
     int[] lens = domSet.getLengths();
-    dspVals = new float[2][lens[0]*lens[1]];
-    float[][] vals = spatialSet.getSamples(false);
-    System.arraycopy(vals[0], 0, dspVals[0], 0, lens[0]*lens[1]);
-    System.arraycopy(vals[1], 0, dspVals[1], 0, lens[0]*lens[1]);
-    Gridded2DSet terrainSpatialSet = new Gridded2DSet(dspXY, dspVals, lens[0], lens[1]);
+    Gridded2DSet set = new Gridded2DSet(dspXY, dspVals, lens[0], lens[1], null, null, null, false, false);
+    FlatField tffld = new FlatField(new FunctionType(dspXY, range), set);
+    try {
+       tffld.setSamples(terrain.getFloats(false), false);
+    }
+    catch (RemoteException e) {
+       e.printStackTrace();
+    }
     
-       
-    return terrainSpatialSet; 
+    return tffld;
   }
   
   public static double[] getScale(MouseBehavior mouseBehav, ProjectionControl pCntrl) {

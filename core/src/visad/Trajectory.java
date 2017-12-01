@@ -5,6 +5,8 @@
  */
 package visad;
 
+import java.rmi.RemoteException;
+
 /**
  *
  * @author rink
@@ -91,7 +93,7 @@ public class Trajectory {
   }
   
   public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, Gridded2DSet spatialSetTerrain, FlatField terrain, int direction, float timeStep)
-           throws VisADException {
+           throws VisADException, RemoteException {
      
      if (offGrid) return;
 
@@ -161,8 +163,8 @@ public class Trajectory {
            pts3D[2][0] = stopPts[2];
            spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
 
-           if (spatialSetTerrain != null) {
-             adjustFlowAtTerrain(spatialSetTerrain, terrain.getFloats(false)[0], color_values);
+           if (terrain != null) {
+             adjustFlowAtTerrain(terrain, color_values);
            }
         }    
         
@@ -220,7 +222,7 @@ public class Trajectory {
      }     
   }
   
-  private void adjustFlowAtTerrain(Gridded2DSet spatialSetTerrain, float[] terrain, byte[][] color_values) throws VisADException {
+  private void adjustFlowAtTerrain(FlatField terrain, byte[][] color_values) throws VisADException, RemoteException {
      // Do terrain adjustment here
      float[] intrpClr = new float[clrDim];
      
@@ -234,15 +236,15 @@ public class Trajectory {
         float parcelHgt = stopPts[2];
         float parcelX = stopPts[0];
         float parcelY = stopPts[1];
-        int tidx = (spatialSetTerrain.valueToIndex(new float[][] {{parcelX}, {parcelY}}))[0];
-        cellTerrain = terrain[tidx];
+        RealTuple xy = new RealTuple(((FunctionType)terrain.getType()).getDomain(), new double[] {parcelX, parcelY});
+        cellTerrain = (float) ((Real)terrain.evaluate(xy, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS)).getValue();
         
 
         float diff = parcelHgt - cellTerrain;
 
         if (diff < 0f) {
            
-           stopPts[2] += -diff + 0.006;
+           stopPts[2] += -diff + 0.0014;
            float[][] pts3D = new float[3][1];
            pts3D[0][0] = stopPts[0];
            pts3D[1][0] = stopPts[1];
