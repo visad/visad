@@ -26,11 +26,15 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import visad.util.CubicInterpolator;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Properties;
 import visad.data.text.TextAdapter;
 
 
@@ -71,6 +75,8 @@ public class TrajectoryManager {
   public static final int POINT = TrajectoryParams.POINT;
   
   public static final String PPOP_TRAJECTORY_START_POINTS_FILE = "visad.trajectory.startPointsFile";
+  public static final String PROP_TRAJECTORY_PARAM_FILE_1 = "visad.trajectory.paramFile1";
+  public static final String PROP_TRAJECTORY_PARAM_FILE_2 = "visad.trajectory.paramFile2";
   
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
@@ -129,7 +135,11 @@ public class TrajectoryManager {
   
   public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time, ScalarMap altToZ, CoordinateSystem dspCoordSys) throws VisADException {
       this.flowInfoList = flowInfoList;
+      FlowInfo info = flowInfoList.get(0);
+      
       this.dataDomainLength = dataDomainLength;
+      trajParams = new TrajectoryParams(trajParams); // override, don't replace if have file below.
+      trajParams = getTrajParamsFromFile(trajParams, info.which);
       trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
       trajRefreshInterval = trajParams.getTrajRefreshInterval();
       trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
@@ -159,7 +169,6 @@ public class TrajectoryManager {
          altToZ.scaleValues(terrain.getFloats(false)[0], false);
       }
             
-      FlowInfo info = flowInfoList.get(0);
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
       GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set0);
       if (terrain != null) {
@@ -2210,6 +2219,70 @@ public class TrajectoryManager {
      if (!removeListeners.containsKey(scalarMap)) {
        removeListeners.put(scalarMap, new ListenForRemove(scalarMap, flowCntrl, pCntrl, display));
      }     
+  }
+  
+  public TrajectoryParams getTrajParamsFromFile(TrajectoryParams trajParams, int which) {
+     String filename = null;
+     try {
+       String propFile = null;
+       if (which == 0) {
+          propFile = PROP_TRAJECTORY_PARAM_FILE_1;
+       }
+       else if (which == 1) {
+          propFile = PROP_TRAJECTORY_PARAM_FILE_2;
+       }
+       filename = System.getProperty(propFile, null);
+     }
+     catch (java.lang.SecurityException exc) {
+       exc.printStackTrace();
+     }
+     if (filename == null) {
+        return trajParams;
+     }
+     Properties prop = new Properties();
+     InputStream is = null;
+     
+     try {
+       is = new FileInputStream(filename);
+       if (is != null) {
+          prop.load(is);
+          
+          String propStr = null;
+          propStr = prop.getProperty("CylinderWidthFactor");
+          if (propStr != null) {
+            float fac = Float.valueOf(propStr);
+            trajParams.setCylinderWidth(trajParams.getCylinderWidth()*fac);
+          }
+          
+          propStr = prop.getProperty("RibbonWidthFactor");
+          if (propStr != null) {
+            float fac = Float.valueOf(propStr);
+            trajParams.setRibbonWidthFactor(fac);
+          }          
+          
+          propStr = prop.getProperty("ManualIntrpPts");
+          if (propStr != null) {
+            trajParams.setManualIntrpPts(Boolean.valueOf(propStr));             
+          }
+          
+          propStr = prop.getProperty("TrajDoIntrp");
+          if (propStr != null) {
+            trajParams.setDoIntrp(Boolean.valueOf(propStr));             
+          }
+          
+          propStr = prop.getProperty("NumIntrpPts");
+          if (propStr != null) {
+             trajParams.setNumIntrpPts(Integer.valueOf(propStr));
+          }
+
+          is.close();
+       }
+     }
+     catch (IOException ex) {
+        ex.printStackTrace();
+     }
+     
+     return trajParams;
   }
   
   public float[][] getStartPointsFromFile(DataRenderer renderer, ScalarMap altToZ, byte[][] colors) throws VisADException, RemoteException {

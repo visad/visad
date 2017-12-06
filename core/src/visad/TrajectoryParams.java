@@ -58,7 +58,7 @@ public class TrajectoryParams {
   double trajRefreshInterval = 86400.0;
   int numIntrpPts = 6;
   int startSkip = 2;
-  SmoothParams smoothParams = SmoothParams.MEDIUM;
+  SmoothParams smoothParams = SmoothParams.LIGHT;
   boolean forward = true;
   int direction = 1;  //1: forward, -1: backward
   boolean doIntrp = true;
