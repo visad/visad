@@ -27,8 +27,11 @@ MA 02111-1307, USA
 package visad;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import visad.util.CubicInterpolator;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -77,6 +80,7 @@ public class TrajectoryManager {
   public static final String PPOP_TRAJECTORY_START_POINTS_FILE = "visad.trajectory.startPointsFile";
   public static final String PROP_TRAJECTORY_PARAM_FILE_1 = "visad.trajectory.paramFile1";
   public static final String PROP_TRAJECTORY_PARAM_FILE_2 = "visad.trajectory.paramFile2";
+  public static final String PROP_TRAJECTORY_TERRAIN_FILE = "visad.trajectory.terrainFile";
   
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
@@ -87,6 +91,7 @@ public class TrajectoryManager {
   boolean doHysplit = true;
   float trcrSize = 1f;
   boolean trcrEnabled;
+  boolean terrainFollowEnabled;
   int numIntrpPts;
   int trajSkip;
   TrajectoryParams.SmoothParams smoothParams;
@@ -119,8 +124,7 @@ public class TrajectoryManager {
   
   ArrayList<Trajectory> trajectories;
   
-  FlatField terrain;
-  Gridded2DSet spatialSetTerrain;
+  FlatField terrain = null;
   
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
@@ -138,8 +142,6 @@ public class TrajectoryManager {
       FlowInfo info = flowInfoList.get(0);
       
       this.dataDomainLength = dataDomainLength;
-      trajParams = new TrajectoryParams(trajParams); // override, don't replace if have file below.
-      trajParams = getTrajParamsFromFile(trajParams, info.which);
       trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
       trajRefreshInterval = trajParams.getTrajRefreshInterval();
       trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
@@ -153,6 +155,7 @@ public class TrajectoryManager {
       trcrSize = trajParams.getMarkerSize();
       trcrEnabled = trajParams.getMarkerEnabled();
       trajCachingEnabled = trajParams.getCachingEnabled();
+      terrainFollowEnabled = trajParams.getTerrainFollowing();
       trajForm = trajParams.getTrajectoryForm();
       cylWidth = trajParams.getCylinderWidth();
       ribbonWidthFac = trajParams.getRibbonWidthFactor();
@@ -162,15 +165,22 @@ public class TrajectoryManager {
       if (!trajDoIntrp) {
         numIntrpPts = 1;
       }
+      
       this.altToZ = altToZ;
-      terrain = trajParams.getTerrain();
+      if (terrainFollowEnabled) {
+        terrain = trajParams.getTerrain();
+        terrain = getTerrainFromDisk();
+      }
+      
       if (terrain != null) {
          terrain = (FlatField) terrain.clone();
+         //saveTerrainToDisk(terrain);
          altToZ.scaleValues(terrain.getFloats(false)[0], false);
       }
             
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
       GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set0);
+      
       if (terrain != null) {
         terrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
       }
@@ -194,6 +204,15 @@ public class TrajectoryManager {
         catch (Exception e) {
           e.printStackTrace();
         }
+      }
+      else {
+//         CoordinateSystem cs = renderer.getDisplayCoordinateSystem();
+//         float[][] lonlatalt = cs.fromReference(startPts);
+//         lonlatalt[2] = altToZ.inverseScaleValues(lonlatalt[2]);
+//         int numPts = startPts[0].length;
+//         for (int k=0; k<numPts; k++) {
+//            System.out.println((lonlatalt[1][k]-360f)+" "+lonlatalt[0][k]+" "+lonlatalt[2][k]);
+//         }
       }
 
       if (startPts == null) { //get from domain set
@@ -437,7 +456,7 @@ public class TrajectoryManager {
            Trajectory traj = trajectories.get(t);
            traj.currentTimeIndex = direction*i;
            traj.currentTime = direction*times[i];
-           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, spatialSetTerrain, terrain, direction, timeStep);
+           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, terrain, direction, timeStep);
          }
 
        } // inner time loop (time interpolation)
@@ -621,6 +640,53 @@ public class TrajectoryManager {
     }
     return spatialSetTraj;
   }
+  
+  private static FlatField getTerrainFromDisk() {
+     try {
+       FileInputStream fis = new FileInputStream(PROP_TRAJECTORY_TERRAIN_FILE);
+       ObjectInputStream ois = new ObjectInputStream(fis);
+       FlatField fld = (FlatField) ois.readObject();
+       fis.close();
+       return fld;
+     }
+     catch (Exception e) {
+        e.printStackTrace();
+     }
+     return null;
+  }
+  
+//  private static void saveTerrainToDisk(FlatField fltFld) throws VisADException {
+//     FunctionType ftype = (FunctionType) fltFld.getType();
+//     RealTupleType dtype = ftype.getDomain();
+//     CoordinateSystem cs = ((visad.CachingCoordinateSystem)dtype.getCoordinateSystem()).getCachedCoordinateSystem();
+//     RealType[] rtypes = dtype.getRealComponents();
+//     RealTupleType newDomType = new RealTupleType(rtypes, cs, null);
+//     FunctionType newFncType = new FunctionType(newDomType, ftype.getRange());
+//     
+//     
+//     Linear2DSet domSet = (Linear2DSet) fltFld.getDomainSet();
+//     Linear1DSet set0 = domSet.getLinear1DComponent(0);
+//     Linear1DSet set1 = domSet.getLinear1DComponent(1);
+//     Linear2DSet newDomSet = new Linear2DSet(newDomType, new Linear1DSet[] {set0, set1});
+//     
+//     FlatField newFltFld = new FlatField(newFncType, newDomSet);
+//     try {
+//       newFltFld.setSamples(fltFld.getFloats());
+//     }
+//     catch (RemoteException e) {
+//        e.printStackTrace();
+//     }
+//     
+//     try {
+//       FileOutputStream fos = new FileOutputStream("/Users/rink/terrain.ser");
+//       ObjectOutputStream oos = new ObjectOutputStream(fos);
+//       oos.writeObject(newFltFld);
+//       fos.close();
+//     }
+//     catch (Exception e) {
+//        e.printStackTrace();
+//     }
+//  }
   
   private static FlatField terrainToSpatial(FlatField terrain, GriddedSet spatialSet, CoordinateSystem dspCoordSys) throws VisADException {
     RealTupleType domain = ((FunctionType)terrain.getType()).getDomain();
@@ -2221,7 +2287,7 @@ public class TrajectoryManager {
      }     
   }
   
-  public TrajectoryParams getTrajParamsFromFile(TrajectoryParams trajParams, int which) {
+  public static TrajectoryParams getTrajParamsFromFile(TrajectoryParams trajParams, int which) {
      String filename = null;
      try {
        String propFile = null;
@@ -2270,9 +2336,19 @@ public class TrajectoryManager {
             trajParams.setDoIntrp(Boolean.valueOf(propStr));             
           }
           
+          propStr = prop.getProperty("TerrainFollow");
+          if (propStr != null) {
+            trajParams.setTerrainFollowing(Boolean.valueOf(propStr));             
+          }          
+          
           propStr = prop.getProperty("NumIntrpPts");
           if (propStr != null) {
              trajParams.setNumIntrpPts(Integer.valueOf(propStr));
+          }
+          
+          propStr = prop.getProperty("TrajRefreshInterval");
+          if (propStr != null) {
+             trajParams.setTrajRefreshInterval(Double.valueOf(propStr));
           }
 
           is.close();
