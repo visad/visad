@@ -646,7 +646,11 @@ public class TrajectoryManager {
   
   private static FlatField getTerrainFromDisk() {
      try {
-       File file = new File(PROP_TRAJECTORY_TERRAIN_FILE);
+       String filename = System.getProperty(PROP_TRAJECTORY_TERRAIN_FILE, null);
+       if (filename == null) {
+          return null;
+       }
+       File file = new File(filename);
        if (!file.exists()) {
          return null;
        }
