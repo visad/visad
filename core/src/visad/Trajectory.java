@@ -92,7 +92,7 @@ public class Trajectory {
     this.trajMan = trajMan;
   }
   
-  public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, Gridded2DSet spatialSetTerrain, FlatField terrain, int direction, float timeStep)
+  public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, FlatField terrain, int direction, float timeStep)
            throws VisADException, RemoteException {
      
      if (offGrid) return;
