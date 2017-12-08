@@ -63,6 +63,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   ScalarMap flowMap = null;
   TrajectoryParams trajParams;
   ScalarMap altitudeToDisplayZ;
+  CoordinateSystem dspCoordSys;
   
   
   List<BranchGroup> branches = null;
@@ -158,7 +159,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
         if (scalarMap.getScalarName().equals(RealType.Altitude.getName())) {
            DisplayRealType dspType = scalarMap.getDisplayScalar();
-           RealType[] rtypes = dspType.getTuple().getCoordinateSystem().getReference().getRealComponents();
+           dspCoordSys = dspType.getTuple().getCoordinateSystem();
+           RealType[] rtypes = dspCoordSys.getReference().getRealComponents();
            for (int t=0; t<rtypes.length; t++) {
               if (rtypes[t].equals(Display.ZAxis)) {
                  altitudeToDisplayZ = scalarMap;
@@ -1370,6 +1372,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   private void doTrajectory() throws VisADException, RemoteException {
     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
     int dataDomainLength = anim1DdomainSet.getLength();
+    FlowInfo info0 = flowInfoList.get(0);
+    trajParams = new TrajectoryParams(trajParams);
+    trajParams = TrajectoryManager.getTrajParamsFromFile(trajParams, info0.which);
     boolean trcrEnabled = trajParams.getMarkerEnabled();
     int trajForm = trajParams.getTrajectoryForm();
     boolean autoSizeTrcr = true;
@@ -1385,7 +1390,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
     double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
     
-    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ);
+    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ, dspCoordSys);
     
     trcrEnabled = (trcrEnabled && (trajForm == TrajectoryManager.LINE)) && trajForm != TrajectoryManager.POINT;
     

@@ -5,6 +5,8 @@
  */
 package visad;
 
+import java.rmi.RemoteException;
+
 /**
  *
  * @author rink
@@ -90,8 +92,8 @@ public class Trajectory {
     this.trajMan = trajMan;
   }
   
-  public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, int direction, float timeStep)
-           throws VisADException {
+  public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, FlatField terrain, int direction, float timeStep)
+           throws VisADException, RemoteException {
      
      if (offGrid) return;
 
@@ -145,7 +147,27 @@ public class Trajectory {
         if (clrDim == 4) {
           stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
         }
+        
+        // need to do terrain adjust here
 
+        if (manifoldDimension == 2) {
+           float[][] pts2D = new float[2][1];
+           pts2D[0][0] = stopPts[0];
+           pts2D[1][0] = stopPts[1];
+           spatial_set.valueToInterp(pts2D, indices, weights, guess2D);
+        }
+        else if (manifoldDimension == 3) {
+           float[][] pts3D = new float[3][1];
+           pts3D[0][0] = stopPts[0];
+           pts3D[1][0] = stopPts[1];
+           pts3D[2][0] = stopPts[2];
+           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
+
+           if (terrain != null) {
+             adjustFlowAtTerrain(terrain, color_values);
+           }
+        }    
+        
         addPair(startPts, stopPts, startColor, stopColor);
 
         uVecPath[0] = stopPts[0] - startPts[0];
@@ -162,7 +184,7 @@ public class Trajectory {
 
   }
   
-  public void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
+  private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
 
      indexes[npairs] = trajMan.getCoordinateCount();
 
@@ -193,23 +215,63 @@ public class Trajectory {
        startColor[3] = stopColor[3];
      }
 
-     if (manifoldDimension == 2) {
-        startPts2D[0][0] = startPts[0];
-        startPts2D[1][0] = startPts[1];
-        spatial_set.valueToInterp(startPts2D, indices, weights, guess2D);
-     }
-     else if (manifoldDimension == 3) {
-        startPts3D[0][0] = startPts[0];
-        startPts3D[1][0] = startPts[1];
-        startPts3D[2][0] = startPts[2];
-        spatial_set.valueToInterp(startPts3D, indices, weights, guess3D);
-     }
-
      startCell = indices[0];
      cellWeights = weights[0];
      if (indices[0] == null) {
         offGrid = true;
      }     
+  }
+  
+  private void adjustFlowAtTerrain(FlatField terrain, byte[][] color_values) throws VisADException, RemoteException {
+     // Do terrain adjustment here
+     float[] intrpClr = new float[clrDim];
+     
+     if (terrain != null && indices[0] != null ) {
+        int[] lens = spatial_set.getLengths();
+        float[][] spatial_values = spatial_set.getSamples(false);
+        int dir = (spatial_values[2][0] < spatial_values[2][lens[0]*lens[1]]) ? 1 : -1;
+
+        // get interpolated terrain and parcel height at this grid cell
+        float cellTerrain = 0;
+        float parcelHgt = stopPts[2];
+        float parcelX = stopPts[0];
+        float parcelY = stopPts[1];
+        RealTuple xy = new RealTuple(((FunctionType)terrain.getType()).getDomain(), new double[] {parcelX, parcelY});
+        cellTerrain = (float) ((Real)terrain.evaluate(xy, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS)).getValue();
+        
+
+        float diff = parcelHgt - cellTerrain;
+
+        if (diff < 0f) {
+           
+           stopPts[2] += -diff + 0.0014;
+           float[][] pts3D = new float[3][1];
+           pts3D[0][0] = stopPts[0];
+           pts3D[1][0] = stopPts[1];
+           pts3D[2][0] = stopPts[2];
+           
+           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);          
+
+           java.util.Arrays.fill(intrpClr, 0);
+           for (int k=0; k<indices[0].length; k++) {
+              int idx = indices[0][k];
+              intrpClr[0] += weights[0][k]*ShadowType.byteToFloat(color_values[0][idx]);
+              intrpClr[1] += weights[0][k]*ShadowType.byteToFloat(color_values[1][idx]);
+              intrpClr[2] += weights[0][k]*ShadowType.byteToFloat(color_values[2][idx]);
+              if (clrDim == 4) {
+                intrpClr[3] += weights[0][k]*ShadowType.byteToFloat(color_values[3][idx]);
+              }                         
+           }
+           
+           stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
+           stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
+           stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
+           if (clrDim == 4) {
+             stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+           }
+        }
+     
+     }   
   }
   
   public void makeCylinderStrip(int q, float[] uvecPath, float[] uvecPathNext, float[] pt0, float[] pt1, byte[][] clr0, byte[][] clr1, float size,
