@@ -1372,6 +1372,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   private void doTrajectory() throws VisADException, RemoteException {
     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
     int dataDomainLength = anim1DdomainSet.getLength();
+    FlowInfo info0 = flowInfoList.get(0);
+    trajParams = new TrajectoryParams(trajParams);
+    trajParams = TrajectoryManager.getTrajParamsFromFile(trajParams, info0.which);
     boolean trcrEnabled = trajParams.getMarkerEnabled();
     int trajForm = trajParams.getTrajectoryForm();
     boolean autoSizeTrcr = true;
