@@ -67,6 +67,7 @@ public class TrajectoryParams {
   boolean manualIntrpPts = false;
   boolean autoSizeMarker = true;
   boolean cachingEnabled = true;
+  boolean terrainFollowEnabled = true;
   
   int trajForm = LINE;
   float cylWidth = 0.00014f;
@@ -106,6 +107,7 @@ public class TrajectoryParams {
     this.zStart = params.getZStartIndex();
     this.zStartSkip = params.getZStartSkip();
     this.terrain = params.getTerrain();
+    this.terrainFollowEnabled = params.getTerrainFollowing();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -221,6 +223,10 @@ public class TrajectoryParams {
      cylWidth = width;
   }
   
+  public void setTerrainFollowing(boolean yesno) {
+     terrainFollowEnabled = yesno;
+  }
+  
   public void setRibbonWidthFactor(float fac) {
      this.ribbonWidthFac = fac;
   }
@@ -279,6 +285,10 @@ public class TrajectoryParams {
   
   public boolean getMarkerEnabled() {
     return this.markerEnabled;
+  }
+  
+  public boolean getTerrainFollowing() {
+     return terrainFollowEnabled;
   }
   
   public void setStartPoints(float[][] startPts) {
@@ -366,6 +376,9 @@ public class TrajectoryParams {
       }
       else if (this.ribbonWidthFac != trajParams.ribbonWidthFac) {
         return false;
+      }
+      else if (this.terrainFollowEnabled != trajParams.terrainFollowEnabled) {
+         return false;
       }
     }
     return true;
