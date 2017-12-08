@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -168,8 +169,10 @@ public class TrajectoryManager {
       
       this.altToZ = altToZ;
       if (terrainFollowEnabled) {
-        terrain = trajParams.getTerrain();
         terrain = getTerrainFromDisk();
+        if (terrain == null) {
+          terrain = trajParams.getTerrain();
+        }
       }
       
       if (terrain != null) {
@@ -643,7 +646,11 @@ public class TrajectoryManager {
   
   private static FlatField getTerrainFromDisk() {
      try {
-       FileInputStream fis = new FileInputStream(PROP_TRAJECTORY_TERRAIN_FILE);
+       File file = new File(PROP_TRAJECTORY_TERRAIN_FILE);
+       if (!file.exists()) {
+         return null;
+       }
+       FileInputStream fis = new FileInputStream(file);
        ObjectInputStream ois = new ObjectInputStream(fis);
        FlatField fld = (FlatField) ois.readObject();
        fis.close();
