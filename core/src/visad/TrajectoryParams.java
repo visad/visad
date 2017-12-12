@@ -58,7 +58,7 @@ public class TrajectoryParams {
   double trajRefreshInterval = 86400.0;
   int numIntrpPts = 6;
   int startSkip = 2;
-  SmoothParams smoothParams = SmoothParams.MEDIUM;
+  SmoothParams smoothParams = SmoothParams.LIGHT;
   boolean forward = true;
   int direction = 1;  //1: forward, -1: backward
   boolean doIntrp = true;
@@ -67,6 +67,7 @@ public class TrajectoryParams {
   boolean manualIntrpPts = false;
   boolean autoSizeMarker = true;
   boolean cachingEnabled = true;
+  boolean terrainFollowEnabled = true;
   
   int trajForm = LINE;
   float cylWidth = 0.00014f;
@@ -77,6 +78,9 @@ public class TrajectoryParams {
   // these are endPoints if direction is backward
   float[][] startPoints = null;
   RealTupleType startType = Display.DisplaySpatialCartesianTuple;
+  
+  // terrain (lower boundary) Implicit: meters above MSL
+  FlatField terrain = null;
 
   public TrajectoryParams() {
   }
@@ -102,6 +106,8 @@ public class TrajectoryParams {
     this.ribbonWidthFac = params.getRibbonWidthFactor();
     this.zStart = params.getZStartIndex();
     this.zStartSkip = params.getZStartSkip();
+    this.terrain = params.getTerrain();
+    this.terrainFollowEnabled = params.getTerrainFollowing();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -217,6 +223,10 @@ public class TrajectoryParams {
      cylWidth = width;
   }
   
+  public void setTerrainFollowing(boolean yesno) {
+     terrainFollowEnabled = yesno;
+  }
+  
   public void setRibbonWidthFactor(float fac) {
      this.ribbonWidthFac = fac;
   }
@@ -277,6 +287,10 @@ public class TrajectoryParams {
     return this.markerEnabled;
   }
   
+  public boolean getTerrainFollowing() {
+     return terrainFollowEnabled;
+  }
+  
   public void setStartPoints(float[][] startPts) {
     this.startPoints = startPts;
     this.startType = Display.DisplaySpatialCartesianTuple;
@@ -289,6 +303,14 @@ public class TrajectoryParams {
 
   public float[][] getStartPoints() {
     return startPoints;
+  }
+  
+  public void setTerrain(FlatField terrain) {
+     this.terrain = terrain;
+  }
+  
+  public FlatField getTerrain() {
+     return terrain;
   }
  
   public RealTupleType getStartType() {
@@ -354,6 +376,9 @@ public class TrajectoryParams {
       }
       else if (this.ribbonWidthFac != trajParams.ribbonWidthFac) {
         return false;
+      }
+      else if (this.terrainFollowEnabled != trajParams.terrainFollowEnabled) {
+         return false;
       }
     }
     return true;
