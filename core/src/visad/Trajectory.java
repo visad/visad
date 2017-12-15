@@ -244,30 +244,33 @@ public class Trajectory {
 
         if (diff < 0f) {
            
-           stopPts[2] += -diff + 0.0014;
+           float zUp = stopPts[2] - diff + 0.0015f;
            float[][] pts3D = new float[3][1];
            pts3D[0][0] = stopPts[0];
            pts3D[1][0] = stopPts[1];
-           pts3D[2][0] = stopPts[2];
+           pts3D[2][0] = zUp;
            
-           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);          
+           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
+           if (indices[0] != null) {
+             stopPts[2] = zUp;
 
-           java.util.Arrays.fill(intrpClr, 0);
-           for (int k=0; k<indices[0].length; k++) {
-              int idx = indices[0][k];
-              intrpClr[0] += weights[0][k]*ShadowType.byteToFloat(color_values[0][idx]);
-              intrpClr[1] += weights[0][k]*ShadowType.byteToFloat(color_values[1][idx]);
-              intrpClr[2] += weights[0][k]*ShadowType.byteToFloat(color_values[2][idx]);
-              if (clrDim == 4) {
-                intrpClr[3] += weights[0][k]*ShadowType.byteToFloat(color_values[3][idx]);
-              }                         
-           }
+             java.util.Arrays.fill(intrpClr, 0);
+             for (int k=0; k<indices[0].length; k++) {
+               int idx = indices[0][k];
+               intrpClr[0] += weights[0][k]*ShadowType.byteToFloat(color_values[0][idx]);
+               intrpClr[1] += weights[0][k]*ShadowType.byteToFloat(color_values[1][idx]);
+               intrpClr[2] += weights[0][k]*ShadowType.byteToFloat(color_values[2][idx]);
+               if (clrDim == 4) {
+                 intrpClr[3] += weights[0][k]*ShadowType.byteToFloat(color_values[3][idx]);
+               }                         
+             }
            
-           stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
-           stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
-           stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
-           if (clrDim == 4) {
-             stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+             stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
+             stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
+             stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
+             if (clrDim == 4) {
+               stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+             }
            }
         }
      
