@@ -125,6 +125,11 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
     }
   }
 
+  public Object createImage(int data_width, int data_height, int texture_width,
+                     int texture_height, byte[][] color_values) throws VisADException {
+     return adaptedShadowType.createImage(data_width, data_height, texture_width, texture_height, color_values);
+  }
+  
   public void textureToGroup(Object group, VisADGeometryArray array,
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
