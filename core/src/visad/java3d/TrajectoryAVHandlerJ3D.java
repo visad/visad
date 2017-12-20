@@ -58,7 +58,7 @@ public class TrajectoryAVHandlerJ3D implements AVHandler {
    public void setWhichChild(int index) {
       if (index == Switch.CHILD_NONE) {
         bits.clear();
-        swit.setWhichChild(Switch.CHILD_NONE);
+        swit.setChildMask(bits);
       }
       else if (index >= 0) {
         bits.clear();
