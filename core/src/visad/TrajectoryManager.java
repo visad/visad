@@ -2361,6 +2361,25 @@ public class TrajectoryManager {
           if (propStr != null) {
              trajParams.setTrajRefreshInterval(Double.valueOf(propStr));
           }
+          
+          propStr = prop.getProperty("TrajForm");
+          if (propStr != null) {
+             if (propStr.equals("LINE")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.LINE);
+             }
+             else if (propStr.equals("RIBBON")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.RIBBON);  
+             }
+             else if (propStr.equals("CYLINDER")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.CYLINDER); 
+             }
+             else if (propStr.equals("DEFORM_RIBBON")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.DEFORM_RIBBON);
+             }
+             else if (propStr.equals("POINT")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.POINT); 
+             }
+          }
 
           is.close();
        }

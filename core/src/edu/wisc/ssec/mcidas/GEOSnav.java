@@ -48,6 +48,7 @@ public class GEOSnav extends AREAnav {
 
   private static final long serialVersionUID = 1L;
   final int loff, coff, lfac, cfac, plon, bres;
+  final int pixelOffsetFlag;
   final double radpol = 6356.5838;
   final double radeq = 6378.1690;
   final double X42 = 42164.0;
@@ -71,6 +72,13 @@ public class GEOSnav extends AREAnav {
     } else {
     	bres = 1;
     	//System.err.println("Using default bres of 1. iparms contained: " + iparms[6]);
+    }
+    
+    // TJJ Dec 2017 - 1/2 pixel adjustment for AHI
+    if ((iparms.length > 7) && (iparms[7] > 0)) {
+        pixelOffsetFlag = iparms[7];
+    } else {
+        pixelOffsetFlag = 0;
     }
     
   }
@@ -132,8 +140,15 @@ public class GEOSnav extends AREAnav {
         xele = coff/10. + x / Math.pow(2,16) * cfac/10.;
         xlin = loff/10. + y / Math.pow(2,16) * lfac/10.;
         
-        rlin = (xlin*bres)-(bres-1);
-        rele = (xele*bres)-(bres-1);
+        // TJJ Dec 2017 - now checking pixel offset flag for AHI adjustment
+        if (pixelOffsetFlag == 1) {
+            rlin = (xlin * bres) - ((bres - 1) / 2.0);
+            rele = (xele * bres) - ((bres - 1) / 2.0);            
+        } else {
+            rlin = (xlin * bres) - (bres - 1);
+            rele = (xele * bres) - (bres - 1);
+        }
+        
       } else {
 
         rlin=Double.NaN;
@@ -172,8 +187,14 @@ public class GEOSnav extends AREAnav {
       rele = imglinele[indexEle][point];
       
       // use bres to adjust the coordinates
-      xlin = (rlin + (bres-1)) / bres;
-      xele = (rele + (bres-1)) / bres;
+      // TJJ Dec 2017 - now checking pixel offset flag for AHI adjustment
+      if (pixelOffsetFlag == 1) {
+          xlin = (rlin + ((bres - 1) / 2.0)) / bres;
+          xele = (rele + ((bres - 1) / 2.0)) / bres;
+      } else {
+          xlin = (rlin + (bres - 1)) / bres;
+          xele = (rele + (bres - 1)) / bres;
+      }
 
       // --- Intermediate coordinates
       x = (xele - coff/10.) * Math.pow(2,16) / (cfac/10.);

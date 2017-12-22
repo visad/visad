@@ -81,8 +81,6 @@ public class ABINnav extends AREAnav {
 
     private boolean isEastPositive = true;
 
-    private int itype = 1;
-
     /** Line offset. */
     private double loff;
 
@@ -191,8 +189,8 @@ public class ABINnav extends AREAnav {
             double xlon;
 
             // adjust using Base RESolution
-            xlin = (rlin + bres - 1) / bres;
-            xele = (rele + bres - 1) / bres;
+            xlin = (rlin - ((bres - 1) / 2.0)) / bres;
+            xele = (rele - ((bres - 1) / 2.0)) / bres;
 
             // Intermediate coordinates (coordinates will be radians)
             theta_goes = xlin * lfac + loff;
@@ -327,8 +325,8 @@ public class ABINnav extends AREAnav {
                 rele = (lamda - coff) / cfac;
 
                 // Adjust using Base RESolution
-                xlin = rlin * bres - (bres - 1);
-                xele = rele * bres - (bres - 1);
+                xlin = (rlin * bres) + (bres - 1) / 2.0;
+                xele = (rele * bres) + (bres - 1) / 2.0;
             }
             // end of ll_to_img
 
