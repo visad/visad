@@ -28,11 +28,9 @@ package visad;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import visad.util.CubicInterpolator;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -227,7 +225,7 @@ public class TrajectoryManager {
         startPts = new float[3][];
         getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec, ribbonWidthFac);
       }
-      else {
+      else if (startClrs[0] == null) {
         int[] clrIdxs;
         if (spatialSetTraj.getManifoldDimension() == 2) {
             clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
@@ -689,8 +687,8 @@ public class TrajectoryManager {
 //     }
 //     
 //     try {
-//       FileOutputStream fos = new FileOutputStream("/Users/rink/terrain.ser");
-//       ObjectOutputStream oos = new ObjectOutputStream(fos);
+//       java.io.FileOutputStream fos = new java.io.FileOutputStream("/Users/rink/terrain.ser");
+//       java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(fos);
 //       oos.writeObject(newFltFld);
 //       fos.close();
 //     }
@@ -2420,16 +2418,21 @@ public class TrajectoryManager {
      for (int k=0; k<numPts; k++) {
        RealTuple tup = (RealTuple) data.getSample(k);
        double[] vals = tup.getValues();
-          float[] locVal = new float[3];
-          locVal[0] = (float) vals[0];
-          locVal[1] = (float) vals[1];
-          locVal[2] = (float) vals[2];
-          keepPts.add(locVal);
-          //keepVal.add((float)vals[3]);
+       float[] locVal = new float[3];
+       locVal[0] = (float) vals[0];
+       locVal[1] = (float) vals[1];
+       locVal[2] = (float) vals[2];
+       keepPts.add(locVal);
+       if (vals.length > 3) {
+          keepVal.add((float)vals[3]);
+       }   
+     }
+     
+     if ((keepVal.size() != 0 ) && keepPts.size() != keepVal.size()) {
+       throw new VisADException("Trajectory start point file problem: all points must be specified as either lon,lat,alt or lon,lat, alt, val");
      }
      
      float[][] latlonalt = new float[3][keepPts.size()];
-     float[] trcrVals = new float[keepPts.size()];
      colors[0] = new byte[keepPts.size()];
      colors[1] = new byte[keepPts.size()];
      colors[2] = new byte[keepPts.size()];
@@ -2440,26 +2443,36 @@ public class TrajectoryManager {
         latlonalt[0][k] = vals[1];
         latlonalt[1][k] = vals[0];
         latlonalt[2][k] = vals[2];
-        //float tval = keepVal.get(k);
-        //trcrVals[k] = tval;
      }
      
      // trcr quantity must already be scaled 0 -> 1
      
-     float[][] clrTbl = new float[colors.length][256];
-     BaseColorControl.initTableVis5D(clrTbl);
-     
-     for (int i=0; i<trcrVals.length; i++) {
-        float tval = trcrVals[i];
-        if (tval > 1f) tval = 1f;
-        int ci = (int) (tval*256f);
-        
-        colors[0][i] = (byte) (256f * clrTbl[0][ci]);
-        colors[1][i] = (byte) (256f * clrTbl[1][ci]);
-        colors[2][i] = (byte) (256f * clrTbl[2][ci]);
-        if (colors.length == 4) colors[3][i] = (byte) (256f * clrTbl[3][ci]);
+     float[] trcrVals = null;
+     if (keepVal.size() > 0) {
+        trcrVals = new float[keepVal.size()];
      }
      
+     if (trcrVals != null) {
+     
+        for (int k=0; k<trcrVals.length; k++) {
+           float tval = keepVal.get(k);
+           trcrVals[k] = tval;
+        }
+
+        float[][] clrTbl = new float[colors.length][256];
+        BaseColorControl.initTableVis5D(clrTbl);
+
+        for (int i=0; i<trcrVals.length; i++) {
+           float tval = trcrVals[i];
+           if (tval > 1f) tval = 1f;
+           int ci = (int) (tval*256f);
+
+           colors[0][i] = (byte) (256f * clrTbl[0][ci]);
+           colors[1][i] = (byte) (256f * clrTbl[1][ci]);
+           colors[2][i] = (byte) (256f * clrTbl[2][ci]);
+           if (colors.length == 4) colors[3][i] = (byte) (256f * clrTbl[3][ci]);
+        }
+     }
      
      latlonalt[2] = altToZ.scaleValues(latlonalt[2]);
      
