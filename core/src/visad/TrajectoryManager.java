@@ -2433,10 +2433,6 @@ public class TrajectoryManager {
      }
      
      float[][] latlonalt = new float[3][keepPts.size()];
-     colors[0] = new byte[keepPts.size()];
-     colors[1] = new byte[keepPts.size()];
-     colors[2] = new byte[keepPts.size()];
-     if (colors.length == 4) colors[3] = new byte[keepPts.size()];
      
      for (int k=0; k<keepPts.size(); k++) {
         float[] vals = keepPts.get(k);
@@ -2453,6 +2449,10 @@ public class TrajectoryManager {
      }
      
      if (trcrVals != null) {
+        colors[0] = new byte[keepPts.size()];
+        colors[1] = new byte[keepPts.size()];
+        colors[2] = new byte[keepPts.size()];
+        if (colors.length == 4) colors[3] = new byte[keepPts.size()];
      
         for (int k=0; k<trcrVals.length; k++) {
            float tval = keepVal.get(k);
