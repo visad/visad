@@ -484,6 +484,9 @@ public class TrajectoryManager {
            array = makeDeformableRibbon();
            cleanDefStrp();
            break;
+         case POINT:
+           clean();
+           break;
        }
        
        if (arrays == null) {
