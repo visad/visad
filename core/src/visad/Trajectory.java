@@ -87,7 +87,12 @@ public class Trajectory {
     clrDim = startColor.length;
     stopColor = new byte[clrDim];
 
-    this.startColor = startColor;   
+    this.startColor = new byte[clrDim];
+    this.startColor[0] = startColor[0];
+    this.startColor[1] = startColor[1];
+    this.startColor[2] = startColor[2];
+    if (clrDim == 4) this.startColor[3] = startColor[3];
+    
     this.initialTime = initialTime;
     this.trajMan = trajMan;
   }
