@@ -31,6 +31,8 @@ package visad;
    and is Serializable.<P>
 */
 public class VisADSwitch extends VisADGroup {
+   
+  public static final int NONE_VISIBLE = -1;
 
   private int which = -1;
 
