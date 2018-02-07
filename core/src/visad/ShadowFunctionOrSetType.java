@@ -2743,15 +2743,15 @@ WLH 15 March 2000 */
 
             if (t3dm == GraphicsModeControl.STACK2D) {
       // WLH 3 June 99 - comment this out until Texture3D works on NT (etc)
-              BufferedImage[][] images = new BufferedImage[3][];
+              Object[][] images = new Object[3][];
               for (int i=0; i<3; i++) {
-                images[i] = createImages(i, data_width, data_height, data_depth,
+                images[i] = shadow_api.createImages(i, data_width, data_height, data_depth,
                                  texture_width, texture_height, texture_depth,
                                  color_values);
               }
-              BufferedImage[] imagesX = null;
-              BufferedImage[] imagesY = null;
-              BufferedImage[] imagesZ = null;
+              Object[] imagesX = null;
+              Object[] imagesY = null;
+              Object[] imagesZ = null;
               for (int i=0; i<3; i++) {
                 if (volume_tuple_index[i] == 0) {
                   imagesX = images[i];
@@ -2771,8 +2771,8 @@ WLH 15 March 2000 */
                                       renderer);
             } else {
 
-              BufferedImage[] images =
-                createImages(2, data_width, data_height, data_depth,
+              Object[] images =
+                shadow_api.createImages(2, data_width, data_height, data_depth,
                              texture_width, texture_height, texture_depth,
                              color_values);
               shadow_api.texture3DToGroup(group, qarrayX, qarrayY, qarrayZ,

@@ -726,6 +726,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       tile.setImageComponent(image2d);
     }
   }
+  
+  public Object[] createImages(int axis, int data_width_in,
+           int data_height_in, int data_depth_in, int texture_width_in,
+           int texture_height_in, int texture_depth_in, byte[][] color_values)
+         throws VisADException {
+    return adaptedShadowType.createImages(axis, data_width_in, data_height_in, data_depth_in, 
+            texture_width_in, texture_height_in, texture_depth_in, color_values);
+  }
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
                     VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
