@@ -740,7 +740,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                     VisADGeometryArray arrayXrev,
                     VisADGeometryArray arrayYrev,
                     VisADGeometryArray arrayZrev,
-                    BufferedImage[] images, GraphicsModeControl mode,
+                    Object[] images, GraphicsModeControl mode,
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height,
                     int texture_depth, DataRenderer renderer)
@@ -797,7 +797,7 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                            texture_height, texture_depth);
     image3d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
     for (int i=0; i<texture_depth; i++) {
-      image3d.set(i, images[i]);
+      image3d.set(i, (BufferedImage)images[i]);
       images[i] = null; // take out the garbage
     }
     texture.setImage(0, image3d);
@@ -877,9 +877,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                     VisADGeometryArray arrayXrev,
                     VisADGeometryArray arrayYrev,
                     VisADGeometryArray arrayZrev,
-                    BufferedImage[] imagesX,
-                    BufferedImage[] imagesY,
-                    BufferedImage[] imagesZ,
+                    Object[] imagesX,
+                    Object[] imagesY,
+                    Object[] imagesZ,
                     GraphicsModeControl mode,
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height,
@@ -941,13 +941,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D[] shapeX = new Shape3D[data_depth];
     for (int ii=0; ii<data_depth; ii++) {
       int i = flipX ? data_depth-1-ii : ii;
-      int width = imagesX[i].getWidth();
-      int height = imagesX[i].getHeight();
+      int width = ((BufferedImage)imagesX[i]).getWidth();
+      int height = ((BufferedImage)imagesX[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesX[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesX[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -976,13 +976,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchXrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int ii=data_depth-1; ii>=0; ii--) {
       int i = flipX ? data_depth-1-ii : ii;
-      int width = imagesX[i].getWidth();
-      int height = imagesX[i].getHeight();
+      int width = ((BufferedImage)imagesX[i]).getWidth();
+      int height = ((BufferedImage)imagesX[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesX[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesX[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1015,14 +1015,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D[] shapeY = new Shape3D[data_height];
     for (int ii=0; ii<data_height; ii++) {
       int i = flipY ? data_height-1-ii : ii;
-      int width = imagesY[i].getWidth();
-      int height = imagesY[i].getHeight();
+      int width = ((BufferedImage)imagesY[i]).getWidth();
+      int height = ((BufferedImage)imagesY[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       // flip texture on Y axis
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesY[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesY[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1051,14 +1051,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchYrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int ii=data_height-1; ii>=0; ii--) {
       int i = flipY ? data_height-1-ii : ii;
-      int width = imagesY[i].getWidth();
-      int height = imagesY[i].getHeight();
+      int width = ((BufferedImage)imagesY[i]).getWidth();
+      int height = ((BufferedImage)imagesY[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       // flip texture on Y axis
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesY[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesY[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1091,13 +1091,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D[] shapeZ = new Shape3D[data_width];
     for (int ii=0; ii<data_width; ii++) {
       int i = flipZ ? data_width-1-ii : ii;
-      int width = imagesZ[i].getWidth();
-      int height = imagesZ[i].getHeight();
+      int width = ((BufferedImage)imagesZ[i]).getWidth();
+      int height = ((BufferedImage)imagesZ[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesZ[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesZ[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1126,13 +1126,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchZrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int ii=data_width-1; ii>=0; ii--) {
       int i = flipZ ? data_width-1-ii : ii;
-      int width = imagesZ[i].getWidth();
-      int height = imagesZ[i].getHeight();
+      int width = ((BufferedImage)imagesZ[i]).getWidth();
+      int height = ((BufferedImage)imagesZ[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesZ[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesZ[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
