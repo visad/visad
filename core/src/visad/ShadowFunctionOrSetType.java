@@ -2628,6 +2628,9 @@ makeGeometry 350, 171
             return false;
           } // end if (curvedTexture)
           else if (isTexture3D) {
+            texture_width = shadow_api.textureWidth(data_width);
+            texture_height = shadow_api.textureWidth(data_height);
+            texture_depth = shadow_api.textureWidth(data_depth);
             visad.util.Trace.call1("ShadowFunctionOrSetType:3D texture");
             if (color_values == null) {
               // must be color_values array for texture mapping
