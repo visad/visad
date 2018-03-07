@@ -4325,9 +4325,21 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
       throws VisADException {
     return addToGroup(group, array, mode, constant_alpha, constant_color);
   }
+  
+  public Object createImage(int data_width, int data_height, int texture_width,
+                     int texture_height, byte[][] color_values) throws VisADException {
+     return null;
+  }
+  
+  public Object[] createImages(int axis, int data_width_in,
+           int data_height_in, int data_depth_in, int texture_width_in,
+           int texture_height_in, int texture_depth_in, byte[][] color_values)
+         throws VisADException {
+    return null;
+  }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-      BufferedImage image, GraphicsModeControl mode, float constant_alpha,
+      Object image, GraphicsModeControl mode, float constant_alpha,
       float[] constant_color, int texture_width, int texture_height)
       throws VisADException {
   }
@@ -4335,7 +4347,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
       VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
       VisADGeometryArray arrayXrev, VisADGeometryArray arrayYrev,
-      VisADGeometryArray arrayZrev, BufferedImage[] images,
+      VisADGeometryArray arrayZrev, Object[] images,
       GraphicsModeControl mode, float constant_alpha, float[] constant_color,
       int texture_width, int texture_height, int texture_depth,
       DataRenderer renderer) throws VisADException {
@@ -4344,8 +4356,8 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
   public void textureStackToGroup(Object group, VisADGeometryArray arrayX,
       VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
       VisADGeometryArray arrayXrev, VisADGeometryArray arrayYrev,
-      VisADGeometryArray arrayZrev, BufferedImage[] imagesX,
-      BufferedImage[] imagesY, BufferedImage[] imagesZ,
+      VisADGeometryArray arrayZrev, Object[] imagesX,
+      Object[] imagesY, Object[] imagesZ,
       GraphicsModeControl mode, float constant_alpha, float[] constant_color,
       int texture_width, int texture_height, int texture_depth,
       DataRenderer renderer) throws VisADException {

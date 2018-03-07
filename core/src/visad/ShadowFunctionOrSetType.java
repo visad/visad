@@ -2628,6 +2628,9 @@ makeGeometry 350, 171
             return false;
           } // end if (curvedTexture)
           else if (isTexture3D) {
+            texture_width = shadow_api.textureWidth(data_width);
+            texture_height = shadow_api.textureWidth(data_height);
+            texture_depth = shadow_api.textureWidth(data_depth);
             visad.util.Trace.call1("ShadowFunctionOrSetType:3D texture");
             if (color_values == null) {
               // must be color_values array for texture mapping
@@ -2743,15 +2746,15 @@ WLH 15 March 2000 */
 
             if (t3dm == GraphicsModeControl.STACK2D) {
       // WLH 3 June 99 - comment this out until Texture3D works on NT (etc)
-              BufferedImage[][] images = new BufferedImage[3][];
+              Object[][] images = new Object[3][];
               for (int i=0; i<3; i++) {
-                images[i] = createImages(i, data_width, data_height, data_depth,
+                images[i] = shadow_api.createImages(i, data_width, data_height, data_depth,
                                  texture_width, texture_height, texture_depth,
                                  color_values);
               }
-              BufferedImage[] imagesX = null;
-              BufferedImage[] imagesY = null;
-              BufferedImage[] imagesZ = null;
+              Object[] imagesX = null;
+              Object[] imagesY = null;
+              Object[] imagesZ = null;
               for (int i=0; i<3; i++) {
                 if (volume_tuple_index[i] == 0) {
                   imagesX = images[i];
@@ -2771,8 +2774,8 @@ WLH 15 March 2000 */
                                       renderer);
             } else {
 
-              BufferedImage[] images =
-                createImages(2, data_width, data_height, data_depth,
+              Object[] images =
+                shadow_api.createImages(2, data_width, data_height, data_depth,
                              texture_width, texture_height, texture_depth,
                              color_values);
               shadow_api.texture3DToGroup(group, qarrayX, qarrayY, qarrayZ,
@@ -3868,13 +3871,9 @@ WLH 15 March 2000 */
       qarray.colors = colors;
       qarray.normals = normals;
                                                                                                                                     
-      BufferedImage image =
-         createImage(data_width, data_height, texture_width,
-                     texture_height, color_values);
-      shadow_api.textureToGroup(group, qarray, image, mode,
-                                constant_alpha, constant_color,
-                                texture_width, texture_height);
-
+      Object image = shadow_api.createImage(data_width, data_height, texture_width, texture_height, color_values);
+      
+      shadow_api.textureToGroup(group, qarray, image, mode, constant_alpha, constant_color, texture_width, texture_height);
   }
 
   private void buildCurvedTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,
@@ -4071,9 +4070,7 @@ if (size < 0.2) {
         tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
       }
 
-      BufferedImage image =
-         createImage(data_width, data_height, texture_width,
-                     texture_height, color_values);
+      Object image = shadow_api.createImage(data_width, data_height, texture_width, texture_height, color_values);
 
       shadow_api.textureToGroup(group, tarray, image, mode,
                                 constant_alpha, constant_color,
