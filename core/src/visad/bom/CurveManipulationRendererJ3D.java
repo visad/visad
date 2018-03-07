@@ -808,10 +808,8 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   private static final int N = 64;
 
   /** test CurveManipulationRendererJ3D */
-  //public static void main(String args[])
-  public static void createAndShowGUI(String args[])
+  public static void main(String args[])
          throws VisADException, RemoteException {
-     System.out.println("createAndShowGUI");
     RealType x = RealType.getRealType("x");
     RealType y = RealType.getRealType("y");
     RealTupleType xy = new RealTupleType(x, y);
@@ -942,21 +940,5 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     frame.setSize(500, 500);
     frame.setVisible(true);
   }
-  
-    public static void main(String[] args) throws VisADException, RemoteException {
-         SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                //Turn off metal's use of bold fonts
-                UIManager.put("swing.boldMetal", Boolean.FALSE);
-                try {
-                   createAndShowGUI(new String[] {});
-                }
-                catch (Exception e) {
-                   e.printStackTrace();
-                }
-            }
-        });            
-   }
 }
 
