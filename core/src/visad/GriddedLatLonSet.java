@@ -510,7 +510,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
              else {
                 Tri tri = whichTriangle(gg, tt);
                 
-                float[] gxy = tri.reverseInterpolate(new float[] {value[0][i], value[1][i]});
+                float[] gxy = tri.reverseInterpolate(new float[] {value[lonI][i], value[latI][i]});
                 grid[0][i] = gxy[0];
                 grid[1][i] = gxy[1];
              }
@@ -816,6 +816,7 @@ class Tri {
    public float[] v2;
    public float[] v3;
    public boolean lower;
+   public boolean spansDL = false;
    
    
    Tri(int[] gg, float[] v0, float[] v1, float[] v2, float[] v3, boolean lower) {
@@ -824,11 +825,45 @@ class Tri {
       this.v1 = v1;
       this.v2 = v2;
       this.v3 = v3;
-      this.lower = lower;    
+      this.lower = lower;
+      
+      float lonMin = 360;
+      float lonMax = -360;
+      
+      if (v0 != null) {
+         float lon = v0[0];
+         if (lon < lonMin) lonMin = lon;
+         if (lon > lonMax) lonMax = lon;
+      }
+      if (v1 != null) {
+         float lon = v1[0];
+         if (lon < lonMin) lonMin = lon;
+         if (lon > lonMax) lonMax = lon;
+      }
+      if (v2 != null) {
+         float lon = v2[0];
+         if (lon < lonMin) lonMin = lon;
+         if (lon > lonMax) lonMax = lon;
+      }
+      if (v3 != null) {
+         float lon = v3[0];
+         if (lon < lonMin) lonMin = lon;
+         if (lon > lonMax) lonMax = lon;
+      }
+      
+      if ((lonMax - lonMin) > 300) { // grid cell probably stradles the dateline
+         spansDL = true;
+      }        
+      
    }
    
    float[] reverseInterpolate(float[] value) {
       float[] grid = new float[2];
+      if (spansDL) {
+         grid[0] = gg[0];
+         grid[1] = gg[1];
+         return grid;
+      }
       if (lower) {
             grid[0] = ((value[0]-v0[0])*(v2[1]-v0[1])
                         + (v0[1]-value[1])*(v2[0]-v0[0]))
