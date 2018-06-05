@@ -362,7 +362,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           igy = 0;
           
           int idx = (gy+1)*LengthX+gx;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gy+1) < TrackLen) {
              float lat = lats[idx];
              float lon = lons[idx];             
              
@@ -375,7 +375,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           }
           
           idx = (gy-1)*LengthX+gx;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gy-1) >= 0) {
              float lat = lats[idx];
              float lon = lons[idx];
              
@@ -388,7 +388,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           }
           
           idx = gy*LengthX+gx+1;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gx+1) < LengthX) {
              float lat = lats[idx];
              float lon = lons[idx];
              
@@ -401,7 +401,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           }
           
           idx = gy*LengthX+gx-1;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gx-1) >= 0) {   
              float lat = lats[idx];
              float lon = lons[idx];
              
@@ -414,7 +414,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           }
           
           idx = (gy+1)*LengthX+gx-1;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gy+1) < TrackLen && (gx-1) >= 0) {
              float lat = lats[idx];
              float lon = lons[idx];
              
@@ -427,7 +427,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           } 
           
           idx = (gy+1)*LengthX+gx+1;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gx+1) < LengthX && (gy+1) < TrackLen) {
              float lat = lats[idx];
              float lon = lons[idx];
               
@@ -440,7 +440,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           }
           
           idx = (gy-1)*LengthX+gx-1;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gy-1) >= 0 && (gx-1) >= 0) {
              float lat = lats[idx];
              float lon = lons[idx];
              
@@ -453,7 +453,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           }
            
           idx = (gy-1)*LengthX+gx+1;
-          if (0 <= idx && idx <= Length-1) {
+          if ((gy-1) >= 0 && (gx+1) < LengthX) {
              float lat = lats[idx];
              float lon = lons[idx];
              
