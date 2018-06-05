@@ -582,8 +582,8 @@ public class GriddedLatLonSet extends Gridded2DSet {
       int cnt = 0;
       for (int j=0; j<lenY; j++) {
          int idx = j*lenX + lenX/2; // check scan line center: NaN and valid Lat range check
-         //if ((!(Float.isNaN(lonlat[0][idx]) || Float.isNaN(lonlat[1][idx]))) && (Math.abs(lonlat[1][idx]) <= 90.0)) {
-         if ((!(Float.isNaN(lonlat[0][idx]) || Float.isNaN(lonlat[1][idx]))) && (lonlat[1][idx] != -9.0)) {
+         if ((!(Float.isNaN(lonlat[0][idx]) || Float.isNaN(lonlat[1][idx]))) && (Math.abs(lonlat[1][idx]) <= 90.0)) {
+         //if ((!(Float.isNaN(lonlat[0][idx]) || Float.isNaN(lonlat[1][idx]))) && (lonlat[1][idx] != -9.0)) {
             good_lines[cnt++] = j;
          }
       }
