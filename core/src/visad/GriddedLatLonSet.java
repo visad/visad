@@ -41,6 +41,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
   
   GriddedLatLonSet[] granules;
   int[] yStart;
+  float[] lgxy;
 
   /** a 2-D set whose topology is a lengthX x lengthY grid, with
       null errors, CoordinateSystem and Units are defaults from type */
@@ -84,6 +85,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
     HiY = Hi[1];
     LengthY = Lengths[1];
     TrackLen = LengthY;
+    lgxy = new float[] {Float.NaN, Float.NaN};
     
     
     MathType  type0 = ((SetType)getType()).getDomain().getComponent(0);
@@ -315,10 +317,20 @@ public class GriddedLatLonSet extends Gridded2DSet {
     int gx = (LengthX-1)/2;
     int gy = (TrackLen-1)/2;
     
-    // TDR: special check if i==0 when a first value guess is supplied.
     if (guess != null && guess[0] >= 0 && guess[1] >= 0) {
       gx = guess[0];
       gy = guess[1];
+    }
+    else if (!Float.isNaN(lgxy[0])) {
+       gx = (int) lgxy[0];
+       gy = (int) lgxy[1];
+    }
+    else {
+       int[] gg = findValid(gx, gy);
+       if (gg != null) {
+          gx = gg[0];
+          gy = gg[1];
+       }
     }
 
     for (int i=0; i<length; i++) {
@@ -503,16 +515,19 @@ public class GriddedLatLonSet extends Gridded2DSet {
                   offGrid = !insideTriangle(gg, UU, LL, DD, tt);               
              }
              
-             if (offGrid) {
-                grid[0][i] = Float.NaN;
-                grid[1][i] = Float.NaN;
-             }
-             else {
+             grid[0][i] = Float.NaN;
+             grid[1][i] = Float.NaN;
+             
+             if (!offGrid) {
                 Tri tri = whichTriangle(gg, tt);
                 
-                float[] gxy = tri.reverseInterpolate(new float[] {value[lonI][i], value[latI][i]});
-                grid[0][i] = gxy[0];
-                grid[1][i] = gxy[1];
+                if (tri != null) { // should not happen?
+                   float[] gxy = tri.reverseInterpolate(new float[] {value[lonI][i], value[latI][i]});
+                   grid[0][i] = gxy[0];
+                   grid[1][i] = gxy[1];
+                   lgxy[0] = gxy[0];
+                   lgxy[1] = gxy[1];
+                }
              }
              
              break;
@@ -524,11 +539,6 @@ public class GriddedLatLonSet extends Gridded2DSet {
         float[][] tmp = goodLinesSet.gridToValue(new float[][] {{grid[1][i]}});
         grid[1][i] = tmp[0][0];
       }
-      
-//      if ( (grid[0][i] >= LengthX-0.5) || (grid[1][i] >= LengthY-0.5)
-//        || (grid[0][i] <= -0.5) || (grid[1][i] <= -0.5) ) {
-//        grid[0][i] = grid[1][i] = Float.NaN;
-//      }
 
     }
     //TDR: use last found as guess for next locate request
@@ -539,6 +549,30 @@ public class GriddedLatLonSet extends Gridded2DSet {
     
     
     return grid;
+  }
+  
+  private int[] findValid(int gx, int gy) {
+     int cnt = 0;
+      while (cnt < (Math.min(LengthX,TrackLen)/2-1)) {
+         int idx = (gy+cnt)*LengthX + gx;
+         if (Math.abs(lats[idx]) <= 90) {
+           return new int[] {gx+cnt, gy};
+         }
+         idx = (gy-cnt)*LengthX + gx;
+         if (Math.abs(lats[idx]) <= 90) {
+           return new int[] {gx-cnt, gy};
+         }     
+         idx = gy*LengthX + gx + cnt;
+         if (Math.abs(lats[idx]) <= 90) {
+           return new int[] {gx-cnt, gy};
+         }   
+         idx = gy*LengthX + gx - cnt;
+         if (Math.abs(lats[idx]) <= 90) {
+           return new int[] {gx-cnt, gy};
+         }
+         cnt++;
+     }
+     return null;
   }
   
     
@@ -583,7 +617,6 @@ public class GriddedLatLonSet extends Gridded2DSet {
       for (int j=0; j<lenY; j++) {
          int idx = j*lenX + lenX/2; // check scan line center: NaN and valid Lat range check
          if ((!(Float.isNaN(lonlat[0][idx]) || Float.isNaN(lonlat[1][idx]))) && (Math.abs(lonlat[1][idx]) <= 90.0)) {
-         //if ((!(Float.isNaN(lonlat[0][idx]) || Float.isNaN(lonlat[1][idx]))) && (lonlat[1][idx] != -9.0)) {
             good_lines[cnt++] = j;
          }
       }
