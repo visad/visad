@@ -199,16 +199,9 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
                                   coord_sys, units, errors, copy);
         }
         else {
-          if (type.equals(RealTupleType.LatitudeLongitudeTuple) || type.equals(RealTupleType.SpatialEarth2DTuple)) {
-            return new GriddedLatLonSet(type, samples,
-                                        lengths[0], lengths[1],
-                                        coord_sys, units, errors, copy, test);
-          }
-          else {
-            return new Gridded2DSet(type, samples,
-                                    lengths[0], lengths[1],
-                                    coord_sys, units, errors, copy, test);             
-          }
+          return new Gridded2DSet(type, samples,
+                                  lengths[0], lengths[1],
+                                  coord_sys, units, errors, copy, test);
         }
       case 3:
         if (manifold_dimension == 1) {
