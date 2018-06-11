@@ -335,8 +335,10 @@ public class GriddedLatLonSet extends Gridded2DSet {
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
         // use last valid
-        gx = lgxy[0];
-        gy = lgxy[1];
+        if (lgxy[0] != -1 && lgxy[1] != -1) {
+          gx = lgxy[0];
+          gy = lgxy[1];
+        }
       }
       
       // if the loop doesn't find the answer, the result should be NaN
