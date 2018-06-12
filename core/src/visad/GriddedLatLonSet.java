@@ -37,11 +37,10 @@ public class GriddedLatLonSet extends Gridded2DSet {
   float LowX, HiX, LowY, HiY;
   float[] lons, lats;
   float[][] mySamples;
-  Gridded1DSet goodLinesSet = null;
   
   GriddedLatLonSet[] granules;
   int[] yStart;
-  float[] lgxy;
+  int[] lgxy;
 
   /** a 2-D set whose topology is a lengthX x lengthY grid, with
       null errors, CoordinateSystem and Units are defaults from type */
@@ -85,7 +84,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
     HiY = Hi[1];
     LengthY = Lengths[1];
     TrackLen = LengthY;
-    lgxy = new float[] {Float.NaN, Float.NaN};
+    lgxy = new int[] {-1, -1};
     
     if (!(type.equals(RealTupleType.LatitudeLongitudeTuple) || type.equals(RealTupleType.SpatialEarth2DTuple))) {
        throw new VisADException("type must 2D with Latitude and Longitude");
@@ -137,26 +136,10 @@ public class GriddedLatLonSet extends Gridded2DSet {
        System.arraycopy(lons, lons0.length, lons1, 0, lons1.length);
        System.arraycopy(lats, lats0.length, lats1, 0, lats1.length);
 
-
        granules[0] = new GriddedLatLonSet(type, new float[][] {lons0, lats0}, LengthX, TrackLen0, coord_sys, units, errors, copy, test);
        granules[1] = new GriddedLatLonSet(type, new float[][] {lons1, lats1}, LengthX, TrackLen1, coord_sys, units, errors, copy, test);
-    
     }
-    else {
-//       int[] goodLines = checkForMissingLines(new float[][] {lons, lats}, LengthX, LengthY);
-//       if (goodLines != null) {
-//          float[][] lonlat = removeMissingLines(new float[][] {lons, lats}, LengthX, LengthY, goodLines);
-//          lons = lonlat[0];
-//          lats = lonlat[1];
-//
-//          TrackLen = goodLines.length;
-//          float[] flts = new float[TrackLen];
-//          for (int k=0; k<TrackLen; k++) {
-//            flts[k] = (float) goodLines[k];
-//          }
-//          goodLinesSet = new Gridded1DSet(RealType.Generic, new float[][] {flts}, TrackLen);
-//       }       
-    }
+
   }
 
 
@@ -276,7 +259,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
   }
   
   @Override
-  public float[][] valueToGrid(float[][] value, int[] guess) throws VisADException {
+  public synchronized float[][] valueToGrid(float[][] value, int[] guess) throws VisADException {
      
     // Check the individual segments comprising the whole
     if (granules != null) {
@@ -319,9 +302,9 @@ public class GriddedLatLonSet extends Gridded2DSet {
       gx = guess[0];
       gy = guess[1];
     }
-    else if (!Float.isNaN(lgxy[0])) {
-       gx = (int) lgxy[0];
-       gy = (int) lgxy[1];
+    else if (lgxy[0] != -1 && lgxy[1] != -1) {
+       gx = lgxy[0];
+       gy = lgxy[1];
     }
     else {
        int[] gg = findValid(gx, gy);
@@ -331,8 +314,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
        }
     }
     
-    int idx = gy*LengthX+gy;
-    
+    int idx = gy*LengthX+gx;
     if (Float.isNaN(lons[idx]) || Float.isNaN(lats[idx]) || (Math.abs(lats[idx]) > 90)) {
        throw new VisADException("initial grid box guess cannot be invalid or missing");
     }
@@ -352,8 +334,10 @@ public class GriddedLatLonSet extends Gridded2DSet {
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
         // use last valid
-        gx = (int) lgxy[0];
-        gy = (int) lgxy[1];
+        if (lgxy[0] != -1 && lgxy[1] != -1) {
+          gx = lgxy[0];
+          gy = lgxy[1];
+        }
       }
       
       // if the loop doesn't find the answer, the result should be NaN
@@ -526,6 +510,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
           
           gx += igx;
           gy += igy;
+          
           last_igx = igx;
           last_igy = igy;
           
@@ -570,20 +555,13 @@ public class GriddedLatLonSet extends Gridded2DSet {
                    float[] gxy = tri.reverseInterpolate(new float[] {value[lonI][i], value[latI][i]});
                    grid[0][i] = gxy[0];
                    grid[1][i] = gxy[1];
-                   lgxy[0] = gxy[0];
-                   lgxy[1] = gxy[1];
+                   lgxy[0] = gx;
+                   lgxy[1] = gy;
                 }
              }
              break;
           }
       }
-      
-      // return original domain coordinates if missing geo lines were removed
-      if (goodLinesSet != null && !Float.isNaN(grid[1][i])) {
-        float[][] tmp = goodLinesSet.gridToValue(new float[][] {{grid[1][i]}});
-        grid[1][i] = tmp[0][0];
-      }
-
     }
     //TDR: use last found as guess for next locate request
     if (guess != null) {
@@ -597,7 +575,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
   
   private int[] findValid(int gx, int gy) {
      int cnt = 0;
-      while (cnt < (Math.min(LengthX,TrackLen)/2-1)) {
+      while (cnt < (Math.min(LengthX,TrackLen)/2-2)) {
          int idx = (gy+cnt)*LengthX + gx;
          if (Math.abs(lats[idx]) <= 90) {
            return new int[] {gx, gy+cnt};
@@ -619,7 +597,6 @@ public class GriddedLatLonSet extends Gridded2DSet {
      return null;
   }
   
-    
   public static float[] toXYZ(float[] latlonrad) {
     float[] value = new float[3];
 
@@ -654,40 +631,6 @@ public class GriddedLatLonSet extends Gridded2DSet {
        return arc;
   }
   
-//     public static int[] checkForMissingLines(float[][] lonlat, int lenX, int lenY) {
-//      int[] good_lines = new int[lenY];
-//      int cnt = 0;
-//      for (int j=0; j<lenY; j++) {
-//         int idx = j*lenX + lenX/2; // check scan line center: NaN and valid Lat range check
-//         if ((!(Float.isNaN(lonlat[0][idx]) || Float.isNaN(lonlat[1][idx]))) && (Math.abs(lonlat[1][idx]) <= 90.0)) {
-//            good_lines[cnt++] = j;
-//         }
-//      }
-//
-//      if (cnt == lenY) {
-//         return null;
-//      }
-//      else {
-//         int[] tmp = new int[cnt];
-//         System.arraycopy(good_lines, 0, tmp, 0, cnt);
-//         good_lines = tmp;
-//         return good_lines;
-//      }
-//   }
-//
-//   public static float[][] removeMissingLines(float[][] lonlat, int lenX, int lenY, int[] good_lines) {
-//      float[][] noMissing = new float[2][lenX*(good_lines.length)];
-//
-//      for (int k=0; k < good_lines.length; k++) {
-//
-//         int idx = good_lines[k]*lenX;
-//
-//         System.arraycopy(lonlat[0], idx, noMissing[0], k*lenX, lenX);
-//         System.arraycopy(lonlat[1], idx, noMissing[1], k*lenX, lenX);
-//      }
-//
-//      return noMissing;
-//   }
    
    public static boolean insideTriangle(float[] v0, float[] v1, float[] v2, float[] pt) {
       float[] triNorm = TrajectoryManager.AxB(new float[] {v1[0]-v0[0], v1[1]-v0[1], v1[2]-v0[2]}, new float[] {v2[0]-v0[0], v2[1]-v0[1], v2[2]-v0[2]}, true);
