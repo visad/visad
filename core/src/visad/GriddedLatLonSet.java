@@ -37,7 +37,6 @@ public class GriddedLatLonSet extends Gridded2DSet {
   float LowX, HiX, LowY, HiY;
   float[] lons, lats;
   float[][] mySamples;
-  Gridded1DSet goodLinesSet = null;
   
   GriddedLatLonSet[] granules;
   int[] yStart;
@@ -563,13 +562,6 @@ public class GriddedLatLonSet extends Gridded2DSet {
              break;
           }
       }
-      
-      // return original domain coordinates if missing geo lines were removed
-      if (goodLinesSet != null && !Float.isNaN(grid[1][i])) {
-        float[][] tmp = goodLinesSet.gridToValue(new float[][] {{grid[1][i]}});
-        grid[1][i] = tmp[0][0];
-      }
-
     }
     //TDR: use last found as guess for next locate request
     if (guess != null) {
