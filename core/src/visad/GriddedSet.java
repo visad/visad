@@ -208,7 +208,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
             return new Gridded2DSet(type, samples,
                                     lengths[0], lengths[1],
                                     coord_sys, units, errors, copy, test);             
-          }
+          }           
         }
       case 3:
         if (manifold_dimension == 1) {
