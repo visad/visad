@@ -189,6 +189,249 @@ public class Trajectory {
 
   }
   
+    public void forwardRK4(FlowInfo info, float[][] flow_values, float[][] flow_valuesB, float[][] flow_valuesC, byte[][] color_values, GriddedSet spatial_set, FlatField terrain, int direction, float timeStep)
+           throws VisADException, RemoteException {
+     
+     if (offGrid) return;
+
+     clrDim = color_values.length;
+     float[] intrpClr = new float[clrDim];
+     this.spatial_set = spatial_set;
+     this.manifoldDimension = spatial_set.getManifoldDimension();
+
+
+     
+     float[][] flowLoc = new float[3][1];
+     float[][] flowVec = new float[3][1];
+     float[] intrpFlow = new float[3];
+     
+     float[] k1 = new float[3];
+     float[] k2 = new float[3];
+     float[] k3 = new float[3];
+     float[] k4 = new float[3];
+     float[] xyz = new float[3];
+
+     if (indices[0] != null) {
+        java.util.Arrays.fill(intrpFlow, 0f);
+        java.util.Arrays.fill(intrpClr, 0);
+ 
+        // k1 -------------------------------------------
+        k1[0] = 0;
+        k1[1] = 0;
+        k1[2] = 0;
+        for (int j=0; j<indices[0].length; j++) {
+           int idx = indices[0][j];
+           flowLoc[0][0] = info.spatial_values[0][idx];
+           flowLoc[1][0] = info.spatial_values[1][idx];
+           flowLoc[2][0] = info.spatial_values[2][idx];
+
+           flowVec[0][0] = flow_values[0][idx];
+           flowVec[1][0] = flow_values[1][idx];
+           flowVec[2][0] = flow_values[2][idx];
+
+           float[][] del = TrajectoryManager.computeDisplacement(info, flowLoc, flowVec, timeStep);
+           k1[0] += weights[0][j]*(direction)*del[0][0];
+           k1[1] += weights[0][j]*(direction)*del[1][0];
+           k1[2] += weights[0][j]*(direction)*del[2][0];              
+        }
+        // k2 ----------------------------------
+        xyz[0] = startPts[0] + k1[0]/2;
+        xyz[1] = startPts[1] + k1[1]/2;
+        xyz[2] = startPts[2] + k1[2]/2;
+        int[][] indicesK = new int[1][];
+        float[][] weightsK = new float[1][];
+        if (manifoldDimension == 2) {
+           float[][] pts2D = new float[2][1];
+           pts2D[0][0] = xyz[0];
+           pts2D[1][0] = xyz[1];
+           spatial_set.valueToInterp(pts2D, indicesK, weightsK, guess2D);
+        }
+        else if (manifoldDimension == 3) {
+           float[][] pts3D = new float[3][1];
+           pts3D[0][0] = xyz[0];
+           pts3D[1][0] = xyz[1];
+           pts3D[2][0] = xyz[2];
+           spatial_set.valueToInterp(pts3D, indicesK, weightsK, guess3D);
+        }    
+        if (indicesK[0] != null) {
+           k2[0] = 0;
+           k2[1] = 0;
+           k2[2] = 0;
+           for (int j=0; j<indicesK[0].length; j++) {
+              int idx = indicesK[0][j];
+              flowLoc[0][0] = info.spatial_values[0][idx];
+              flowLoc[1][0] = info.spatial_values[1][idx];
+              flowLoc[2][0] = info.spatial_values[2][idx];
+
+              flowVec[0][0] = flow_valuesB[0][idx];
+              flowVec[1][0] = flow_valuesB[1][idx];
+              flowVec[2][0] = flow_valuesB[2][idx];
+
+              float[][] del = TrajectoryManager.computeDisplacement(info, flowLoc, flowVec, timeStep);
+              k2[0] += weightsK[0][j]*(direction)*del[0][0];
+              k2[1] += weightsK[0][j]*(direction)*del[1][0];
+              k2[2] += weightsK[0][j]*(direction)*del[2][0];                            
+           }
+        }
+        // k3 -----------------------------------
+        xyz[0] = startPts[0] + k2[0]/2;
+        xyz[1] = startPts[1] + k2[1]/2;
+        xyz[2] = startPts[2] + k2[2]/2;
+        indicesK = new int[1][];
+        weightsK = new float[1][];
+        if (manifoldDimension == 2) {
+           float[][] pts2D = new float[2][1];
+           pts2D[0][0] = xyz[0];
+           pts2D[1][0] = xyz[1];
+           spatial_set.valueToInterp(pts2D, indicesK, weightsK, guess2D);
+        }
+        else if (manifoldDimension == 3) {
+           float[][] pts3D = new float[3][1];
+           pts3D[0][0] = xyz[0];
+           pts3D[1][0] = xyz[1];
+           pts3D[2][0] = xyz[2];
+           spatial_set.valueToInterp(pts3D, indicesK, weightsK, guess3D);
+        }    
+        if (indicesK[0] != null) {
+           k3[0] = 0;
+           k3[1] = 0;
+           k3[2] = 0;
+           for (int j=0; j<indicesK[0].length; j++) {
+              int idx = indicesK[0][j];
+              flowLoc[0][0] = info.spatial_values[0][idx];
+              flowLoc[1][0] = info.spatial_values[1][idx];
+              flowLoc[2][0] = info.spatial_values[2][idx];
+
+              flowVec[0][0] = flow_valuesB[0][idx];
+              flowVec[1][0] = flow_valuesB[1][idx];
+              flowVec[2][0] = flow_valuesB[2][idx];
+
+              float[][] del = TrajectoryManager.computeDisplacement(info, flowLoc, flowVec, timeStep);
+              k3[0] += weightsK[0][j]*(direction)*del[0][0];
+              k3[1] += weightsK[0][j]*(direction)*del[1][0];
+              k3[2] += weightsK[0][j]*(direction)*del[2][0];                            
+           }
+        }
+        // k4 ----------------------------------------
+        xyz[0] = startPts[0] + k3[0];
+        xyz[1] = startPts[1] + k3[1];
+        xyz[2] = startPts[2] + k3[2];
+        indicesK = new int[1][];
+        weightsK = new float[1][];
+        if (manifoldDimension == 2) {
+           float[][] pts2D = new float[2][1];
+           pts2D[0][0] = xyz[0];
+           pts2D[1][0] = xyz[1];
+           spatial_set.valueToInterp(pts2D, indicesK, weightsK, guess2D);
+        }
+        else if (manifoldDimension == 3) {
+           float[][] pts3D = new float[3][1];
+           pts3D[0][0] = xyz[0];
+           pts3D[1][0] = xyz[1];
+           pts3D[2][0] = xyz[2];
+           spatial_set.valueToInterp(pts3D, indicesK, weightsK, guess3D);
+        }            
+        if (indicesK[0] != null) {
+           k4[0] = 0;
+           k4[1] = 0;
+           k4[2] = 0;
+           for (int j=0; j<indicesK[0].length; j++) {
+              int idx = indicesK[0][j];
+              flowLoc[0][0] = info.spatial_values[0][idx];
+              flowLoc[1][0] = info.spatial_values[1][idx];
+              flowLoc[2][0] = info.spatial_values[2][idx];
+
+              flowVec[0][0] = flow_valuesC[0][idx];
+              flowVec[1][0] = flow_valuesC[1][idx];
+              flowVec[2][0] = flow_valuesC[2][idx];
+
+              float[][] del = TrajectoryManager.computeDisplacement(info, flowLoc, flowVec, timeStep);
+              k4[0] += weightsK[0][j]*(direction)*del[0][0];
+              k4[1] += weightsK[0][j]*(direction)*del[1][0];
+              k4[2] += weightsK[0][j]*(direction)*del[2][0];                            
+           }
+        }                
+        
+        stopPts[0] = startPts[0] + (1f/6)*k1[0] + (1f/3)*k2[0] + (1f/3)*k3[0] + (1f/6)*k4[0];
+        stopPts[1] = startPts[1] + (1f/6)*k1[1] + (1f/3)*k2[1] + (1f/3)*k3[1] + (1f/6)*k4[1];
+        stopPts[2] = startPts[2] + (1f/6)*k1[2] + (1f/3)*k2[2] + (1f/3)*k3[2] + (1f/6)*k4[2];
+        
+        xyz[0] = stopPts[0];
+        xyz[1] = stopPts[1];
+        xyz[2] = stopPts[2];
+        if (manifoldDimension == 2) {
+           float[][] pts2D = new float[2][1];
+           pts2D[0][0] = xyz[0];
+           pts2D[1][0] = xyz[1];
+           spatial_set.valueToInterp(pts2D, indices, weights, guess2D);
+        }
+        else if (manifoldDimension == 3) {
+           float[][] pts3D = new float[3][1];
+           pts3D[0][0] = xyz[0];
+           pts3D[1][0] = xyz[1];
+           pts3D[2][0] = xyz[2];
+           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
+           
+           if (terrain != null) {
+             adjustFlowAtTerrain(terrain, color_values);
+           }
+        }            
+        if (indices[0] != null) {
+           for (int j=0; j<indices[0].length; j++) {
+              int idx = indices[0][j];
+              intrpClr[0] += weights[0][j]*ShadowType.byteToFloat(color_values[0][idx]);
+              intrpClr[1] += weights[0][j]*ShadowType.byteToFloat(color_values[1][idx]);
+              intrpClr[2] += weights[0][j]*ShadowType.byteToFloat(color_values[2][idx]);
+              if (clrDim == 4) {
+                intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
+              }
+           }
+        }       
+        
+        stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
+        stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
+        stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
+        if (clrDim == 4) {
+          stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+        }
+        
+ 
+        // need to do terrain adjust here
+//        if (manifoldDimension == 2) {
+//           float[][] pts2D = new float[2][1];
+//           pts2D[0][0] = stopPts[0];
+//           pts2D[1][0] = stopPts[1];
+//           spatial_set.valueToInterp(pts2D, indices, weights, guess2D);
+//        }
+//        else if (manifoldDimension == 3) {
+//           float[][] pts3D = new float[3][1];
+//           pts3D[0][0] = stopPts[0];
+//           pts3D[1][0] = stopPts[1];
+//           pts3D[2][0] = stopPts[2];
+//           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
+//
+//           if (terrain != null) {
+//             adjustFlowAtTerrain(terrain, color_values);
+//           }
+//        }    
+
+                
+        addPair(startPts, stopPts, startColor, stopColor);
+
+        uVecPath[0] = stopPts[0] - startPts[0];
+        uVecPath[1] = stopPts[1] - startPts[1];
+        uVecPath[2] = stopPts[2] - startPts[2];
+
+        float mag = (float) Math.sqrt(uVecPath[0]*uVecPath[0] + uVecPath[1]*uVecPath[1] + uVecPath[2]*uVecPath[2]);
+        uVecPath[0] /= mag;
+        uVecPath[1] /= mag;
+        uVecPath[2] /= mag;
+        
+        update();
+     }
+
+  }
+  
   private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
 
      indexes[npairs] = trajMan.getCoordinateCount();

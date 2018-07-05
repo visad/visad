@@ -87,7 +87,8 @@ public class TrajectoryManager {
   boolean manualIntrpPts;
   boolean trajDoIntrp = true;
   boolean trajCachingEnabled = false;
-  boolean doHysplit = true;
+  boolean doHysplit = false;
+  boolean doRK4 = true;
   float trcrSize = 1f;
   boolean trcrEnabled;
   boolean terrainFollowEnabled;
@@ -107,6 +108,9 @@ public class TrajectoryManager {
   float[] intrpU_1;
   float[] intrpV_1;
   float[] intrpW_1;  
+  float[] intrpU_2;
+  float[] intrpV_2;
+  float[] intrpW_2;  
   CubicInterpolator uInterp;
   CubicInterpolator vInterp;
   CubicInterpolator wInterp;
@@ -255,6 +259,15 @@ public class TrajectoryManager {
         intrpU_1 = new float[numSpatialPts];
         intrpV_1 = new float[numSpatialPts];
         intrpW_1 = new float[numSpatialPts];  
+      }
+      else if (doRK4) {
+        intrpU_1 = new float[numSpatialPts];
+        intrpV_1 = new float[numSpatialPts];
+        intrpW_1 = new float[numSpatialPts];
+        
+        intrpU_2 = new float[numSpatialPts];
+        intrpV_2 = new float[numSpatialPts];
+        intrpW_2 = new float[numSpatialPts];          
       }
 
       uInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
@@ -434,30 +447,62 @@ public class TrajectoryManager {
          uInterp.interpolate(xt, intrpU);
          vInterp.interpolate(xt, intrpV);
          wInterp.interpolate(xt, intrpW);
-
-         if (doHysplit) { // NOAA HySplit
+         
+         if (doRK4) {
            if (ti == numIntrpPts-1) {
              System.arraycopy(values1[0], 0, intrpU_1, 0, intrpU_1.length);
              System.arraycopy(values1[1], 0, intrpV_1, 0, intrpV_1.length);
              System.arraycopy(values1[2], 0, intrpW_1, 0, intrpW_1.length);
-            
+
+             System.arraycopy(values2[0], 0, intrpU_2, 0, intrpU_2.length);
+             System.arraycopy(values2[1], 0, intrpV_2, 0, intrpV_2.length);
+             System.arraycopy(values2[2], 0, intrpW_2, 0, intrpW_2.length);             
            }
            else {
              uInterp.interpolate(xt+dst, intrpU_1);
              vInterp.interpolate(xt+dst, intrpV_1);
              wInterp.interpolate(xt+dst, intrpW_1);
+             
+             uInterp.interpolate(xt+2*dst, intrpU_2);
+             vInterp.interpolate(xt+2*dst, intrpV_2);
+             wInterp.interpolate(xt+2*dst, intrpW_2);
+           }            
+             
+           for (int t=0; t<numTrajectories; t++) {
+             Trajectory traj = trajectories.get(t);
+             traj.currentTimeIndex = direction*i;
+             traj.currentTime = direction*times[i];
+             traj.forwardRK4(info, new float[][] {intrpU, intrpV, intrpW}, 
+                             new float[][] {intrpU_1, intrpV_1, intrpW_1}, 
+                             new float[][] {intrpU_2, intrpV_2, intrpW_2},
+                             color_values, spatialSetTraj, terrain, direction, timeStep);
+           }           
+         }
+         else {
+           if (doHysplit) { // NOAA HySplit
+             if (ti == numIntrpPts-1) {
+               System.arraycopy(values1[0], 0, intrpU_1, 0, intrpU_1.length);
+               System.arraycopy(values1[1], 0, intrpV_1, 0, intrpV_1.length);
+               System.arraycopy(values1[2], 0, intrpW_1, 0, intrpW_1.length);
+            
+             }
+             else {
+               uInterp.interpolate(xt+dst, intrpU_1);
+               vInterp.interpolate(xt+dst, intrpV_1);
+               wInterp.interpolate(xt+dst, intrpW_1);
+             }
+
+             intrpU = mean(intrpU, intrpU_1);         
+             intrpV = mean(intrpV, intrpV_1);         
+             intrpW = mean(intrpW, intrpW_1);
            }
 
-           intrpU = mean(intrpU, intrpU_1);         
-           intrpV = mean(intrpV, intrpV_1);         
-           intrpW = mean(intrpW, intrpW_1);
-         }
-
-         for (int t=0; t<numTrajectories; t++) {
-           Trajectory traj = trajectories.get(t);
-           traj.currentTimeIndex = direction*i;
-           traj.currentTime = direction*times[i];
-           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, terrain, direction, timeStep);
+           for (int t=0; t<numTrajectories; t++) {
+             Trajectory traj = trajectories.get(t);
+             traj.currentTimeIndex = direction*i;
+             traj.currentTime = direction*times[i];
+             traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, terrain, direction, timeStep);
+           }
          }
 
        } // inner time loop (time interpolation)
