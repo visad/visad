@@ -87,14 +87,15 @@ public class TrajectoryManager {
   boolean manualIntrpPts;
   boolean trajDoIntrp = true;
   boolean trajCachingEnabled = false;
-  boolean doHysplit = false;
-  boolean doRK4 = true;
+  //boolean doHysplit = false;
+  //boolean doRK4 = true;
   float trcrSize = 1f;
   boolean trcrEnabled;
   boolean terrainFollowEnabled;
   int numIntrpPts;
   int trajSkip;
   TrajectoryParams.SmoothParams smoothParams;
+  TrajectoryParams.Method method;
   int direction;
   int trajForm = LINE; // Default
   float cylWidth = 0.01f;
@@ -152,6 +153,7 @@ public class TrajectoryManager {
       numIntrpPts = trajParams.getNumIntrpPts();
       trajSkip = trajParams.getStartSkip();
       smoothParams = trajParams.getSmoothParams();
+      method = trajParams.getMethod();
       direction = trajParams.getDirection();
       startPts = trajParams.getStartPoints();
       trajDoIntrp = trajParams.getDoIntrp();
@@ -255,12 +257,12 @@ public class TrajectoryManager {
       intrpV = new float[numSpatialPts];
       intrpW = new float[numSpatialPts];
       
-      if (doHysplit) {
+      if (method == TrajectoryParams.Method.HySplit) {
         intrpU_1 = new float[numSpatialPts];
         intrpV_1 = new float[numSpatialPts];
         intrpW_1 = new float[numSpatialPts];  
       }
-      else if (doRK4) {
+      else if (method == TrajectoryParams.Method.RK4) {
         intrpU_1 = new float[numSpatialPts];
         intrpV_1 = new float[numSpatialPts];
         intrpW_1 = new float[numSpatialPts];
@@ -448,15 +450,20 @@ public class TrajectoryManager {
          vInterp.interpolate(xt, intrpV);
          wInterp.interpolate(xt, intrpW);
          
-         if (doRK4) {
-           if (ti == numIntrpPts-1) {
+         if (method == TrajectoryParams.Method.RK4) {
+           if ((ti == numIntrpPts-1) && (k == dataDomainLength-2)) {
              System.arraycopy(values1[0], 0, intrpU_1, 0, intrpU_1.length);
              System.arraycopy(values1[1], 0, intrpV_1, 0, intrpV_1.length);
              System.arraycopy(values1[2], 0, intrpW_1, 0, intrpW_1.length);
-
-             System.arraycopy(values2[0], 0, intrpU_2, 0, intrpU_2.length);
-             System.arraycopy(values2[1], 0, intrpV_2, 0, intrpV_2.length);
-             System.arraycopy(values2[2], 0, intrpW_2, 0, intrpW_2.length);             
+             intrpU = mean(intrpU, intrpU_1);         
+             intrpV = mean(intrpV, intrpV_1);         
+             intrpW = mean(intrpW, intrpW_1);
+             for (int t=0; t<numTrajectories; t++) {
+               Trajectory traj = trajectories.get(t);
+               traj.currentTimeIndex = direction*i;
+               traj.currentTime = direction*times[i];
+               traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, terrain, direction, timeStep);
+             }
            }
            else {
              uInterp.interpolate(xt+dst, intrpU_1);
@@ -466,20 +473,20 @@ public class TrajectoryManager {
              uInterp.interpolate(xt+2*dst, intrpU_2);
              vInterp.interpolate(xt+2*dst, intrpV_2);
              wInterp.interpolate(xt+2*dst, intrpW_2);
-           }            
              
-           for (int t=0; t<numTrajectories; t++) {
-             Trajectory traj = trajectories.get(t);
-             traj.currentTimeIndex = direction*i;
-             traj.currentTime = direction*times[i];
-             traj.forwardRK4(info, new float[][] {intrpU, intrpV, intrpW}, 
-                             new float[][] {intrpU_1, intrpV_1, intrpW_1}, 
-                             new float[][] {intrpU_2, intrpV_2, intrpW_2},
-                             color_values, spatialSetTraj, terrain, direction, timeStep);
-           }           
+             for (int t=0; t<numTrajectories; t++) {
+               Trajectory traj = trajectories.get(t);
+               traj.currentTimeIndex = direction*i;
+               traj.currentTime = direction*times[i];
+               traj.forwardRK4(info, new float[][] {intrpU, intrpV, intrpW}, 
+                               new float[][] {intrpU_1, intrpV_1, intrpW_1}, 
+                               new float[][] {intrpU_2, intrpV_2, intrpW_2},
+                               color_values, spatialSetTraj, terrain, direction, timeStep);
+             }
+           }
          }
          else {
-           if (doHysplit) { // NOAA HySplit
+           if (method == TrajectoryParams.Method.HySplit) { // NOAA HySplit
              if (ti == numIntrpPts-1) {
                System.arraycopy(values1[0], 0, intrpU_1, 0, intrpU_1.length);
                System.arraycopy(values1[1], 0, intrpV_1, 0, intrpV_1.length);
@@ -2426,6 +2433,19 @@ public class TrajectoryManager {
                trajParams.setTrajectoryForm(TrajectoryParams.POINT); 
              }
           }
+          
+          propStr = prop.getProperty("Method");
+          if (propStr != null) {
+             if (propStr.equals("HYSPLIT")) {
+               trajParams.setMethod(TrajectoryParams.Method.HySplit);
+             }
+             else if (propStr.equals("RK4")) {
+               trajParams.setMethod(TrajectoryParams.Method.RK4);  
+             }
+             else if (propStr.equals("EULER")) {
+               trajParams.setMethod(TrajectoryParams.Method.Euler);
+             }
+          }          
 
           is.close();
        }
