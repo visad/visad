@@ -396,26 +396,6 @@ public class Trajectory {
         }
         
  
-        // need to do terrain adjust here
-//        if (manifoldDimension == 2) {
-//           float[][] pts2D = new float[2][1];
-//           pts2D[0][0] = stopPts[0];
-//           pts2D[1][0] = stopPts[1];
-//           spatial_set.valueToInterp(pts2D, indices, weights, guess2D);
-//        }
-//        else if (manifoldDimension == 3) {
-//           float[][] pts3D = new float[3][1];
-//           pts3D[0][0] = stopPts[0];
-//           pts3D[1][0] = stopPts[1];
-//           pts3D[2][0] = stopPts[2];
-//           spatial_set.valueToInterp(pts3D, indices, weights, guess3D);
-//
-//           if (terrain != null) {
-//             adjustFlowAtTerrain(terrain, color_values);
-//           }
-//        }    
-
-                
         addPair(startPts, stopPts, startColor, stopColor);
 
         uVecPath[0] = stopPts[0] - startPts[0];
