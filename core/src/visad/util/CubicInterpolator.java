@@ -63,6 +63,9 @@ public class CubicInterpolator {
             else if (xt == x1) {
                System.arraycopy(values1, 0, interpValues, 0, numSpatialPts);
             }
+            else if (xt == x2) {
+               System.arraycopy(values2, 0, interpValues, 0, numSpatialPts);               
+            }
             return;
          }
          java.util.Arrays.fill(interpValues, Float.NaN);
