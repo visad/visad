@@ -386,13 +386,13 @@ public class Trajectory {
                 intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
               }
            }
-        }       
         
-        stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
-        stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
-        stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
-        if (clrDim == 4) {
-          stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+           stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
+           stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
+           stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
+           if (clrDim == 4) {
+              stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+           }
         }
         
  
