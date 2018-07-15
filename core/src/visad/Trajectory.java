@@ -234,6 +234,7 @@ public class Trajectory {
            k1[1] += weights[0][j]*(direction)*del[1][0];
            k1[2] += weights[0][j]*(direction)*del[2][0];              
         }
+        
         // k2 ----------------------------------
         xyz[0] = startPts[0] + k1[0]/2;
         xyz[1] = startPts[1] + k1[1]/2;
@@ -273,6 +274,7 @@ public class Trajectory {
               k2[2] += weightsK[0][j]*(direction)*del[2][0];                            
            }
         }
+        
         // k3 -----------------------------------
         xyz[0] = startPts[0] + k2[0]/2;
         xyz[1] = startPts[1] + k2[1]/2;
@@ -312,6 +314,7 @@ public class Trajectory {
               k3[2] += weightsK[0][j]*(direction)*del[2][0];                            
            }
         }
+        
         // k4 ----------------------------------------
         xyz[0] = startPts[0] + k3[0];
         xyz[1] = startPts[1] + k3[1];
