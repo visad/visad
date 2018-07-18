@@ -73,6 +73,8 @@ public class Trajectory {
   
   double[] lastMinDistPt = new double[3];
   
+  float last_cellTerrain = Float.NaN;
+  
   static float[][] circle;
   
   public Trajectory(TrajectoryManager trajMan, float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor, double initialTime) {
@@ -463,12 +465,11 @@ public class Trajectory {
         int dir = (spatial_values[2][0] < spatial_values[2][lens[0]*lens[1]]) ? 1 : -1;
 
         // get interpolated terrain and parcel height at this grid cell
-        float cellTerrain = 0;
         float parcelHgt = stopPts[2];
         float parcelX = stopPts[0];
         float parcelY = stopPts[1];
         RealTuple xy = new RealTuple(((FunctionType)terrain.getType()).getDomain(), new double[] {parcelX, parcelY});
-        cellTerrain = (float) ((Real)terrain.evaluate(xy, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS)).getValue();
+        float cellTerrain = (float) ((Real)terrain.evaluate(xy, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS)).getValue();
         
 
         float diff = parcelHgt - cellTerrain;
@@ -476,6 +477,9 @@ public class Trajectory {
         if (diff < 0f) {
            
            float zUp = stopPts[2] - diff + 0.0015f;
+           if (!Float.isNaN(last_cellTerrain) && (Math.abs(last_cellTerrain - cellTerrain) < 0.0005)) {
+              zUp = startPts[2];
+           }
            float[][] pts3D = new float[3][1];
            pts3D[0][0] = stopPts[0];
            pts3D[1][0] = stopPts[1];
@@ -504,6 +508,7 @@ public class Trajectory {
              }
            }
         }
+        last_cellTerrain = cellTerrain;
      
      }   
   }
