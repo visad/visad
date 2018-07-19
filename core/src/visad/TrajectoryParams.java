@@ -48,6 +48,12 @@ public class TrajectoryParams {
     }
   }
   
+  public static enum Method {
+     HySplit,
+     RK4,
+     Euler;
+  }
+  
   public static final int LINE = 0;
   public static final int RIBBON = 1;
   public static final int CYLINDER = 2;
@@ -81,6 +87,8 @@ public class TrajectoryParams {
   
   // terrain (lower boundary) Implicit: meters above MSL
   FlatField terrain = null;
+  
+  Method method = Method.HySplit; //Default
 
   public TrajectoryParams() {
   }
@@ -108,6 +116,7 @@ public class TrajectoryParams {
     this.zStartSkip = params.getZStartSkip();
     this.terrain = params.getTerrain();
     this.terrainFollowEnabled = params.getTerrainFollowing();
+    this.method = params.getMethod();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -211,6 +220,10 @@ public class TrajectoryParams {
     this.markerEnabled = yesno;
   }
   
+  public void setMethod(Method method) {
+     this.method = method;
+  }
+  
   public void setCachingEnabled(boolean yesno) {
      this.cachingEnabled = yesno;
   }
@@ -289,6 +302,10 @@ public class TrajectoryParams {
   
   public boolean getTerrainFollowing() {
      return terrainFollowEnabled;
+  }
+  
+  public Method getMethod() {
+     return method;
   }
   
   public void setStartPoints(float[][] startPts) {
@@ -378,6 +395,9 @@ public class TrajectoryParams {
         return false;
       }
       else if (this.terrainFollowEnabled != trajParams.terrainFollowEnabled) {
+         return false;
+      }
+      else if (this.method != trajParams.method) {
          return false;
       }
     }

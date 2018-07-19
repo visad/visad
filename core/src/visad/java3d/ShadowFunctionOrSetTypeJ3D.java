@@ -1427,7 +1427,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     VisADGeometryArray[] auxArray = new VisADGeometryArray[2];
     ArrayList<float[]> achrArrays = null;
     
-    for (int k=0; k<dataDomainLength; k++) {
+    // We don't really have a time interval defined beyond the next to last point
+    int computeLength = dataDomainLength-1;
+    if (!trajParams.getDoIntrp()) {
+       if (trajParams.getMethod() == TrajectoryParams.Method.RK4) { // need 3 time steps
+          computeLength = dataDomainLength-2;
+       }
+    }
+    
+    for (int k=0; k<computeLength; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
       FlowInfo info = flowInfoList.get(i);
