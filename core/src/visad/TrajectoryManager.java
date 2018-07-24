@@ -32,12 +32,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import visad.util.CubicInterpolator;
+import visad.util.LinearInterpolator;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import visad.data.text.TextAdapter;
+import visad.util.Interpolator;
 
 
 /**
@@ -112,9 +114,9 @@ public class TrajectoryManager {
   float[] intrpU_2;
   float[] intrpV_2;
   float[] intrpW_2;  
-  CubicInterpolator uInterp;
-  CubicInterpolator vInterp;
-  CubicInterpolator wInterp;
+  Interpolator uInterp;
+  Interpolator vInterp;
+  Interpolator wInterp;
   float[][] values0;
   float[][] values1;
   float[][] values2;
@@ -272,10 +274,17 @@ public class TrajectoryManager {
         intrpW_2 = new float[numSpatialPts];          
       }
 
-      uInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-      vInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-      wInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-
+      if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.Cubic) {
+        uInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
+        vInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
+        wInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
+      }
+      else if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.Linear) {
+        uInterp = new LinearInterpolator(trajDoIntrp, numSpatialPts);
+        vInterp = new LinearInterpolator(trajDoIntrp, numSpatialPts);
+        wInterp = new LinearInterpolator(trajDoIntrp, numSpatialPts);
+      }
+      
       values0 = null;
       values1 = null;
       values2 = null;
@@ -2438,7 +2447,18 @@ public class TrajectoryManager {
              else if (propStr.equals("EULER")) {
                trajParams.setMethod(TrajectoryParams.Method.Euler);
              }
-          }          
+          }
+          
+          propStr = prop.getProperty("InterpMethod");
+          if (propStr != null) {
+             propStr = propStr.trim();
+             if (propStr.equals("CUBIC")) {
+               trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.Cubic);
+             }
+             else if (propStr.equals("LINEAR")) {
+               trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.Linear);  
+             }
+          }                    
 
           is.close();
        }

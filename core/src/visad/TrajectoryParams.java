@@ -54,6 +54,11 @@ public class TrajectoryParams {
      Euler;
   }
   
+  public static enum InterpolationMethod {
+     Cubic,
+     Linear;
+  }
+  
   public static final int LINE = 0;
   public static final int RIBBON = 1;
   public static final int CYLINDER = 2;
@@ -89,6 +94,7 @@ public class TrajectoryParams {
   FlatField terrain = null;
   
   Method method = Method.HySplit; //Default
+  InterpolationMethod interpMethod = InterpolationMethod.Cubic;
 
   public TrajectoryParams() {
   }
@@ -117,6 +123,7 @@ public class TrajectoryParams {
     this.terrain = params.getTerrain();
     this.terrainFollowEnabled = params.getTerrainFollowing();
     this.method = params.getMethod();
+    this.interpMethod = params.getInterpolationMethod();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -224,6 +231,10 @@ public class TrajectoryParams {
      this.method = method;
   }
   
+  public void setInterpolationMethod(InterpolationMethod m) {
+     this.interpMethod = m;
+  }
+  
   public void setCachingEnabled(boolean yesno) {
      this.cachingEnabled = yesno;
   }
@@ -306,6 +317,10 @@ public class TrajectoryParams {
   
   public Method getMethod() {
      return method;
+  }
+  
+  public InterpolationMethod getInterpolationMethod() {
+     return interpMethod;
   }
   
   public void setStartPoints(float[][] startPts) {
