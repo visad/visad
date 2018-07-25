@@ -2458,8 +2458,19 @@ public class TrajectoryManager {
              else if (propStr.equals("LINEAR")) {
                trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.Linear);  
              }
-          }                    
-
+          }
+          
+          propStr = prop.getProperty("Direction");
+          if (propStr != null) {
+             propStr = propStr.trim();
+             if (propStr.equals("FORWARD")) {
+               trajParams.setDirectionFlag(true);
+             }
+             else if (propStr.equals("REVERSE")) {
+               trajParams.setDirectionFlag(false);  
+             }
+          }
+          
           is.close();
        }
      }
