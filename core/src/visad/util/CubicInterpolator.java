@@ -4,26 +4,30 @@ import Jama.Matrix;
 import Jama.LUDecomposition;
 import java.util.Arrays;
 
-public class CubicInterpolator {
+public class CubicInterpolator implements Interpolator {
 
-      LUDecomposition solver;
+      private LUDecomposition solver;
 
-      double[][] solution = null;
+      private double[][] solution = null;
 
-      double x0 = 0;
-      double x1 = 0;
-      double x2 = 0;
-
-      float[] values0 = null;
-      float[] values1 = null;
-      float[] values2 = null;
-
-      int numSpatialPts = 1;
-
-      boolean doIntrp = true;
+      private double x0 = 0;
+      private double x1 = 0;
+      private double x2 = 0;
+      private double x0_last = 0;
+      private double x0_save;
       
-      boolean[] needed = null;
-      boolean[] computed = null;
+      private float[] values0 = null;
+      private float[] values1 = null;
+      private float[] values2 = null;
+      private float[] values0_last = null;
+      private float[] values0_save = null;
+
+      private int numSpatialPts = 1;
+
+      private boolean doIntrp = true;
+      
+      private boolean[] needed = null;
+      private boolean[] computed = null;
       
       public CubicInterpolator(boolean doIntrp, int numSpatialPts) {
          this.doIntrp = doIntrp;
@@ -60,6 +64,9 @@ public class CubicInterpolator {
             }
             else if (xt == x1) {
                System.arraycopy(values1, 0, interpValues, 0, numSpatialPts);
+            }
+            else if (xt == x2) {
+               System.arraycopy(values2, 0, interpValues, 0, numSpatialPts);               
             }
             return;
          }

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2017 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2018 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -63,6 +63,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   ScalarMap flowMap = null;
   TrajectoryParams trajParams;
   ScalarMap altitudeToDisplayZ;
+  CoordinateSystem dspCoordSys;
   
   
   List<BranchGroup> branches = null;
@@ -158,7 +159,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
         if (scalarMap.getScalarName().equals(RealType.Altitude.getName())) {
            DisplayRealType dspType = scalarMap.getDisplayScalar();
-           RealType[] rtypes = dspType.getTuple().getCoordinateSystem().getReference().getRealComponents();
+           dspCoordSys = dspType.getTuple().getCoordinateSystem();
+           RealType[] rtypes = dspCoordSys.getReference().getRealComponents();
            for (int t=0; t<rtypes.length; t++) {
               if (rtypes[t].equals(Display.ZAxis)) {
                  altitudeToDisplayZ = scalarMap;
@@ -589,27 +591,33 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       return text.getSelectedMapVector();
     }
   }
+  
+  public Object createImage(int data_width, int data_height, int texture_width,
+                     int texture_height, byte[][] color_values) throws VisADException {
+     return adaptedShadowType.createImage(data_width, data_height, texture_width, texture_height, color_values);
+  }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-                            BufferedImage image, GraphicsModeControl mode,
+                            Object image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height, boolean byReference, boolean yUp, VisADImageTile tile) throws VisADException {
     textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, byReference, yUp, tile, false);
   }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-                            BufferedImage image, GraphicsModeControl mode,
+                            Object image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height) throws VisADException {
     textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, false, false, null, false);
   }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-                            BufferedImage image, GraphicsModeControl mode,
+                            Object img, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height, 
                             boolean byReference, boolean yUp, VisADImageTile tile, boolean smoothen)
          throws VisADException {
+    BufferedImage image = (BufferedImage) img;
     GeometryArray geometry = display.makeGeometry(array);
     // System.out.println("texture geometry");
     // create basic Appearance
@@ -718,13 +726,21 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       tile.setImageComponent(image2d);
     }
   }
+  
+  public Object[] createImages(int axis, int data_width_in,
+           int data_height_in, int data_depth_in, int texture_width_in,
+           int texture_height_in, int texture_depth_in, byte[][] color_values)
+         throws VisADException {
+    return adaptedShadowType.createImages(axis, data_width_in, data_height_in, data_depth_in, 
+            texture_width_in, texture_height_in, texture_depth_in, color_values);
+  }
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
                     VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
                     VisADGeometryArray arrayXrev,
                     VisADGeometryArray arrayYrev,
                     VisADGeometryArray arrayZrev,
-                    BufferedImage[] images, GraphicsModeControl mode,
+                    Object[] images, GraphicsModeControl mode,
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height,
                     int texture_depth, DataRenderer renderer)
@@ -781,7 +797,7 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                            texture_height, texture_depth);
     image3d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
     for (int i=0; i<texture_depth; i++) {
-      image3d.set(i, images[i]);
+      image3d.set(i, (BufferedImage)images[i]);
       images[i] = null; // take out the garbage
     }
     texture.setImage(0, image3d);
@@ -861,9 +877,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                     VisADGeometryArray arrayXrev,
                     VisADGeometryArray arrayYrev,
                     VisADGeometryArray arrayZrev,
-                    BufferedImage[] imagesX,
-                    BufferedImage[] imagesY,
-                    BufferedImage[] imagesZ,
+                    Object[] imagesX,
+                    Object[] imagesY,
+                    Object[] imagesZ,
                     GraphicsModeControl mode,
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height,
@@ -925,13 +941,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D[] shapeX = new Shape3D[data_depth];
     for (int ii=0; ii<data_depth; ii++) {
       int i = flipX ? data_depth-1-ii : ii;
-      int width = imagesX[i].getWidth();
-      int height = imagesX[i].getHeight();
+      int width = ((BufferedImage)imagesX[i]).getWidth();
+      int height = ((BufferedImage)imagesX[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesX[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesX[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -960,13 +976,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchXrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int ii=data_depth-1; ii>=0; ii--) {
       int i = flipX ? data_depth-1-ii : ii;
-      int width = imagesX[i].getWidth();
-      int height = imagesX[i].getHeight();
+      int width = ((BufferedImage)imagesX[i]).getWidth();
+      int height = ((BufferedImage)imagesX[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesX[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesX[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -999,14 +1015,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D[] shapeY = new Shape3D[data_height];
     for (int ii=0; ii<data_height; ii++) {
       int i = flipY ? data_height-1-ii : ii;
-      int width = imagesY[i].getWidth();
-      int height = imagesY[i].getHeight();
+      int width = ((BufferedImage)imagesY[i]).getWidth();
+      int height = ((BufferedImage)imagesY[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       // flip texture on Y axis
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesY[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesY[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1035,14 +1051,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchYrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int ii=data_height-1; ii>=0; ii--) {
       int i = flipY ? data_height-1-ii : ii;
-      int width = imagesY[i].getWidth();
-      int height = imagesY[i].getHeight();
+      int width = ((BufferedImage)imagesY[i]).getWidth();
+      int height = ((BufferedImage)imagesY[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       // flip texture on Y axis
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesY[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesY[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1075,13 +1091,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D[] shapeZ = new Shape3D[data_width];
     for (int ii=0; ii<data_width; ii++) {
       int i = flipZ ? data_width-1-ii : ii;
-      int width = imagesZ[i].getWidth();
-      int height = imagesZ[i].getHeight();
+      int width = ((BufferedImage)imagesZ[i]).getWidth();
+      int height = ((BufferedImage)imagesZ[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesZ[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesZ[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1110,13 +1126,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     branchZrev.setCapability(Group.ALLOW_CHILDREN_READ);
     for (int ii=data_width-1; ii>=0; ii--) {
       int i = flipZ ? data_width-1-ii : ii;
-      int width = imagesZ[i].getWidth();
-      int height = imagesZ[i].getHeight();
+      int width = ((BufferedImage)imagesZ[i]).getWidth();
+      int height = ((BufferedImage)imagesZ[i]).getHeight();
       Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                         width, height);
       texture.setCapability(Texture.ALLOW_IMAGE_READ);
       ImageComponent2D image2d =
-        new ImageComponent2D(ImageComponent.FORMAT_RGBA, imagesZ[i]);
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, (BufferedImage)imagesZ[i]);
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
       texture.setImage(0, image2d);
       Appearance appearance =
@@ -1370,6 +1386,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   private void doTrajectory() throws VisADException, RemoteException {
     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
     int dataDomainLength = anim1DdomainSet.getLength();
+    FlowInfo info0 = flowInfoList.get(0);
+    trajParams = new TrajectoryParams(trajParams);
+    trajParams = TrajectoryManager.getTrajParamsFromFile(trajParams, info0.which);
     boolean trcrEnabled = trajParams.getMarkerEnabled();
     int trajForm = trajParams.getTrajectoryForm();
     boolean autoSizeTrcr = true;
@@ -1385,7 +1404,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     double[] times = TrajectoryManager.getTimes((Gridded1DSet)anim1DdomainSet);
     double[] timeSteps = TrajectoryManager.getTimeSteps((Gridded1DSet)anim1DdomainSet);
     
-    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ);
+    TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ, dspCoordSys);
     
     trcrEnabled = (trcrEnabled && (trajForm == TrajectoryManager.LINE)) && trajForm != TrajectoryManager.POINT;
     
@@ -1403,17 +1422,25 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     double timeAccum = 0;
 
-    VisADGeometryArray array = null;
+    VisADGeometryArray[] arrays;
     VisADGeometryArray trcrArray = null;
-    VisADGeometryArray[] auxArray = new VisADGeometryArray[1];
+    VisADGeometryArray[] auxArray = new VisADGeometryArray[2];
     ArrayList<float[]> achrArrays = null;
     
-    for (int k=0; k<dataDomainLength; k++) {
+    // We don't really have a time interval defined beyond the next to last point
+    int computeLength = dataDomainLength-1;
+    if (!trajParams.getDoIntrp()) {
+       if (trajParams.getMethod() == TrajectoryParams.Method.RK4) { // need 3 time steps
+          computeLength = dataDomainLength-2;
+       }
+    }
+    
+    for (int k=0; k<computeLength; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
       FlowInfo info = flowInfoList.get(i);
       
-      array = trajMan.computeTrajectories(k, timeAccum, times, timeSteps, auxArray);
+      arrays = trajMan.computeTrajectories(k, timeAccum, times, timeSteps);
       if (trajMan.getNumberOfTrajectories() > 0) {
         achrArrays = new ArrayList<float[]>();
         trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
@@ -1422,9 +1449,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
 
-      // something weird with this, everything being removed ?
-      //array = (VisADLineArray) array.removeMissing();
-      
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
         avHandler.setNoneVisibleIndex(i);
         timeAccum = 0.0;
@@ -1440,16 +1464,21 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
 
       BranchGroup branch = (BranchGroup) branches.get(i);
-      addToGroup(branch, array, mode, info.constant_alpha, info.constant_color);
+      addToGroup(branch, arrays[0], mode, info.constant_alpha, info.constant_color);
+      if (trajForm == TrajectoryManager.CYLINDER) {
+        // cylinder elbows
+        addToGroup(branch, arrays[2], mode, info.constant_alpha, info.constant_color);                  
+      }
       BranchGroup node = (BranchGroup) swit.getChild(i);
       node.addChild(branch);
       
-      if (auxArray[0] != null) {
+      if (trajForm == TrajectoryManager.CYLINDER) {
         BranchGroup auxBrnch = (BranchGroup) makeBranch();
-        addToGroup(auxBrnch, auxArray[0], mode, info.constant_alpha, info.constant_color);  
+        // cylinder cone
+        addToGroup(auxBrnch, arrays[1], mode, info.constant_alpha, info.constant_color);  
         ((BranchGroup)switB.getChild(i)).addChild(auxBrnch);
-      }
-
+      }      
+      
     } //---  domain length (time steps) outer time loop  -------------------------
         
     if (listener != null) {
