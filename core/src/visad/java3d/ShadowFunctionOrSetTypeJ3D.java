@@ -1407,6 +1407,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ, dspCoordSys);
     
     trcrEnabled = (trcrEnabled && (trajForm == TrajectoryManager.LINE)) && trajForm != TrajectoryManager.POINT;
+    if (trajForm == TrajectoryManager.TRACER || trajForm == TrajectoryManager.TRACER_POINT) {
+      trcrEnabled = true;
+    }
     
     if (autoSizeTrcr && trcrEnabled) {
       listener = new FixGeomSizeAppearanceJ3D(pCntrl, this, mouseBehav);
@@ -1442,12 +1445,18 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       
       arrays = trajMan.computeTrajectories(k, timeAccum, times, timeSteps);
       if (trajMan.getNumberOfTrajectories() > 0) {
-        achrArrays = new ArrayList<float[]>();
-        trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
-        trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));      
+        if (trajForm == TrajectoryManager.TRACER_POINT) {
+          trcrArray = trajMan.makePointGeometry();
+        }
+        else {
+          achrArrays = new ArrayList<float[]>();
+          trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
+          trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));
+        }
       }
       
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
+      mode.setPointSize(5f, false);
 
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
         avHandler.setNoneVisibleIndex(i);
@@ -1458,19 +1467,23 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       if (trcrEnabled) {
         Object group = switB.getChild(i);
         BranchGroup trcrBG = addToDetachableGroup(group, trcrArray, mode, info.constant_alpha, info.constant_color);
-        if (listener != null && trcrArray != null) {
+        if (listener != null && trcrArray != null && achrArrays != null) {
           listener.add(trcrBG, trcrArray, achrArrays, mode, info.constant_alpha, info.constant_color);
         }
       }
 
       BranchGroup branch = (BranchGroup) branches.get(i);
       addToGroup(branch, arrays[0], mode, info.constant_alpha, info.constant_color);
+      
       if (trajForm == TrajectoryManager.CYLINDER) {
         // cylinder elbows
         addToGroup(branch, arrays[2], mode, info.constant_alpha, info.constant_color);                  
       }
-      BranchGroup node = (BranchGroup) swit.getChild(i);
-      node.addChild(branch);
+      
+      if (trajForm != TrajectoryManager.TRACER && trajForm != TrajectoryManager.TRACER_POINT) {
+        BranchGroup node = (BranchGroup) swit.getChild(i);
+        node.addChild(branch);
+      }
       
       if (trajForm == TrajectoryManager.CYLINDER) {
         BranchGroup auxBrnch = (BranchGroup) makeBranch();

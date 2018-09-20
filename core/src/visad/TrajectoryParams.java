@@ -64,6 +64,8 @@ public class TrajectoryParams {
   public static final int CYLINDER = 2;
   public static final int DEFORM_RIBBON = 3;
   public static final int POINT = 4;
+  public static final int TRACER = 5;
+  public static final int TRACER_POINT = 6;
 
   double trajVisibilityTimeWindow = 86400.0;
   double trajRefreshInterval = 86400.0;

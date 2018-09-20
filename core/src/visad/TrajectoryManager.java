@@ -77,6 +77,8 @@ public class TrajectoryManager {
   public static final int CYLINDER = TrajectoryParams.CYLINDER;
   public static final int DEFORM_RIBBON = TrajectoryParams.DEFORM_RIBBON;
   public static final int POINT = TrajectoryParams.POINT;
+  public static final int TRACER = TrajectoryParams.TRACER;
+  public static final int TRACER_POINT = TrajectoryParams.TRACER_POINT;
   
   public static final String PPOP_TRAJECTORY_START_POINTS_FILE = "visad.trajectory.startPointsFile";
   public static final String PROP_TRAJECTORY_PARAM_FILE_1 = "visad.trajectory.paramFile1";
@@ -2437,6 +2439,12 @@ public class TrajectoryManager {
              }
              else if (propStr.equals("POINT")) {
                trajParams.setTrajectoryForm(TrajectoryParams.POINT); 
+             }
+             else if (propStr.equals("TRACER")) {
+                trajParams.setTrajectoryForm(TrajectoryParams.TRACER);
+             }
+             else if (propStr.equals("TRACER_POINT")) {
+                trajParams.setTrajectoryForm(TrajectoryParams.TRACER_POINT);
              }
           }
           
