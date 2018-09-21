@@ -81,6 +81,7 @@ public class TrajectoryParams {
   boolean autoSizeMarker = true;
   boolean cachingEnabled = true;
   boolean terrainFollowEnabled = true;
+  boolean trcrStreamingEnabled = false;
   
   int trajForm = LINE;
   float cylWidth = 0.00014f;
@@ -126,6 +127,7 @@ public class TrajectoryParams {
     this.terrainFollowEnabled = params.getTerrainFollowing();
     this.method = params.getMethod();
     this.interpMethod = params.getInterpolationMethod();
+    this.trcrStreamingEnabled = params.getTracerStreamingEnabled();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -363,6 +365,14 @@ public class TrajectoryParams {
      return this.cachingEnabled;
   }
   
+  public boolean getTracerStreamingEnabled() {
+     return this.trcrStreamingEnabled;
+  }
+
+  public void setTracerStreamingEnabled(boolean yesno) {
+    this.trcrStreamingEnabled = yesno;
+  }
+    
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
@@ -415,6 +425,9 @@ public class TrajectoryParams {
          return false;
       }
       else if (this.method != trajParams.method) {
+         return false;
+      }
+      else if (this.trcrStreamingEnabled != trajParams.trcrStreamingEnabled) {
          return false;
       }
     }
