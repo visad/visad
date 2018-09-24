@@ -1500,5 +1500,18 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           listener.unlock();
        }
     }
+    
+    if (trajParams.getSaveTracerLocations()) {
+      try {
+        java.io.FileOutputStream fos = new java.io.FileOutputStream("/Users/rink/TracerLocations.ser");
+        java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(fos);
+        oos.writeObject(trajMan.tracerLocations);
+        fos.close();
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    
   }
 }
