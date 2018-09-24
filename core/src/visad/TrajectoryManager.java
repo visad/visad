@@ -93,6 +93,7 @@ public class TrajectoryManager {
   boolean trajDoIntrp = true;
   boolean trajCachingEnabled = false;
   boolean trcrStreamingEnabled;
+  boolean saveTracerLocations;
   //boolean doHysplit = false;
   //boolean doRK4 = true;
   float trcrSize = 1f;
@@ -137,6 +138,9 @@ public class TrajectoryManager {
   FlatField terrain = null;
   
   Gridded1DSet anim1DdomainSet;
+  CoordinateSystem dspCoordSys;
+  
+  public FieldImpl tracerLocations;
   
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
@@ -152,6 +156,7 @@ public class TrajectoryManager {
   public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time, ScalarMap altToZ, CoordinateSystem dspCoordSys, Gridded1DSet anim1DdomainSet) throws VisADException {
       this.flowInfoList = flowInfoList;
       this.anim1DdomainSet = anim1DdomainSet;
+      this.dspCoordSys = dspCoordSys;
       FlowInfo info = flowInfoList.get(0);
       
       this.dataDomainLength = dataDomainLength;
@@ -177,6 +182,7 @@ public class TrajectoryManager {
       zStart = trajParams.getZStartIndex();
       zSkip = trajParams.getZStartSkip();
       startPointType = trajParams.getStartType();
+      saveTracerLocations = trajParams.getSaveTracerLocations();
       if (!trajDoIntrp) {
         numIntrpPts = 1;
       }
@@ -200,6 +206,11 @@ public class TrajectoryManager {
       
       if (terrain != null) {
         terrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
+      }
+      
+      if (trajParams.getSaveTracerLocations()) {
+         FunctionType ftype = new FunctionType(((SetType)anim1DdomainSet.getType()).getDomain(), new FunctionType(RealType.Generic, RealTupleType.LatitudeLongitudeAltitude));
+         tracerLocations = new FieldImpl(ftype, anim1DdomainSet);
       }
 
       byte[][] color_values = info.color_values;
@@ -470,6 +481,24 @@ public class TrajectoryManager {
        int numTrajectories = trajectories.size();
        
        reset();
+       
+       if (saveTracerLocations) {
+         float[] xyz = new float[3];
+         if (numTrajectories > 1) {
+           Integer1DSet set = new Integer1DSet(numTrajectories);
+           FieldImpl field = new FieldImpl(new FunctionType(RealType.Generic, RealTupleType.LatitudeLongitudeAltitude), set);
+           for (int j=0; j<set.getLength(); j++) {
+             float[] startPt = trajectories.get(j).startPts;
+             float[][] lonlatZ = dspCoordSys.fromReference(new float[][] {{startPt[0]},{startPt[1]},{startPt[2]}});
+             float lat = lonlatZ[0][0];
+             float lon = lonlatZ[1][0];
+             if (lon > 180) lon -= 360;
+             float alt = altToZ.inverseScaleValues(lonlatZ[2])[0];
+             field.setSample(j, new RealTuple(RealTupleType.LatitudeLongitudeAltitude, new double[] {lat, lon, alt}));
+           }
+           tracerLocations.setSample(i, field);
+         }
+       }
  
        for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
          double dst = (x1 - x0)/numIntrpPts;
@@ -551,6 +580,12 @@ public class TrajectoryManager {
            cleanDefStrp();
            break;
          case POINT:
+           clean();
+           break;
+         case TRACER:
+           clean();
+           break;
+         case TRACER_POINT:
            clean();
            break;
        }
@@ -2424,6 +2459,11 @@ public class TrajectoryManager {
           propStr = prop.getProperty("TracerStreaming");
           if (propStr != null) {
             trajParams.setTracerStreamingEnabled(Boolean.valueOf(propStr.trim()));             
+          }
+          
+          propStr = prop.getProperty("SaveTracerLocations");
+          if (propStr != null) {
+            trajParams.setSaveTracerLocations(Boolean.valueOf(propStr.trim()));             
           }
           
           propStr = prop.getProperty("NumIntrpPts");
