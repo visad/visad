@@ -64,6 +64,8 @@ public class TrajectoryParams {
   public static final int CYLINDER = 2;
   public static final int DEFORM_RIBBON = 3;
   public static final int POINT = 4;
+  public static final int TRACER = 5;
+  public static final int TRACER_POINT = 6;
 
   double trajVisibilityTimeWindow = 86400.0;
   double trajRefreshInterval = 86400.0;
@@ -79,6 +81,8 @@ public class TrajectoryParams {
   boolean autoSizeMarker = true;
   boolean cachingEnabled = true;
   boolean terrainFollowEnabled = true;
+  boolean trcrStreamingEnabled = false;
+  boolean saveTracerLocations = false;
   
   int trajForm = LINE;
   float cylWidth = 0.01f;
@@ -124,6 +128,8 @@ public class TrajectoryParams {
     this.terrainFollowEnabled = params.getTerrainFollowing();
     this.method = params.getMethod();
     this.interpMethod = params.getInterpolationMethod();
+    this.trcrStreamingEnabled = params.getTracerStreamingEnabled();
+    this.saveTracerLocations = params.getSaveTracerLocations();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -361,6 +367,22 @@ public class TrajectoryParams {
      return this.cachingEnabled;
   }
   
+  public boolean getTracerStreamingEnabled() {
+     return this.trcrStreamingEnabled;
+  }
+
+  public void setTracerStreamingEnabled(boolean yesno) {
+    this.trcrStreamingEnabled = yesno;
+  }
+  
+  public boolean getSaveTracerLocations() {
+     return this.saveTracerLocations;
+  }
+
+  public void setSaveTracerLocations(boolean yesno) {
+    this.saveTracerLocations = yesno;
+  }
+  
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
@@ -413,6 +435,12 @@ public class TrajectoryParams {
          return false;
       }
       else if (this.method != trajParams.method) {
+         return false;
+      }
+      else if (this.trcrStreamingEnabled != trajParams.trcrStreamingEnabled) {
+         return false;
+      }
+      else if (this.saveTracerLocations != trajParams.saveTracerLocations) {
          return false;
       }
     }
