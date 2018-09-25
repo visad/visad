@@ -29,7 +29,7 @@ package visad.java3d;
 import visad.*;
 import visad.util.ThreadManager;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import java.util.ArrayList;
 import java.util.List;
