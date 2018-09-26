@@ -2476,6 +2476,11 @@ public class TrajectoryManager {
              trajParams.setTrajRefreshInterval(Double.valueOf(propStr.trim()));
           }
           
+          propStr = prop.getProperty("TrajVisiblityTimeWindow");
+          if (propStr != null) {
+             trajParams.setTrajVisibilityTimeWindow(Double.valueOf(propStr.trim()));
+          }
+          
           propStr = prop.getProperty("StartSkip");
           if (propStr != null) {
              trajParams.setStartSkip(Integer.valueOf(propStr.trim()));
