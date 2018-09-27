@@ -24,13 +24,10 @@ public class CubicInterpolator implements Interpolator {
 
       private int numSpatialPts = 1;
 
-      private boolean doIntrp = true;
-      
       private boolean[] needed = null;
       private boolean[] computed = null;
       
-      public CubicInterpolator(boolean doIntrp, int numSpatialPts) {
-         this.doIntrp = doIntrp;
+      public CubicInterpolator(int numSpatialPts) {
          this.numSpatialPts = numSpatialPts;
          this.solution = new double[4][numSpatialPts];
          this.needed = new boolean[numSpatialPts];
@@ -56,18 +53,6 @@ public class CubicInterpolator implements Interpolator {
       }
 
       public void interpolate(double xt, float[] interpValues) {
-         if (!doIntrp) {
-            if (xt == x0) {
-               System.arraycopy(values0, 0, interpValues, 0, numSpatialPts);
-            }
-            else if (xt == x1) {
-               System.arraycopy(values1, 0, interpValues, 0, numSpatialPts);
-            }
-            else if (xt == x2) {
-               System.arraycopy(values2, 0, interpValues, 0, numSpatialPts);               
-            }
-            return;
-         }
          java.util.Arrays.fill(interpValues, Float.NaN);
          
          for (int k=0; k<numSpatialPts; k++) {
@@ -92,10 +77,6 @@ public class CubicInterpolator implements Interpolator {
          this.values0_save = values0;
          Arrays.fill(computed, false);
          
-         if (!doIntrp) {
-           return;
-         }
-         
          buildSolver();
       }
  
@@ -108,9 +89,7 @@ public class CubicInterpolator implements Interpolator {
                   }
               }
           }
-          if (doIntrp) {
-                getSolution();
-          }
+          getSolution();
       }
       
       private void getSolution() {
