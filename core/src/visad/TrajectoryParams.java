@@ -56,7 +56,8 @@ public class TrajectoryParams {
   
   public static enum InterpolationMethod {
      Cubic,
-     Linear;
+     Linear,
+     None;
   }
   
   public static final int LINE = 0;
@@ -74,7 +75,7 @@ public class TrajectoryParams {
   SmoothParams smoothParams = SmoothParams.LIGHT;
   boolean forward = true;
   int direction = 1;  //1: forward, -1: backward
-  boolean doIntrp = true;
+  //boolean doIntrp = true;
   float markerSize = 1f;
   boolean markerEnabled = false;
   boolean manualIntrpPts = false;
@@ -111,7 +112,6 @@ public class TrajectoryParams {
     this.smoothParams = params.getSmoothParams();
     this.forward = params.getDirectionFlag();
     this.direction = params.getDirection();
-    this.doIntrp = params.getDoIntrp();
     this.markerSize = params.getMarkerSize();
     this.markerEnabled = params.getMarkerEnabled();
     this.manualIntrpPts = params.getManualIntrpPts();
@@ -194,10 +194,6 @@ public class TrajectoryParams {
   
   public boolean getDirectionFlag() {
      return forward;
-  }
-  
-  public void setDoIntrp(boolean yesno) {
-    this.doIntrp = yesno;
   }
   
   public void setNumIntrpPts(int numIntrpPts) {
@@ -305,10 +301,6 @@ public class TrajectoryParams {
     return direction;
   }
 
-  public boolean getDoIntrp() {
-    return this.doIntrp;
-  }
-
   public float getMarkerSize() {
     return this.markerSize;
   }
@@ -412,9 +404,6 @@ public class TrajectoryParams {
       }
       else if (this.trajForm != trajParams.trajForm) {
         return false;
-      }
-      else if (this.doIntrp != trajParams.doIntrp) {
-         return false;
       }
       else if (this.forward != trajParams.forward) {
          return false;
