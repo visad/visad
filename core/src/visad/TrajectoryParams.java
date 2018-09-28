@@ -56,7 +56,8 @@ public class TrajectoryParams {
   
   public static enum InterpolationMethod {
      Cubic,
-     Linear;
+     Linear,
+     None;
   }
   
   public static final int LINE = 0;
@@ -74,7 +75,7 @@ public class TrajectoryParams {
   SmoothParams smoothParams = SmoothParams.LIGHT;
   boolean forward = true;
   int direction = 1;  //1: forward, -1: backward
-  boolean doIntrp = true;
+  //boolean doIntrp = true;
   float markerSize = 1f;
   boolean markerEnabled = false;
   boolean manualIntrpPts = false;
@@ -99,6 +100,8 @@ public class TrajectoryParams {
   
   Method method = Method.HySplit; //Default
   InterpolationMethod interpMethod = InterpolationMethod.Cubic;
+  
+  double timeStepScaleFactor = 1;
 
   public TrajectoryParams() {
   }
@@ -111,7 +114,6 @@ public class TrajectoryParams {
     this.smoothParams = params.getSmoothParams();
     this.forward = params.getDirectionFlag();
     this.direction = params.getDirection();
-    this.doIntrp = params.getDoIntrp();
     this.markerSize = params.getMarkerSize();
     this.markerEnabled = params.getMarkerEnabled();
     this.manualIntrpPts = params.getManualIntrpPts();
@@ -130,6 +132,7 @@ public class TrajectoryParams {
     this.interpMethod = params.getInterpolationMethod();
     this.trcrStreamingEnabled = params.getTracerStreamingEnabled();
     this.saveTracerLocations = params.getSaveTracerLocations();
+    this.timeStepScaleFactor = params.getTimeStepScaleFactor();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -194,10 +197,6 @@ public class TrajectoryParams {
   
   public boolean getDirectionFlag() {
      return forward;
-  }
-  
-  public void setDoIntrp(boolean yesno) {
-    this.doIntrp = yesno;
   }
   
   public void setNumIntrpPts(int numIntrpPts) {
@@ -305,10 +304,6 @@ public class TrajectoryParams {
     return direction;
   }
 
-  public boolean getDoIntrp() {
-    return this.doIntrp;
-  }
-
   public float getMarkerSize() {
     return this.markerSize;
   }
@@ -383,6 +378,14 @@ public class TrajectoryParams {
     this.saveTracerLocations = yesno;
   }
   
+  public double getTimeStepScaleFactor() {
+     return this.timeStepScaleFactor;
+  }
+  
+  public void setTimeStepScaleFactor(double fac) {
+     this.timeStepScaleFactor = fac;
+  }
+  
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
@@ -413,9 +416,6 @@ public class TrajectoryParams {
       else if (this.trajForm != trajParams.trajForm) {
         return false;
       }
-      else if (this.doIntrp != trajParams.doIntrp) {
-         return false;
-      }
       else if (this.forward != trajParams.forward) {
          return false;
       }
@@ -441,6 +441,9 @@ public class TrajectoryParams {
          return false;
       }
       else if (this.saveTracerLocations != trajParams.saveTracerLocations) {
+         return false;
+      }
+      else  if (this.timeStepScaleFactor != trajParams.timeStepScaleFactor) {
          return false;
       }
     }

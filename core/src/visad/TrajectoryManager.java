@@ -94,8 +94,6 @@ public class TrajectoryManager {
   boolean trajCachingEnabled = false;
   boolean trcrStreamingEnabled;
   boolean saveTracerLocations;
-  //boolean doHysplit = false;
-  //boolean doRK4 = true;
   float trcrSize = 1f;
   boolean trcrEnabled;
   boolean terrainFollowEnabled;
@@ -142,6 +140,8 @@ public class TrajectoryManager {
   
   public FieldImpl tracerLocations;
   
+  double timeStepScaleFactor;
+  
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
   
@@ -170,7 +170,6 @@ public class TrajectoryManager {
       method = trajParams.getMethod();
       direction = trajParams.getDirection();
       startPts = trajParams.getStartPoints();
-      trajDoIntrp = trajParams.getDoIntrp();
       trcrSize = trajParams.getMarkerSize();
       trcrEnabled = trajParams.getMarkerEnabled();
       trajCachingEnabled = trajParams.getCachingEnabled();
@@ -183,9 +182,7 @@ public class TrajectoryManager {
       zSkip = trajParams.getZStartSkip();
       startPointType = trajParams.getStartType();
       saveTracerLocations = trajParams.getSaveTracerLocations();
-      if (!trajDoIntrp) {
-        numIntrpPts = 1;
-      }
+      timeStepScaleFactor = trajParams.getTimeStepScaleFactor();
       
       this.altToZ = altToZ;
       if (terrainFollowEnabled) {
@@ -297,14 +294,21 @@ public class TrajectoryManager {
       }
 
       if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.Cubic) {
-        uInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-        vInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-        wInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
+        uInterp = new CubicInterpolator(numSpatialPts);
+        vInterp = new CubicInterpolator(numSpatialPts);
+        wInterp = new CubicInterpolator(numSpatialPts);
       }
       else if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.Linear) {
-        uInterp = new LinearInterpolator(trajDoIntrp, numSpatialPts);
-        vInterp = new LinearInterpolator(trajDoIntrp, numSpatialPts);
-        wInterp = new LinearInterpolator(trajDoIntrp, numSpatialPts);
+        uInterp = new LinearInterpolator(numSpatialPts);
+        vInterp = new LinearInterpolator(numSpatialPts);
+        wInterp = new LinearInterpolator(numSpatialPts);
+      }
+      else if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.None) {
+        uInterp = new NoneInterpolator(numSpatialPts);
+        vInterp = new NoneInterpolator(numSpatialPts);
+        wInterp = new NoneInterpolator(numSpatialPts);
+        trajDoIntrp = false;
+        numIntrpPts = 1;
       }
       
       values0 = null;
@@ -408,6 +412,7 @@ public class TrajectoryManager {
        }
 
        float timeStep = (float) timeSteps[i]/numIntrpPts;
+       timeStep *= timeStepScaleFactor;
        if (!trajDoIntrp && (method == TrajectoryParams.Method.RK4)) {
           timeStep *= 2;
        }
@@ -2446,11 +2451,6 @@ public class TrajectoryManager {
             trajParams.setManualIntrpPts(Boolean.valueOf(propStr.trim()));             
           }
           
-          propStr = prop.getProperty("TrajDoIntrp");
-          if (propStr != null) {
-            trajParams.setDoIntrp(Boolean.valueOf(propStr.trim()));             
-          }
-          
           propStr = prop.getProperty("TerrainFollow");
           if (propStr != null) {
             trajParams.setTerrainFollowing(Boolean.valueOf(propStr.trim()));             
@@ -2474,6 +2474,16 @@ public class TrajectoryManager {
           propStr = prop.getProperty("TrajRefreshInterval");
           if (propStr != null) {
              trajParams.setTrajRefreshInterval(Double.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("TrajVisiblityTimeWindow");
+          if (propStr != null) {
+             trajParams.setTrajVisibilityTimeWindow(Double.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("TimeStepScaleFactor");
+          if (propStr != null) {
+             trajParams.setTimeStepScaleFactor(Double.valueOf(propStr.trim()));
           }
           
           propStr = prop.getProperty("StartSkip");
@@ -2534,6 +2544,9 @@ public class TrajectoryManager {
              }
              else if (propStr.equals("LINEAR")) {
                trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.Linear);  
+             }
+             else if (propStr.equals("NONE")) {
+                trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.None);
              }
           }
           
@@ -2725,4 +2738,45 @@ class ListenForRemove implements ScalarMapListener, DisplayListener {
      TrajectoryManager.removeListeners.remove(theMap);
    }
      
+}
+
+class NoneInterpolator implements Interpolator {
+   double x0;
+   double x1;
+   double x2;
+   float[] values0;
+   float[] values1;
+   float[] values2;
+   int numSpatialPts;
+
+   public NoneInterpolator(int numSpatialPts) {
+      this.numSpatialPts = numSpatialPts;
+   }
+
+   public void interpolate(double xt, float[] interpValues) {
+      if (xt == x0) {
+         System.arraycopy(values0, 0, interpValues, 0, numSpatialPts);
+      }
+      else if (xt == x1) {
+         System.arraycopy(values1, 0, interpValues, 0, numSpatialPts);
+      }
+      else if (xt == x2) {
+         System.arraycopy(values2, 0, interpValues, 0, numSpatialPts);               
+      }
+      return;
+   }
+
+   public void next(double x0, double x1, double x2, float[] values0, float[] values1, float[] values2) {
+      this.x0 = x0;
+      this.x1 = x1;
+      this.x2 = x2;
+      this.values0 = values0;
+      this.values1 = values1;
+      this.values2 = values2;
+      return;
+   }
+
+   public void update(boolean[] needed) {
+      return;
+   }
 }
