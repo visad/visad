@@ -100,6 +100,8 @@ public class TrajectoryParams {
   
   Method method = Method.HySplit; //Default
   InterpolationMethod interpMethod = InterpolationMethod.Cubic;
+  
+  double timeStepScaleFactor = 1;
 
   public TrajectoryParams() {
   }
@@ -130,6 +132,7 @@ public class TrajectoryParams {
     this.interpMethod = params.getInterpolationMethod();
     this.trcrStreamingEnabled = params.getTracerStreamingEnabled();
     this.saveTracerLocations = params.getSaveTracerLocations();
+    this.timeStepScaleFactor = params.getTimeStepScaleFactor();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -375,6 +378,14 @@ public class TrajectoryParams {
     this.saveTracerLocations = yesno;
   }
   
+  public double getTimeStepScaleFactor() {
+     return this.timeStepScaleFactor;
+  }
+  
+  public void setTimeStepScaleFactor(double fac) {
+     this.timeStepScaleFactor = fac;
+  }
+  
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
@@ -430,6 +441,9 @@ public class TrajectoryParams {
          return false;
       }
       else if (this.saveTracerLocations != trajParams.saveTracerLocations) {
+         return false;
+      }
+      else  if (this.timeStepScaleFactor != trajParams.timeStepScaleFactor) {
          return false;
       }
     }

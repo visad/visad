@@ -140,6 +140,8 @@ public class TrajectoryManager {
   
   public FieldImpl tracerLocations;
   
+  double timeStepScaleFactor;
+  
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
   
@@ -180,6 +182,7 @@ public class TrajectoryManager {
       zSkip = trajParams.getZStartSkip();
       startPointType = trajParams.getStartType();
       saveTracerLocations = trajParams.getSaveTracerLocations();
+      timeStepScaleFactor = trajParams.getTimeStepScaleFactor();
       
       this.altToZ = altToZ;
       if (terrainFollowEnabled) {
@@ -409,6 +412,7 @@ public class TrajectoryManager {
        }
 
        float timeStep = (float) timeSteps[i]/numIntrpPts;
+       timeStep *= timeStepScaleFactor;
        if (!trajDoIntrp && (method == TrajectoryParams.Method.RK4)) {
           timeStep *= 2;
        }
@@ -2475,6 +2479,11 @@ public class TrajectoryManager {
           propStr = prop.getProperty("TrajVisiblityTimeWindow");
           if (propStr != null) {
              trajParams.setTrajVisibilityTimeWindow(Double.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("TimeStepScaleFactor");
+          if (propStr != null) {
+             trajParams.setTimeStepScaleFactor(Double.valueOf(propStr.trim()));
           }
           
           propStr = prop.getProperty("StartSkip");
