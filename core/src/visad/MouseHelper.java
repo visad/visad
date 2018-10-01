@@ -7,14 +7,17 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 2018 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
 version 2 of the License, or (at your option) any later version.
+
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Library General Public License for more details.
+
 You should have received a copy of the GNU Library General Public
 License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
@@ -33,6 +36,7 @@ import visad.browser.Convert;
 /**
    MouseHelper is the VisAD helper class for MouseBehaviorJ3D
    and MouseBehaviorJ2D.<p>
+
    MouseHelper is preferred by cats everywhere.<p>
 */
 public class MouseHelper
@@ -729,6 +733,49 @@ public class MouseHelper
     }
     enableFunctions(null);
   }
+  
+  public void setTranslationFactor(int start_x, int start_y) {
+      // WLH 9 Aug 2000
+      VisADRay start_ray = getMouseBehavior().findRay(start_x, start_y);
+      VisADRay start_ray_x = getMouseBehavior().findRay(start_x + 1, start_y);
+      VisADRay start_ray_y = getMouseBehavior().findRay(start_x, start_y + 1);
+
+      double[] rot = new double[3];
+      double[] scale = new double[3];
+      double[] trans = new double[3];
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, tstart);
+      double sts = scale[0];
+      double[] trot = getMouseBehavior().make_matrix(rot[0], rot[1], rot[2],
+                                           scale[0], scale[1], scale[2],
+                                           0.0, 0.0, 0.0);
+
+      // WLH 17 Aug 2000
+      double[] xmat = getMouseBehavior().make_translate(
+                         start_ray_x.position[0] - start_ray.position[0],
+                         start_ray_x.position[1] - start_ray.position[1],
+                         start_ray_x.position[2] - start_ray.position[2]);
+      double[] ymat = getMouseBehavior().make_translate(
+                         start_ray_y.position[0] - start_ray.position[0],
+                         start_ray_y.position[1] - start_ray.position[1],
+                         start_ray_y.position[2] - start_ray.position[2]);
+      double[] xmatmul = getMouseBehavior().multiply_matrix(trot, xmat);
+      double[] ymatmul = getMouseBehavior().multiply_matrix(trot, ymat);
+      
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, xmatmul);
+      xmul = trans[0];
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, ymatmul);
+      ymul = trans[1];
+
+      // horrible hack, WLH 17 Aug 2000
+      if (getMouseBehavior() instanceof visad.java2d.MouseBehaviorJ2D) {
+        double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
+        xmul *= factor;
+        ymul *= factor;
+
+        xmul = Math.abs(xmul);
+        ymul = -Math.abs(ymul);
+      }     
+  }
 
   /**
    * Print out a readable form of a matrix.  Useful for
@@ -788,47 +835,4 @@ public class MouseHelper
 
 
 
-  
-  public void setTranslationFactor(int start_x, int start_y) {
-      // WLH 9 Aug 2000
-      VisADRay start_ray = getMouseBehavior().findRay(start_x, start_y);
-      VisADRay start_ray_x = getMouseBehavior().findRay(start_x + 1, start_y);
-      VisADRay start_ray_y = getMouseBehavior().findRay(start_x, start_y + 1);
-
-      double[] rot = new double[3];
-      double[] scale = new double[3];
-      double[] trans = new double[3];
-      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, tstart);
-      double sts = scale[0];
-      double[] trot = getMouseBehavior().make_matrix(rot[0], rot[1], rot[2],
-                                           scale[0], scale[1], scale[2],
-                                           0.0, 0.0, 0.0);
-
-      // WLH 17 Aug 2000
-      double[] xmat = getMouseBehavior().make_translate(
-                         start_ray_x.position[0] - start_ray.position[0],
-                         start_ray_x.position[1] - start_ray.position[1],
-                         start_ray_x.position[2] - start_ray.position[2]);
-      double[] ymat = getMouseBehavior().make_translate(
-                         start_ray_y.position[0] - start_ray.position[0],
-                         start_ray_y.position[1] - start_ray.position[1],
-                         start_ray_y.position[2] - start_ray.position[2]);
-      double[] xmatmul = getMouseBehavior().multiply_matrix(trot, xmat);
-      double[] ymatmul = getMouseBehavior().multiply_matrix(trot, ymat);
-      
-      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, xmatmul);
-      xmul = trans[0];
-      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, ymatmul);
-      ymul = trans[1];
-
-      // horrible hack, WLH 17 Aug 2000
-      if (getMouseBehavior() instanceof visad.java2d.MouseBehaviorJ2D) {
-        double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
-        xmul *= factor;
-        ymul *= factor;
-
-        xmul = Math.abs(xmul);
-        ymul = -Math.abs(ymul);
-      }     
-  }
 }
