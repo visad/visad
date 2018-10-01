@@ -729,49 +729,6 @@ public class MouseHelper
     }
     enableFunctions(null);
   }
-  
-  public void setTranslationFactor(int start_x, int start_y) {
-      // WLH 9 Aug 2000
-      VisADRay start_ray = getMouseBehavior().findRay(start_x, start_y);
-      VisADRay start_ray_x = getMouseBehavior().findRay(start_x + 1, start_y);
-      VisADRay start_ray_y = getMouseBehavior().findRay(start_x, start_y + 1);
-
-      double[] rot = new double[3];
-      double[] scale = new double[3];
-      double[] trans = new double[3];
-      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, tstart);
-      double sts = scale[0];
-      double[] trot = getMouseBehavior().make_matrix(rot[0], rot[1], rot[2],
-                                           scale[0], scale[1], scale[2],
-                                           0.0, 0.0, 0.0);
-
-      // WLH 17 Aug 2000
-      double[] xmat = getMouseBehavior().make_translate(
-                         start_ray_x.position[0] - start_ray.position[0],
-                         start_ray_x.position[1] - start_ray.position[1],
-                         start_ray_x.position[2] - start_ray.position[2]);
-      double[] ymat = getMouseBehavior().make_translate(
-                         start_ray_y.position[0] - start_ray.position[0],
-                         start_ray_y.position[1] - start_ray.position[1],
-                         start_ray_y.position[2] - start_ray.position[2]);
-      double[] xmatmul = getMouseBehavior().multiply_matrix(trot, xmat);
-      double[] ymatmul = getMouseBehavior().multiply_matrix(trot, ymat);
-      
-      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, xmatmul);
-      xmul = trans[0];
-      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, ymatmul);
-      ymul = trans[1];
-
-      // horrible hack, WLH 17 Aug 2000
-      if (getMouseBehavior() instanceof visad.java2d.MouseBehaviorJ2D) {
-        double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
-        xmul *= factor;
-        ymul *= factor;
-
-        xmul = Math.abs(xmul);
-        ymul = -Math.abs(ymul);
-      }     
-  }
 
   /**
    * Print out a readable form of a matrix.  Useful for
@@ -831,4 +788,47 @@ public class MouseHelper
 
 
 
+  
+  public void setTranslationFactor(int start_x, int start_y) {
+      // WLH 9 Aug 2000
+      VisADRay start_ray = getMouseBehavior().findRay(start_x, start_y);
+      VisADRay start_ray_x = getMouseBehavior().findRay(start_x + 1, start_y);
+      VisADRay start_ray_y = getMouseBehavior().findRay(start_x, start_y + 1);
+
+      double[] rot = new double[3];
+      double[] scale = new double[3];
+      double[] trans = new double[3];
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, tstart);
+      double sts = scale[0];
+      double[] trot = getMouseBehavior().make_matrix(rot[0], rot[1], rot[2],
+                                           scale[0], scale[1], scale[2],
+                                           0.0, 0.0, 0.0);
+
+      // WLH 17 Aug 2000
+      double[] xmat = getMouseBehavior().make_translate(
+                         start_ray_x.position[0] - start_ray.position[0],
+                         start_ray_x.position[1] - start_ray.position[1],
+                         start_ray_x.position[2] - start_ray.position[2]);
+      double[] ymat = getMouseBehavior().make_translate(
+                         start_ray_y.position[0] - start_ray.position[0],
+                         start_ray_y.position[1] - start_ray.position[1],
+                         start_ray_y.position[2] - start_ray.position[2]);
+      double[] xmatmul = getMouseBehavior().multiply_matrix(trot, xmat);
+      double[] ymatmul = getMouseBehavior().multiply_matrix(trot, ymat);
+      
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, xmatmul);
+      xmul = trans[0];
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, ymatmul);
+      ymul = trans[1];
+
+      // horrible hack, WLH 17 Aug 2000
+      if (getMouseBehavior() instanceof visad.java2d.MouseBehaviorJ2D) {
+        double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
+        xmul *= factor;
+        ymul *= factor;
+
+        xmul = Math.abs(xmul);
+        ymul = -Math.abs(ymul);
+      }     
+  }
 }
