@@ -307,8 +307,10 @@ public class TrajectoryManager {
         uInterp = new NoneInterpolator(numSpatialPts);
         vInterp = new NoneInterpolator(numSpatialPts);
         wInterp = new NoneInterpolator(numSpatialPts);
-        trajDoIntrp = false;
-        numIntrpPts = 1;
+      }
+      
+      if (!trajDoIntrp) {
+         numIntrpPts = 1;
       }
       
       values0 = null;
@@ -552,7 +554,7 @@ public class TrajectoryManager {
              intrpW = mean(intrpW, intrpW_1);
            }
 
-           for (int t=0; t<numTrajectories; t++) {
+           for (int t=0; t<numTrajectories; t++) { //Euler method if NOT HySplit
              Trajectory traj = trajectories.get(t);
              traj.currentTimeIndex = direction*i;
              traj.currentTime = direction*times[i];

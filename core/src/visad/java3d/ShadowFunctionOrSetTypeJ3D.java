@@ -1432,10 +1432,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     
     // We don't really have a time interval defined beyond the next to last point
     int computeLength = dataDomainLength-1;
-    if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.None) {
-       if (trajParams.getMethod() == TrajectoryParams.Method.RK4) { // need 3 time steps
-          computeLength = dataDomainLength-2;
-       }
+    if (trajParams.getMethod() == TrajectoryParams.Method.RK4) { // need 3 time steps
+      computeLength = dataDomainLength-2;
+    }
+    else if (trajParams.getMethod() == TrajectoryParams.Method.Euler && 
+            ((trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.None) || !trajParams.getTrajDoIntrp())) {
+      computeLength = dataDomainLength;
     }
     
     for (int k=0; k<computeLength; k++) {
