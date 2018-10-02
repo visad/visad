@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2018 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -48,26 +48,45 @@ public class TrajectoryParams {
     }
   }
   
-  public static int LINE = 0;
-  public static int RIBBON = 1;
-  public static int CYLINDER = 2;
-  public static int DEFORM_RIBBON = 3;
+  public static enum Method {
+     HySplit,
+     RK4,
+     Euler;
+  }
+  
+  public static enum InterpolationMethod {
+     Cubic,
+     Linear,
+     None;
+  }
+  
+  public static final int LINE = 0;
+  public static final int RIBBON = 1;
+  public static final int CYLINDER = 2;
+  public static final int DEFORM_RIBBON = 3;
+  public static final int POINT = 4;
+  public static final int TRACER = 5;
+  public static final int TRACER_POINT = 6;
 
   double trajVisibilityTimeWindow = 86400.0;
   double trajRefreshInterval = 86400.0;
   int numIntrpPts = 6;
   int startSkip = 2;
-  SmoothParams smoothParams = SmoothParams.MEDIUM;
+  SmoothParams smoothParams = SmoothParams.LIGHT;
+  boolean forward = true;
   int direction = 1;  //1: forward, -1: backward
-  boolean doIntrp = true;
+  //boolean doIntrp = true;
   float markerSize = 1f;
   boolean markerEnabled = false;
   boolean manualIntrpPts = false;
   boolean autoSizeMarker = true;
   boolean cachingEnabled = true;
+  boolean terrainFollowEnabled = true;
+  boolean trcrStreamingEnabled = false;
+  boolean saveTracerLocations = false;
   
   int trajForm = LINE;
-  float cylWidth = 0.00014f;
+  float cylWidth = 0.01f;
   float ribbonWidthFac = 1f;
   int zStart = 0;
   int zStartSkip = 0;
@@ -75,6 +94,14 @@ public class TrajectoryParams {
   // these are endPoints if direction is backward
   float[][] startPoints = null;
   RealTupleType startType = Display.DisplaySpatialCartesianTuple;
+  
+  // terrain (lower boundary) Implicit: meters above MSL
+  FlatField terrain = null;
+  
+  Method method = Method.HySplit; //Default
+  InterpolationMethod interpMethod = InterpolationMethod.Cubic;
+  
+  double timeStepScaleFactor = 1;
 
   public TrajectoryParams() {
   }
@@ -85,8 +112,8 @@ public class TrajectoryParams {
     this.numIntrpPts = params.getNumIntrpPts();
     this.startSkip = params.getStartSkip();
     this.smoothParams = params.getSmoothParams();
+    this.forward = params.getDirectionFlag();
     this.direction = params.getDirection();
-    this.doIntrp = params.getDoIntrp();
     this.markerSize = params.getMarkerSize();
     this.markerEnabled = params.getMarkerEnabled();
     this.manualIntrpPts = params.getManualIntrpPts();
@@ -99,6 +126,13 @@ public class TrajectoryParams {
     this.ribbonWidthFac = params.getRibbonWidthFactor();
     this.zStart = params.getZStartIndex();
     this.zStartSkip = params.getZStartSkip();
+    this.terrain = params.getTerrain();
+    this.terrainFollowEnabled = params.getTerrainFollowing();
+    this.method = params.getMethod();
+    this.interpMethod = params.getInterpolationMethod();
+    this.trcrStreamingEnabled = params.getTracerStreamingEnabled();
+    this.saveTracerLocations = params.getSaveTracerLocations();
+    this.timeStepScaleFactor = params.getTimeStepScaleFactor();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -150,9 +184,19 @@ public class TrajectoryParams {
   public void setTrajRefreshInterval(double trajRefreshInterval) {
     this.trajRefreshInterval = trajRefreshInterval;
   }
-
-  public void setDoIntrp(boolean yesno) {
-    this.doIntrp = yesno;
+  
+  public void setDirectionFlag(boolean forward) {
+     this.forward = forward;
+     if (forward) {
+        this.direction = 1;
+     }
+     else {
+        this.direction = -1;
+     }
+  }
+  
+  public boolean getDirectionFlag() {
+     return forward;
   }
   
   public void setNumIntrpPts(int numIntrpPts) {
@@ -188,6 +232,14 @@ public class TrajectoryParams {
     this.markerEnabled = yesno;
   }
   
+  public void setMethod(Method method) {
+     this.method = method;
+  }
+  
+  public void setInterpolationMethod(InterpolationMethod m) {
+     this.interpMethod = m;
+  }
+  
   public void setCachingEnabled(boolean yesno) {
      this.cachingEnabled = yesno;
   }
@@ -198,6 +250,10 @@ public class TrajectoryParams {
   
   public void setCylinderWidth(float width) {
      cylWidth = width;
+  }
+  
+  public void setTerrainFollowing(boolean yesno) {
+     terrainFollowEnabled = yesno;
   }
   
   public void setRibbonWidthFactor(float fac) {
@@ -248,16 +304,24 @@ public class TrajectoryParams {
     return direction;
   }
 
-  public boolean getDoIntrp() {
-    return this.doIntrp;
-  }
-
   public float getMarkerSize() {
     return this.markerSize;
   }
   
   public boolean getMarkerEnabled() {
     return this.markerEnabled;
+  }
+  
+  public boolean getTerrainFollowing() {
+     return terrainFollowEnabled;
+  }
+  
+  public Method getMethod() {
+     return method;
+  }
+  
+  public InterpolationMethod getInterpolationMethod() {
+     return interpMethod;
   }
   
   public void setStartPoints(float[][] startPts) {
@@ -272,6 +336,14 @@ public class TrajectoryParams {
 
   public float[][] getStartPoints() {
     return startPoints;
+  }
+  
+  public void setTerrain(FlatField terrain) {
+     this.terrain = terrain;
+  }
+  
+  public FlatField getTerrain() {
+     return terrain;
   }
  
   public RealTupleType getStartType() {
@@ -288,6 +360,30 @@ public class TrajectoryParams {
   
   public boolean getCachingEnabled() {
      return this.cachingEnabled;
+  }
+  
+  public boolean getTracerStreamingEnabled() {
+     return this.trcrStreamingEnabled;
+  }
+
+  public void setTracerStreamingEnabled(boolean yesno) {
+    this.trcrStreamingEnabled = yesno;
+  }
+  
+  public boolean getSaveTracerLocations() {
+     return this.saveTracerLocations;
+  }
+
+  public void setSaveTracerLocations(boolean yesno) {
+    this.saveTracerLocations = yesno;
+  }
+  
+  public double getTimeStepScaleFactor() {
+     return this.timeStepScaleFactor;
+  }
+  
+  public void setTimeStepScaleFactor(double fac) {
+     this.timeStepScaleFactor = fac;
   }
   
   public boolean equals(Object obj) {
@@ -320,7 +416,7 @@ public class TrajectoryParams {
       else if (this.trajForm != trajParams.trajForm) {
         return false;
       }
-      else if (this.doIntrp != trajParams.doIntrp) {
+      else if (this.forward != trajParams.forward) {
          return false;
       }
       else if (this.direction != trajParams.direction) {
@@ -334,6 +430,21 @@ public class TrajectoryParams {
       }
       else if (this.ribbonWidthFac != trajParams.ribbonWidthFac) {
         return false;
+      }
+      else if (this.terrainFollowEnabled != trajParams.terrainFollowEnabled) {
+         return false;
+      }
+      else if (this.method != trajParams.method) {
+         return false;
+      }
+      else if (this.trcrStreamingEnabled != trajParams.trcrStreamingEnabled) {
+         return false;
+      }
+      else if (this.saveTracerLocations != trajParams.saveTracerLocations) {
+         return false;
+      }
+      else  if (this.timeStepScaleFactor != trajParams.timeStepScaleFactor) {
+         return false;
       }
     }
     return true;

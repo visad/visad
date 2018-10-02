@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2016 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2018 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
 
@@ -80,8 +80,6 @@ public class ABINnav extends AREAnav {
         1.006802999999999892466462370066437870264;
 
     private boolean isEastPositive = true;
-
-    private int itype = 1;
 
     /** Line offset. */
     private double loff;
@@ -191,8 +189,8 @@ public class ABINnav extends AREAnav {
             double xlon;
 
             // adjust using Base RESolution
-            xlin = (rlin + bres - 1) / bres;
-            xele = (rele + bres - 1) / bres;
+            xlin = (rlin - ((bres - 1) / 2.0)) / bres;
+            xele = (rele - ((bres - 1) / 2.0)) / bres;
 
             // Intermediate coordinates (coordinates will be radians)
             theta_goes = xlin * lfac + loff;
@@ -327,8 +325,8 @@ public class ABINnav extends AREAnav {
                 rele = (lamda - coff) / cfac;
 
                 // Adjust using Base RESolution
-                xlin = rlin * bres - (bres - 1);
-                xele = rele * bres - (bres - 1);
+                xlin = (rlin * bres) + (bres - 1) / 2.0;
+                xele = (rele * bres) + (bres - 1) / 2.0;
             }
             // end of ll_to_img
 

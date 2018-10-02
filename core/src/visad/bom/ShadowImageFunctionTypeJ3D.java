@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2018 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -1055,7 +1055,7 @@ if (i == (len / 2)) {
                                                                                                                    
     // compute size of triangle array to mapped texture onto
     int size = (data_width + data_height) / 2;
-    curved_size = Math.max(2, Math.min(curved_size, size / 32));
+    curved_size = Math.min(curved_size, size / 32);
                                                                                                                    
     int nwidth = 2 + (data_width - 1) / curved_size;
     int nheight = 2 + (data_height - 1) / curved_size;

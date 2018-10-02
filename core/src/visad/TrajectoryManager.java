@@ -1,16 +1,45 @@
+//
+// TrajectoryManager.java
+//
+
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2018 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
 package visad;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import visad.util.CubicInterpolator;
+import visad.util.LinearInterpolator;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Properties;
 import visad.data.text.TextAdapter;
+import visad.util.Interpolator;
 
 
 /**
@@ -40,15 +69,22 @@ public class TrajectoryManager {
   public static int[] o_i = new int[] {0, 1, 0, 1};
   
   float[][] startPts;
+  double[] startTimes;
   byte[][] startClrs;
   
   
-  public static final int LINE = 0;
-  public static final int RIBBON = 1;
-  public static final int CYLINDER = 2;
-  public static final int DEFORM_RIBBON = 3;
+  public static final int LINE = TrajectoryParams.LINE;
+  public static final int RIBBON = TrajectoryParams.RIBBON;
+  public static final int CYLINDER = TrajectoryParams.CYLINDER;
+  public static final int DEFORM_RIBBON = TrajectoryParams.DEFORM_RIBBON;
+  public static final int POINT = TrajectoryParams.POINT;
+  public static final int TRACER = TrajectoryParams.TRACER;
+  public static final int TRACER_POINT = TrajectoryParams.TRACER_POINT;
   
   public static final String PPOP_TRAJECTORY_START_POINTS_FILE = "visad.trajectory.startPointsFile";
+  public static final String PROP_TRAJECTORY_PARAM_FILE_1 = "visad.trajectory.paramFile1";
+  public static final String PROP_TRAJECTORY_PARAM_FILE_2 = "visad.trajectory.paramFile2";
+  public static final String PROP_TRAJECTORY_TERRAIN_FILE = "visad.trajectory.terrainFile";
   
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
@@ -56,12 +92,15 @@ public class TrajectoryManager {
   boolean manualIntrpPts;
   boolean trajDoIntrp = true;
   boolean trajCachingEnabled = false;
-  boolean doHysplit = true;
+  boolean trcrStreamingEnabled;
+  boolean saveTracerLocations;
   float trcrSize = 1f;
   boolean trcrEnabled;
+  boolean terrainFollowEnabled;
   int numIntrpPts;
   int trajSkip;
   TrajectoryParams.SmoothParams smoothParams;
+  TrajectoryParams.Method method;
   int direction;
   int trajForm = LINE; // Default
   float cylWidth = 0.01f;
@@ -75,9 +114,12 @@ public class TrajectoryManager {
   float[] intrpU_1;
   float[] intrpV_1;
   float[] intrpW_1;  
-  CubicInterpolator uInterp;
-  CubicInterpolator vInterp;
-  CubicInterpolator wInterp;
+  float[] intrpU_2;
+  float[] intrpV_2;
+  float[] intrpW_2;  
+  Interpolator uInterp;
+  Interpolator vInterp;
+  Interpolator wInterp;
   float[][] values0;
   float[][] values1;
   float[][] values2;
@@ -91,6 +133,15 @@ public class TrajectoryManager {
   
   ArrayList<Trajectory> trajectories;
   
+  FlatField terrain = null;
+  
+  Gridded1DSet anim1DdomainSet;
+  CoordinateSystem dspCoordSys;
+  
+  public FieldImpl tracerLocations;
+  
+  double timeStepScaleFactor;
+  
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
   
@@ -98,12 +149,16 @@ public class TrajectoryManager {
   public static HashMap<ScalarMap, ScalarMapListener> removeListeners = new HashMap<ScalarMap, ScalarMapListener>();
   
   
-  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength) throws VisADException {
-    this(renderer, trajParams, flowInfoList, dataDomainLength, null);
+  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time) throws VisADException {
+    this(renderer, trajParams, flowInfoList, dataDomainLength, time, null, null, null);
   }
   
-  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, ScalarMap altToZ) throws VisADException {
+  public TrajectoryManager(DataRenderer renderer, TrajectoryParams trajParams, ArrayList<FlowInfo> flowInfoList, int dataDomainLength, double time, ScalarMap altToZ, CoordinateSystem dspCoordSys, Gridded1DSet anim1DdomainSet) throws VisADException {
       this.flowInfoList = flowInfoList;
+      this.anim1DdomainSet = anim1DdomainSet;
+      this.dspCoordSys = dspCoordSys;
+      FlowInfo info = flowInfoList.get(0);
+      
       this.dataDomainLength = dataDomainLength;
       trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
       trajRefreshInterval = trajParams.getTrajRefreshInterval();
@@ -112,26 +167,48 @@ public class TrajectoryManager {
       numIntrpPts = trajParams.getNumIntrpPts();
       trajSkip = trajParams.getStartSkip();
       smoothParams = trajParams.getSmoothParams();
+      method = trajParams.getMethod();
       direction = trajParams.getDirection();
       startPts = trajParams.getStartPoints();
-      trajDoIntrp = trajParams.getDoIntrp();
       trcrSize = trajParams.getMarkerSize();
       trcrEnabled = trajParams.getMarkerEnabled();
       trajCachingEnabled = trajParams.getCachingEnabled();
+      trcrStreamingEnabled = trajParams.getTracerStreamingEnabled();
+      terrainFollowEnabled = trajParams.getTerrainFollowing();
       trajForm = trajParams.getTrajectoryForm();
       cylWidth = trajParams.getCylinderWidth();
       ribbonWidthFac = trajParams.getRibbonWidthFactor();
       zStart = trajParams.getZStartIndex();
       zSkip = trajParams.getZStartSkip();
       startPointType = trajParams.getStartType();
-      if (!trajDoIntrp) {
-        numIntrpPts = 1;
-      }
+      saveTracerLocations = trajParams.getSaveTracerLocations();
+      timeStepScaleFactor = trajParams.getTimeStepScaleFactor();
+      
       this.altToZ = altToZ;
+      if (terrainFollowEnabled) {
+        terrain = getTerrainFromDisk();
+        if (terrain == null) {
+          terrain = trajParams.getTerrain();
+        }
+      }
+      
+      if (terrain != null) {
+         terrain = (FlatField) terrain.clone();
+         //saveTerrainToDisk(terrain);
+         altToZ.scaleValues(terrain.getFloats(false)[0], false);
+      }
             
-      FlowInfo info = flowInfoList.get(0);
       Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
       GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set0);
+      
+      if (terrain != null) {
+        terrain = terrainToSpatial(terrain, spatialSetTraj, dspCoordSys);
+      }
+      
+      if (trajParams.getSaveTracerLocations()) {
+         FunctionType ftype = new FunctionType(((SetType)anim1DdomainSet.getType()).getDomain(), new FunctionType(RealType.Generic, RealTupleType.LatitudeLongitudeAltitude));
+         tracerLocations = new FieldImpl(ftype, anim1DdomainSet);
+      }
 
       byte[][] color_values = info.color_values;
       if (info.trajColors != null) color_values = info.trajColors;
@@ -144,14 +221,28 @@ public class TrajectoryManager {
       java.util.Arrays.fill(markGridTime, 0);
       
       startClrs = new byte[clrDim][];
-      try {
-        startPts = getStartPointsFromFile(renderer, altToZ, startClrs);
+      
+      double[][] tmp = new double[1][];
+      
+      if (startPts == null) {
+        try {
+          startPts = getStartPointsFromFile(renderer, altToZ, startClrs, tmp);
+          startTimes = tmp[0];
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
       }
-      catch (Exception e) {
-        e.printStackTrace();
+      else {
+//         CoordinateSystem cs = renderer.getDisplayCoordinateSystem();
+//         float[][] lonlatalt = cs.fromReference(startPts);
+//         lonlatalt[2] = altToZ.inverseScaleValues(lonlatalt[2]);
+//         int numPts = startPts[0].length;
+//         for (int k=0; k<numPts; k++) {
+//            System.out.println((lonlatalt[1][k]-360f)+" "+lonlatalt[0][k]+" "+lonlatalt[2][k]);
+//         }
       }
 
-      startClrs = new byte[clrDim][];
       if (startPts == null) { //get from domain set
         float[][] vec;
         if (true) {
@@ -161,7 +252,7 @@ public class TrajectoryManager {
         startPts = new float[3][];
         getStartPointsFromDomain(trajForm, trajSkip, zStart, zSkip, spatial_set0, color_values, startPts, startClrs, vec, ribbonWidthFac);
       }
-      else {
+      else if (startClrs[0] == null) {
         int[] clrIdxs;
         if (spatialSetTraj.getManifoldDimension() == 2) {
             clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
@@ -187,21 +278,49 @@ public class TrajectoryManager {
       intrpV = new float[numSpatialPts];
       intrpW = new float[numSpatialPts];
       
-      if (doHysplit) {
+      if (method == TrajectoryParams.Method.HySplit) {
         intrpU_1 = new float[numSpatialPts];
         intrpV_1 = new float[numSpatialPts];
         intrpW_1 = new float[numSpatialPts];  
       }
+      else if (method == TrajectoryParams.Method.RK4) {
+        intrpU_1 = new float[numSpatialPts];
+        intrpV_1 = new float[numSpatialPts];
+        intrpW_1 = new float[numSpatialPts];
+        
+        intrpU_2 = new float[numSpatialPts];
+        intrpV_2 = new float[numSpatialPts];
+        intrpW_2 = new float[numSpatialPts];          
+      }
 
-      uInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-      vInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-      wInterp = new CubicInterpolator(trajDoIntrp, numSpatialPts);
-
+      if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.Cubic) {
+        uInterp = new CubicInterpolator(numSpatialPts);
+        vInterp = new CubicInterpolator(numSpatialPts);
+        wInterp = new CubicInterpolator(numSpatialPts);
+      }
+      else if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.Linear) {
+        uInterp = new LinearInterpolator(numSpatialPts);
+        vInterp = new LinearInterpolator(numSpatialPts);
+        wInterp = new LinearInterpolator(numSpatialPts);
+      }
+      else if (trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.None) {
+        uInterp = new NoneInterpolator(numSpatialPts);
+        vInterp = new NoneInterpolator(numSpatialPts);
+        wInterp = new NoneInterpolator(numSpatialPts);
+        trajDoIntrp = false;
+        numIntrpPts = 1;
+      }
+      
       values0 = null;
       values1 = null;
       values2 = null;
       values3 = null;
-      values0_last = null;      
+      values0_last = null;
+      
+      /* initialize and create a Trajectory for each start point */
+      trajectories = new ArrayList<Trajectory>();
+      java.util.Arrays.fill(markGrid, false);
+      makeTrajectories(direction*time, startPts, startTimes, startClrs, spatialSetTraj);
   }  
   
   public void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
@@ -268,9 +387,21 @@ public class TrajectoryManager {
                                         info.renderer, false, true, timeStep);
   }
   
-  public VisADGeometryArray computeTrajectories(int k, double timeAccum, double[] times, double[] timeSteps, VisADGeometryArray[] auxArray) throws VisADException, RemoteException {
+  /**
+   * 
+   * @param k outer dimension (time) index
+   * @param timeAccum accumulated time (see refresh interval)
+   * @param times time at each k
+   * @param timeSteps step at each k
+   * @return
+   * @throws VisADException
+   * @throws RemoteException 
+   */
+  public VisADGeometryArray[] computeTrajectories(int k, double timeAccum, double[] times, double[] timeSteps) throws VisADException, RemoteException {
        int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
+       VisADGeometryArray array = null;
+       VisADGeometryArray[] arrays = null;
        FlowInfo info = flowInfoList.get(i);
        byte[][] color_values = info.color_values;
        Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
@@ -281,16 +412,27 @@ public class TrajectoryManager {
        }
 
        float timeStep = (float) timeSteps[i]/numIntrpPts;
+       timeStep *= timeStepScaleFactor;
+       if (!trajDoIntrp && (method == TrajectoryParams.Method.RK4)) {
+          timeStep *= 2;
+       }
 
-       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
+       if ((timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
           trajectories = new ArrayList<Trajectory>();
           java.util.Arrays.fill(markGrid, false);
-          if (direction > 0) {
-            makeTrajectories(direction*times[i], startPts, startClrs, spatialSetTraj);
-          }
-          else { //TODO: make this work eventually
-            //Trajectory.makeTrajectories(direction*times[i], trajectories, trajSkip, color_values, setLocs, lens);
-          }
+          makeTrajectories(direction*times[i], startPts, startTimes, startClrs, spatialSetTraj);
+       }
+       else if (trcrStreamingEnabled) {
+          java.util.Arrays.fill(markGrid, false);
+          makeTrajectories(direction*times[i], startPts, null, startClrs, spatialSetTraj);                   
+       }
+       else if (startTimes != null) {
+          java.util.Arrays.fill(markGrid, false);
+          makeTrajectories(direction*times[i], startPts, startTimes, startClrs, spatialSetTraj);          
+       }
+       
+       if (trajForm == POINT) {
+          array = makePointGeometry();
        }
 
        // commented out when not using markGrid logic for starting/ending trajs
@@ -344,7 +486,25 @@ public class TrajectoryManager {
        int numTrajectories = trajectories.size();
        
        reset();
-
+       
+       if (saveTracerLocations) {
+         float[] xyz = new float[3];
+         if (numTrajectories > 1) {
+           Integer1DSet set = new Integer1DSet(numTrajectories);
+           FieldImpl field = new FieldImpl(new FunctionType(RealType.Generic, RealTupleType.LatitudeLongitudeAltitude), set);
+           for (int j=0; j<set.getLength(); j++) {
+             float[] startPt = trajectories.get(j).startPts;
+             float[][] lonlatZ = dspCoordSys.fromReference(new float[][] {{startPt[0]},{startPt[1]},{startPt[2]}});
+             float lat = lonlatZ[0][0];
+             float lon = lonlatZ[1][0];
+             if (lon > 180) lon -= 360;
+             float alt = altToZ.inverseScaleValues(lonlatZ[2])[0];
+             field.setSample(j, new RealTuple(RealTupleType.LatitudeLongitudeAltitude, new double[] {lat, lon, alt}));
+           }
+           tracerLocations.setSample(i, field);
+         }
+       }
+ 
        for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
          double dst = (x1 - x0)/numIntrpPts;
          double xt = x0 + dst*ti;
@@ -354,30 +514,50 @@ public class TrajectoryManager {
          uInterp.interpolate(xt, intrpU);
          vInterp.interpolate(xt, intrpV);
          wInterp.interpolate(xt, intrpW);
-
-         if (doHysplit) { // NOAA HySplit
-           if (ti == numIntrpPts-1) {
-             System.arraycopy(values1[0], 0, intrpU_1, 0, intrpU_1.length);
-             System.arraycopy(values1[1], 0, intrpV_1, 0, intrpV_1.length);
-             System.arraycopy(values1[2], 0, intrpW_1, 0, intrpW_1.length);
-            
-           }
-           else {
+         
+         if (method == TrajectoryParams.Method.RK4) { // Runge-Kutta
+             double step = dst;
+             if (!trajDoIntrp) {
+                step = 2*dst;
+             }
+             if (k == dataDomainLength-2 && ti > numIntrpPts-2) {
+                continue;
+             }
+             uInterp.interpolate(xt+step/2, intrpU_1);
+             vInterp.interpolate(xt+step/2, intrpV_1);
+             wInterp.interpolate(xt+step/2, intrpW_1);
+             
+             uInterp.interpolate(xt+step, intrpU_2);
+             vInterp.interpolate(xt+step, intrpV_2);
+             wInterp.interpolate(xt+step, intrpW_2);
+             
+             for (int t=0; t<numTrajectories; t++) {
+               Trajectory traj = trajectories.get(t);
+               traj.currentTimeIndex = direction*i;
+               traj.currentTime = direction*times[i];
+               traj.forwardRK4(info, new float[][] {intrpU, intrpV, intrpW}, 
+                                     new float[][] {intrpU_1, intrpV_1, intrpW_1}, 
+                                     new float[][] {intrpU_2, intrpV_2, intrpW_2},
+                                     color_values, spatialSetTraj, terrain, direction, timeStep);
+             }
+         }
+         else {
+           if (method == TrajectoryParams.Method.HySplit) { // NOAA HySplit
              uInterp.interpolate(xt+dst, intrpU_1);
              vInterp.interpolate(xt+dst, intrpV_1);
              wInterp.interpolate(xt+dst, intrpW_1);
+
+             intrpU = mean(intrpU, intrpU_1);         
+             intrpV = mean(intrpV, intrpV_1);         
+             intrpW = mean(intrpW, intrpW_1);
            }
 
-           intrpU = mean(intrpU, intrpU_1);         
-           intrpV = mean(intrpV, intrpV_1);         
-           intrpW = mean(intrpW, intrpW_1);
-         }
-
-         for (int t=0; t<numTrajectories; t++) {
-           Trajectory traj = trajectories.get(t);
-           traj.currentTimeIndex = direction*i;
-           traj.currentTime = direction*times[i];
-           traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, direction, timeStep);
+           for (int t=0; t<numTrajectories; t++) {
+             Trajectory traj = trajectories.get(t);
+             traj.currentTimeIndex = direction*i;
+             traj.currentTime = direction*times[i];
+             traj.forward(info, new float[][] {intrpU, intrpV, intrpW}, color_values, spatialSetTraj, terrain, direction, timeStep);
+           }
          }
 
        } // inner time loop (time interpolation)
@@ -386,8 +566,6 @@ public class TrajectoryManager {
        values0 = values1;
        values1 = values2;
        values2 = values3;       
-       
-       VisADGeometryArray array = null;
        
        switch (trajForm) {
          case LINE:
@@ -399,19 +577,32 @@ public class TrajectoryManager {
            clean();
            break;
          case CYLINDER:
-           array = makeCylinder(auxArray);
+           arrays = makeCylinder();
            clean();
            break;
          case DEFORM_RIBBON:
            array = makeDeformableRibbon();
            cleanDefStrp();
            break;
+         case POINT:
+           clean();
+           break;
+         case TRACER:
+           clean();
+           break;
+         case TRACER_POINT:
+           clean();
+           break;
+       }
+       
+       if (arrays == null) {
+          arrays = new VisADGeometryArray[] {array};
        }
 
-       return array;
+       return arrays;
   } 
   
-  public void makeTrajectories(double time, float[][] startPts, byte[][] color_values, GriddedSet spatial_set) throws VisADException  {
+  public void makeTrajectories(double time, float[][] startPts, double[] startTimes, byte[][] color_values, GriddedSet spatial_set) throws VisADException  {
      int num = startPts[0].length;
      clrDim = color_values.length;
 
@@ -442,8 +633,10 @@ public class TrajectoryManager {
         }
 
         if (indices[k] != null) {
-          Trajectory traj = new Trajectory(this, startX, startY, startZ, indices[k], weights[k], startColor, time);
-          trajectories.add(traj);
+          if ((startTimes == null) || (startTimes != null && startTimes[k] <= time)) {
+            Trajectory traj = new Trajectory(this, startX, startY, startZ, indices[k], weights[k], startColor, time);
+            trajectories.add(traj);
+          }
         }
      }
   }
@@ -558,6 +751,90 @@ public class TrajectoryManager {
       spatialSetTraj = spatial_set;
     }
     return spatialSetTraj;
+  }
+  
+  private static FlatField getTerrainFromDisk() {
+     try {
+       String filename = System.getProperty(PROP_TRAJECTORY_TERRAIN_FILE, null);
+       if (filename == null) {
+          return null;
+       }
+       File file = new File(filename);
+       if (!file.exists()) {
+         return null;
+       }
+       FileInputStream fis = new FileInputStream(file);
+       ObjectInputStream ois = new ObjectInputStream(fis);
+       FlatField fld = (FlatField) ois.readObject();
+       fis.close();
+       return fld;
+     }
+     catch (Exception e) {
+        e.printStackTrace();
+     }
+     return null;
+  }
+  
+//  private static void saveTerrainToDisk(FlatField fltFld) throws VisADException {
+//     FunctionType ftype = (FunctionType) fltFld.getType();
+//     RealTupleType dtype = ftype.getDomain();
+//     CoordinateSystem cs = ((visad.CachingCoordinateSystem)dtype.getCoordinateSystem()).getCachedCoordinateSystem();
+//     RealType[] rtypes = dtype.getRealComponents();
+//     RealTupleType newDomType = new RealTupleType(rtypes, cs, null);
+//     FunctionType newFncType = new FunctionType(newDomType, ftype.getRange());
+//     
+//     
+//     Linear2DSet domSet = (Linear2DSet) fltFld.getDomainSet();
+//     Linear1DSet set0 = domSet.getLinear1DComponent(0);
+//     Linear1DSet set1 = domSet.getLinear1DComponent(1);
+//     Linear2DSet newDomSet = new Linear2DSet(newDomType, new Linear1DSet[] {set0, set1});
+//     
+//     FlatField newFltFld = new FlatField(newFncType, newDomSet);
+//     try {
+//       newFltFld.setSamples(fltFld.getFloats());
+//     }
+//     catch (RemoteException e) {
+//        e.printStackTrace();
+//     }
+//     
+//     try {
+//       java.io.FileOutputStream fos = new java.io.FileOutputStream("/Users/rink/terrain.ser");
+//       java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(fos);
+//       oos.writeObject(newFltFld);
+//       fos.close();
+//     }
+//     catch (Exception e) {
+//        e.printStackTrace();
+//     }
+//  }
+  
+  private static FlatField terrainToSpatial(FlatField terrain, GriddedSet spatialSet, CoordinateSystem dspCoordSys) throws VisADException {
+    RealTupleType domain = ((FunctionType)terrain.getType()).getDomain();
+    MathType range = ((FunctionType)terrain.getType()).getRange();
+    CoordinateSystem coordSys = domain.getCoordinateSystem();
+    RealTupleType reference = coordSys.getReference();
+
+
+    Gridded2DSet domSet = (Gridded2DSet) terrain.getDomainSet();
+    
+    float[][] grdVals = domSet.getSamples(false);
+    float[][] refVals = coordSys.toReference(grdVals);
+    float[][] dspVals = dspCoordSys.toReference(refVals);
+
+    RealType[] rTypes = dspCoordSys.getReference().getRealComponents();
+    RealTupleType dspXY = new RealTupleType(rTypes[0], rTypes[1]);
+    
+    int[] lens = domSet.getLengths();
+    Gridded2DSet set = new Gridded2DSet(dspXY, dspVals, lens[0], lens[1], null, null, null, false, false);
+    FlatField tffld = new FlatField(new FunctionType(dspXY, range), set);
+    try {
+       tffld.setSamples(terrain.getFloats(false), false);
+    }
+    catch (RemoteException e) {
+       e.printStackTrace();
+    }
+    
+    return tffld;
   }
   
   public static double[] getScale(MouseBehavior mouseBehav, ProjectionControl pCntrl) {
@@ -909,11 +1186,22 @@ public class TrajectoryManager {
   }
   
   public static float[] AxB(float[] A, float[] B) {
+     return AxB(A, B, true);
+  }
+  
+  public static float[] AxB(float[] A, float[] B, boolean unit) {
     float[] axb = new float[3];
 
     axb[0] =   A[1] * B[2] - A[2] * B[1];
     axb[1] = -(A[0] * B[2] - A[2] * B[0]);
     axb[2] =   A[0] * B[1] - A[1] * B[0];
+    
+    if (unit) {
+      float mag = (float) Math.sqrt(axb[0]*axb[0] + axb[1]*axb[1] + axb[2]*axb[2]);
+      axb[0] /= mag;
+      axb[1] /= mag;
+      axb[2] /= mag;
+    }
 
     return axb;
   }
@@ -922,12 +1210,126 @@ public class TrajectoryManager {
     float ab = A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
     return ab;
   }
+  
+  public static float vecMag(float[] vec) {
+     float x = vec[0];
+     float y = vec[1];
+     float z = vec[2];
+     return (float) Math.sqrt(x*x + y*y + z*z);
+  }
+  
+  public static double vecMag(double[] vec) {
+     double x = vec[0];
+     double y = vec[1];
+     double z = vec[2];
+     return Math.sqrt(x*x + y*y + z*z);
+  }
+  
+  /**
+   * Determine a plane from the vector normal and point the plane should contain in form:
+   * ax + by + cz + d = 0
+   * 
+   * @param normal vector normal to plane
+   * @param pt point on the plane
+   * @return {a, b, c, d} 
+   */
+  public static double[] getPlaneCoeffsFromNormalAndPoint(double[] normal, double[] pt) {
+     double[] coeffs = new double[4];
+     double a = normal[0];
+     double b = normal[1];
+     double c = normal[2];
+     double d = -(a*pt[0] + b*pt[1] + c*pt[2]);
+     
+     coeffs[0] = a;
+     coeffs[1] = b;
+     coeffs[2] = c;
+     coeffs[3] = d;
+     
+     return coeffs;
+  }
+  
+  /**
+   * Determine the plane that bisects the angle at a vertex formed by intersecting lines
+   * specified as two unit vectors (this plane is normal to the plane containing the vectors).
+   * @param uvecA
+   * @param uvecB
+   * @return The unit vector normal to the bisecting plane
+   */
+  public static double[] getBisectPlaneNormal(float[] uvecA, float[] uvecB) {
+     if (visad.util.Util.isApproximatelyEqual(uvecA[0], uvecB[0]) &&
+         visad.util.Util.isApproximatelyEqual(uvecA[1], uvecB[1]) &&
+         visad.util.Util.isApproximatelyEqual(uvecA[2], uvecB[2])) {
+        return new double[] {uvecA[0], uvecA[1], uvecA[2]};
+     }
+     
+     float[] uA = new float[3];
+     uA[0] = -uvecA[0];
+     uA[1] = -uvecA[1];
+     uA[2] = -uvecA[2];
+     
+     float[] uAxuB = AxB(uA, uvecB);
+     
+     float delx = uvecB[0] - uA[0];
+     float dely = uvecB[1] - uA[1];
+     float delz = uvecB[2] - uA[2];
+     
+     delx /= 2;
+     dely /= 2;
+     delz /= 2;
+     
+     float xp = uA[0] + delx;
+     float yp = uA[1] + dely;
+     float zp = uA[2] + delz;
+     
+     float mag = (float) Math.sqrt(xp*xp + yp*yp + zp*zp);
+     xp /= mag;
+     yp /= mag;
+     zp /= mag;
+     
+     float[] planeNormal = AxB(uAxuB, new float[] {xp, yp, zp});
+     
+     return new double[] {planeNormal[0], planeNormal[1], planeNormal[2]};
+  }
+  
+  /**
+   * Determine intersection point between a plane and a ray.
+   *   
+   * @param planeCoeffs [a, b, c, d]: ax + by + cz + d = 0
+   * @param uVecLine unit vector specifying direction or ray
+   * @param linePt vertex of the ray.
+   * @return point where ray intersects plane
+   */  
+  public static double[] getLinePlaneIntersect(double[] planeCoeffs, double[] uVecLine, double[] linePt) {
+     return getLinePlaneIntersect(planeCoeffs[0], planeCoeffs[1], planeCoeffs[2], planeCoeffs[3], uVecLine, linePt);
+  }
+  
+  public static double[] getLinePlaneIntersect(double a, double b, double c, double d, double[] uVecLine, double[] linePt) {
+     double[] P = new double[3];
+     
+     double t = -(d + a*linePt[0] + b*linePt[1] + c*linePt[2])/(a*uVecLine[0] + b*uVecLine[1] + c*uVecLine[2]);
+     
+     P[0] = linePt[0] + t*uVecLine[0];
+     P[1] = linePt[1] + t*uVecLine[1];
+     P[2] = linePt[2] + t*uVecLine[2];
+     
+     return P;
+  }
 
+  /**
+   * @param T (SxT) right-handed in the plane. Must be 3D unit vectors
+   * @param S
+   * @param P Origin, can be null
+   * @param V The 2D (in S,T coordinates) vector to rotate
+   * @param theta Counter-clockwise (> 0) rotation in the S,T plane
+   * @param rotV The rotated vector, can be null
+   * @return The rotated 3D vector
+   */  
   public static double[] getRotatedVecInPlane(double[] T, double[] S, double[] P, double[] V, double theta, double[] rotV) {
      if (rotV == null) rotV = new double[3];
+     if (P == null) P = new double[] {0,0,0};
 
-     double s = V[0]*Math.cos(theta) + V[1]*Math.sin(theta);
-     double t = V[0]*Math.sin(theta) + V[1]*Math.cos(theta);
+     double s = V[0]*Math.cos(theta) - V[1]*Math.sin(theta); // x
+     double t = V[0]*Math.sin(theta) + V[1]*Math.cos(theta); // y
 
      double x = P[0] + s*S[0] + t*T[0];
      double y = P[1] + s*S[1] + t*T[1];
@@ -1293,8 +1695,9 @@ public class TrajectoryManager {
      return array;
   }  
   
-     public VisADGeometryArray makeCylinder(VisADGeometryArray[] auxArray) {
+     public VisADGeometryArray[] makeCylinder() {
         VisADTriangleStripArray array = new VisADTriangleStripArray();
+        VisADTriangleStripArray elbowArray = new VisADTriangleStripArray();
         VisADTriangleArray coneArray = new VisADTriangleArray();
         
         int ntrajs = trajectories.size();
@@ -1312,7 +1715,14 @@ public class TrajectoryManager {
         byte[] coneColors = new byte[ntrajs*(numSides+1)*3*clrDim];
         float[] coneNormals = new float[ntrajs*(numSides+1)*3*3];
         
+        
+        float[] elbowCoords = new float[numv*3];
+        byte[] elbowColors = new byte[numv*clrDim];
+        float[] elbowNormals = new float[numv*3];
+        int[] elbowStrips = new int[totNpairs];
+        
         float[] uvecPath = new float[3];
+        float[] uvecPathNext = new float[3];
         byte[][] clr0 = new byte[clrDim][1];
         byte[][] clr1 = new byte[clrDim][1];
         float[] pt0 = new float[3];
@@ -1321,7 +1731,9 @@ public class TrajectoryManager {
         
         
         int[] idx = new int[] {0};
+        int[] elbowIdx = new int[] {0};
         int strpCnt = 0;
+        int[] elbowStrpCnt = new int[] {0};
         int[] coneIdx = new int[] {0};
         byte r0,g0,b0,r1,g1,b1;
         byte a0 = -1;
@@ -1340,6 +1752,32 @@ public class TrajectoryManager {
             float x1 = coordinates[i+3];
             float y1 = coordinates[i+4];
             float z1 = coordinates[i+5];
+
+            float mag = (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) + (z1-z0)*(z1-z0);
+            mag = (float) Math.sqrt(mag);
+            uvecPath[0] = (x1-x0)/mag;
+            uvecPath[1] = (y1-y0)/mag;
+            uvecPath[2] = (z1-z0)/mag;            
+            
+            if (k < traj.npairs-1) { // next coord pair
+               i = traj.indexes[k+1];
+               float x2 = coordinates[i];
+               float y2 = coordinates[i+1];
+               float z2 = coordinates[i+2];
+               float x3 = coordinates[i+3];
+               float y3 = coordinates[i+4];
+               float z3 = coordinates[i+5];
+               mag = (x3-x2)*(x3-x2) + (y3-y2)*(y3-y2) + (z3-z2)*(z3-z2);
+               mag = (float) Math.sqrt(mag);
+               uvecPathNext[0] = (x3-x2)/mag;
+               uvecPathNext[1] = (y3-y2)/mag;
+               uvecPathNext[2] = (z3-z2)/mag;                          
+            }
+            else {
+               uvecPathNext[0] = uvecPath[0];
+               uvecPathNext[1] = uvecPath[1];
+               uvecPathNext[2] = uvecPath[2];
+            }
             
             if (clrDim == 3) {
                r0 = colors[ci];
@@ -1360,25 +1798,6 @@ public class TrajectoryManager {
                a1 = colors[ci+7];
             }
             
-            float mag = (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) + (z1-z0)*(z1-z0);
-            mag = (float) Math.sqrt(mag);
-            uvecPath[0] = (x1-x0)/mag;
-            uvecPath[1] = (y1-y0)/mag;
-            uvecPath[2] = (z1-z0)/mag;
-            
-            float[] norm;
-            float[] norm_x_trj;
-            float[] trj_x_norm_x_trj;
-            if (traj.last_circleXYZ == null) {
-              norm = new float[] {0f, 0f, 1f};
-              norm_x_trj = AxB(norm, uvecPath);
-              trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);               
-            }
-            else {
-              norm_x_trj = AxB(traj.lastTvec, uvecPath);
-              trj_x_norm_x_trj = AxB(uvecPath, norm_x_trj);
-            }
-            
             pt0[0] = x0;
             pt0[1] = y0;
             pt0[2] = z0;
@@ -1396,8 +1815,7 @@ public class TrajectoryManager {
             clr1[2][0] = b1;
             if (clrDim == 4) clr1[3][0] = a1;        
             
-            cylWidth = 0.0040f;
-            traj.makeCylinderStrip(trj_x_norm_x_trj, norm_x_trj, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, idx);
+            traj.makeCylinderStrip(k, uvecPath, uvecPathNext, pt0, pt1, clr0, clr1, cylWidth, (numSides+1), coords, newColors, normals, elbowCoords, elbowColors, elbowNormals, idx, elbowIdx, elbowStrips, elbowStrpCnt);
             strips[strpCnt++] = (numSides+1)*2;
           }
           
@@ -1414,7 +1832,7 @@ public class TrajectoryManager {
         array.coordinates = coords;
         array.normals = normals;
         array.colors = newColors;
-        array.vertexCount = idx[0];
+        array.vertexCount = coords.length/3;
         array.stripVertexCounts = strips;
         
         coneArray.coordinates = coneCoords;
@@ -1422,9 +1840,34 @@ public class TrajectoryManager {
         coneArray.colors = coneColors;
         coneArray.vertexCount = coneIdx[0];
         
-        auxArray[0] = coneArray;
+        // No elbow at pair index=0 (at beginning of each time step)
+        if (elbowIdx[0] < elbowCoords.length/3) {
+           float[] tmp = new float[elbowIdx[0]*3];
+           System.arraycopy(elbowCoords, 0, tmp, 0, tmp.length);
+           elbowCoords = tmp;
+           
+           tmp = new float[elbowIdx[0]*3];
+           System.arraycopy(elbowNormals, 0, tmp, 0, tmp.length);
+           elbowNormals = tmp;
+           
+           byte[] btmp = new byte[elbowIdx[0]*clrDim];
+           System.arraycopy(elbowColors, 0, btmp, 0, btmp.length);
+           elbowColors = btmp;
+        }
+        // No elbow at pair index=0 (at beginning of each time step)
+        if (elbowStrpCnt[0] < elbowStrips.length) {
+           int[] tmp = new int[elbowStrpCnt[0]];
+           System.arraycopy(elbowStrips, 0, tmp, 0, tmp.length);
+           elbowStrips = tmp;
+        }
         
-        return array; 
+        elbowArray.coordinates = elbowCoords;
+        elbowArray.normals = elbowNormals;
+        elbowArray.colors = elbowColors;
+        elbowArray.vertexCount = elbowCoords.length/3;
+        elbowArray.stripVertexCounts = elbowStrips;
+        
+        return new VisADGeometryArray[] {array, coneArray, elbowArray}; 
      }
      
      public void makeCone(float[][] basePts, float[] vertex, byte[][] color, float[] coords, byte[] colors, float[] normals, int[] vertCnt) {
@@ -1675,7 +2118,39 @@ public class TrajectoryManager {
     array.vertexCount = numVerts;
 
     return array;
-  } 
+  }
+  
+  public VisADGeometryArray makePointGeometry() {
+     int numTrajs = trajectories.size();
+     
+     float[] allCoords = new float[3*numTrajs];
+     byte[] allColors = new byte[3*numTrajs];
+     
+     for (int k=0; k<numTrajs; k++) {
+        Trajectory traj = trajectories.get(k);
+        int idx = k*3;
+        float x = traj.startPts[0];
+        float y = traj.startPts[1];
+        float z = traj.startPts[2];
+        allCoords[idx] = x;
+        allCoords[idx+1] = y;
+        allCoords[idx+2] = z;
+        
+        byte r = traj.startColor[0];
+        byte g = traj.startColor[1];
+        byte b = traj.startColor[2];
+        allColors[idx] = r;
+        allColors[idx+1] = g;
+        allColors[idx+2] = b;
+     }
+     
+     VisADGeometryArray array = new VisADPointArray();
+     array.vertexCount = numTrajs;
+     array.coordinates = allCoords;
+     array.colors = allColors;
+     
+     return array;
+  }
 
   public VisADGeometryArray makeTracerGeometry(ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
     int numTrajs = trajectories.size();
@@ -1932,11 +2407,175 @@ public class TrajectoryManager {
      }     
   }
   
-  public float[][] getStartPointsFromFile(DataRenderer renderer, ScalarMap altToZ, byte[][] colors) throws VisADException, RemoteException {
+  public static TrajectoryParams getTrajParamsFromFile(TrajectoryParams trajParams, int which) {
+     String filename = null;
+     try {
+       String propFile = null;
+       if (which == 0) {
+          propFile = PROP_TRAJECTORY_PARAM_FILE_1;
+       }
+       else if (which == 1) {
+          propFile = PROP_TRAJECTORY_PARAM_FILE_2;
+       }
+       filename = System.getProperty(propFile, null);
+     }
+     catch (java.lang.SecurityException exc) {
+       exc.printStackTrace();
+     }
+     if (filename == null) {
+        return trajParams;
+     }
+     Properties prop = new Properties();
+     InputStream is = null;
+     
+     try {
+       is = new FileInputStream(filename);
+       if (is != null) {
+          prop.load(is);
+          
+          String propStr = null;
+          propStr = prop.getProperty("CylinderWidthFactor");
+          if (propStr != null) {
+            float fac = Float.valueOf(propStr.trim());
+            trajParams.setCylinderWidth(trajParams.getCylinderWidth()*fac);
+          }
+          
+          propStr = prop.getProperty("RibbonWidthFactor");
+          if (propStr != null) {
+            float fac = Float.valueOf(propStr.trim());
+            trajParams.setRibbonWidthFactor(fac);
+          }          
+          
+          propStr = prop.getProperty("ManualIntrpPts");
+          if (propStr != null) {
+            trajParams.setManualIntrpPts(Boolean.valueOf(propStr.trim()));             
+          }
+          
+          propStr = prop.getProperty("TerrainFollow");
+          if (propStr != null) {
+            trajParams.setTerrainFollowing(Boolean.valueOf(propStr.trim()));             
+          }
+          
+          propStr = prop.getProperty("TracerStreaming");
+          if (propStr != null) {
+            trajParams.setTracerStreamingEnabled(Boolean.valueOf(propStr.trim()));             
+          }
+          
+          propStr = prop.getProperty("SaveTracerLocations");
+          if (propStr != null) {
+            trajParams.setSaveTracerLocations(Boolean.valueOf(propStr.trim()));             
+          }
+          
+          propStr = prop.getProperty("NumIntrpPts");
+          if (propStr != null) {
+             trajParams.setNumIntrpPts(Integer.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("TrajRefreshInterval");
+          if (propStr != null) {
+             trajParams.setTrajRefreshInterval(Double.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("TrajVisiblityTimeWindow");
+          if (propStr != null) {
+             trajParams.setTrajVisibilityTimeWindow(Double.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("TimeStepScaleFactor");
+          if (propStr != null) {
+             trajParams.setTimeStepScaleFactor(Double.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("StartSkip");
+          if (propStr != null) {
+             trajParams.setStartSkip(Integer.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("ZStartSkip");
+          if (propStr != null) {
+             trajParams.setZStartSkip(Integer.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("TrajForm");
+          if (propStr != null) {
+             propStr = propStr.trim();
+             if (propStr.equals("LINE")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.LINE);
+             }
+             else if (propStr.equals("RIBBON")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.RIBBON);  
+             }
+             else if (propStr.equals("CYLINDER")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.CYLINDER); 
+             }
+             else if (propStr.equals("DEFORM_RIBBON")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.DEFORM_RIBBON);
+             }
+             else if (propStr.equals("POINT")) {
+               trajParams.setTrajectoryForm(TrajectoryParams.POINT); 
+             }
+             else if (propStr.equals("TRACER")) {
+                trajParams.setTrajectoryForm(TrajectoryParams.TRACER);
+             }
+             else if (propStr.equals("TRACER_POINT")) {
+                trajParams.setTrajectoryForm(TrajectoryParams.TRACER_POINT);
+             }
+          }
+          
+          propStr = prop.getProperty("Method");
+          if (propStr != null) {
+             propStr = propStr.trim();
+             if (propStr.equals("HYSPLIT")) {
+               trajParams.setMethod(TrajectoryParams.Method.HySplit);
+             }
+             else if (propStr.equals("RK4")) {
+               trajParams.setMethod(TrajectoryParams.Method.RK4);  
+             }
+             else if (propStr.equals("EULER")) {
+               trajParams.setMethod(TrajectoryParams.Method.Euler);
+             }
+          }
+          
+          propStr = prop.getProperty("InterpMethod");
+          if (propStr != null) {
+             propStr = propStr.trim();
+             if (propStr.equals("CUBIC")) {
+               trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.Cubic);
+             }
+             else if (propStr.equals("LINEAR")) {
+               trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.Linear);  
+             }
+             else if (propStr.equals("NONE")) {
+                trajParams.setInterpolationMethod(TrajectoryParams.InterpolationMethod.None);
+             }
+          }
+          
+          propStr = prop.getProperty("Direction");
+          if (propStr != null) {
+             propStr = propStr.trim();
+             if (propStr.equals("FORWARD")) {
+               trajParams.setDirectionFlag(true);
+             }
+             else if (propStr.equals("REVERSE")) {
+               trajParams.setDirectionFlag(false);  
+             }
+          }
+          
+          is.close();
+       }
+     }
+     catch (IOException ex) {
+        ex.printStackTrace();
+     }
+     
+     return trajParams;
+  }
+  
+  public float[][] getStartPointsFromFile(DataRenderer renderer, ScalarMap altToZ, byte[][] colors, double[][] times) throws VisADException, RemoteException {
      String filename = null;
      
      try {
-       filename = System.getProperty("visad.trajectory.startPointsFile", null);
+       filename = System.getProperty(PPOP_TRAJECTORY_START_POINTS_FILE, null);
      }
      catch (java.lang.SecurityException exc) {
        exc.printStackTrace();        
@@ -1955,52 +2594,85 @@ public class TrajectoryManager {
        return null;
      }
      
+     RealTupleType rngTupType = (RealTupleType) ((FunctionType)data.getType()).getRange();
+     int lonIdx = rngTupType.getIndex(RealType.Longitude);
+     int latIdx = rngTupType.getIndex(RealType.Latitude);
+     int altIdx = rngTupType.getIndex(RealType.Altitude);
+     int timeIdx = rngTupType.getIndex(RealType.Time);
+     
      int numPts = data.getLength();
+     
      ArrayList<float[]> keepPts = new ArrayList();
      ArrayList<Float> keepVal = new ArrayList();
+     ArrayList<Double> keepTime = new ArrayList();
+     
      for (int k=0; k<numPts; k++) {
        RealTuple tup = (RealTuple) data.getSample(k);
        double[] vals = tup.getValues();
-          float[] locVal = new float[3];
-          locVal[0] = (float) vals[0];
-          locVal[1] = (float) vals[1];
-          locVal[2] = (float) vals[2];
-          keepPts.add(locVal);
-          //keepVal.add((float)vals[3]);
+       float[] locVal = new float[3];
+       locVal[0] = (float) vals[lonIdx];
+       locVal[1] = (float) vals[latIdx];
+       locVal[2] = (float) vals[altIdx];
+       keepPts.add(locVal);
+       if (vals.length > 3) {
+         if (timeIdx >= 0) {
+           keepTime.add(vals[timeIdx]);
+         }
+         else {
+           keepVal.add((float)vals[3]);
+         }
+       }
+       else if (vals.length > 4) {
+         keepTime.add(vals[timeIdx]);
+         keepVal.add((float)vals[4]);
+       }
+     }
+     
+     if ((keepVal.size() != 0 ) && ((keepPts.size() != keepVal.size()) || (keepPts.size() != keepTime.size()))) {
+       throw new VisADException("Trajectory start point file problem: all points must be specified as either lon,lat,alt or lon,lat,alt,val or lon,lat,alt,time or lon,lat,alt,time,value");
      }
      
      float[][] latlonalt = new float[3][keepPts.size()];
-     float[] trcrVals = new float[keepPts.size()];
-     colors[0] = new byte[keepPts.size()];
-     colors[1] = new byte[keepPts.size()];
-     colors[2] = new byte[keepPts.size()];
-     if (colors.length == 4) colors[3] = new byte[keepPts.size()];
      
      for (int k=0; k<keepPts.size(); k++) {
         float[] vals = keepPts.get(k);
         latlonalt[0][k] = vals[1];
         latlonalt[1][k] = vals[0];
         latlonalt[2][k] = vals[2];
-        //float tval = keepVal.get(k);
-        //trcrVals[k] = tval;
      }
      
      // trcr quantity must already be scaled 0 -> 1
      
-     float[][] clrTbl = new float[colors.length][256];
-     BaseColorControl.initTableVis5D(clrTbl);
-     
-     for (int i=0; i<trcrVals.length; i++) {
-        float tval = trcrVals[i];
-        if (tval > 1f) tval = 1f;
-        int ci = (int) (tval*256f);
-        
-        colors[0][i] = (byte) (256f * clrTbl[0][ci]);
-        colors[1][i] = (byte) (256f * clrTbl[1][ci]);
-        colors[2][i] = (byte) (256f * clrTbl[2][ci]);
-        if (colors.length == 4) colors[3][i] = (byte) (256f * clrTbl[3][ci]);
+     float[] trcrVals = null;
+     if (keepVal.size() > 0) {
+        trcrVals = new float[keepVal.size()];
      }
      
+     if (trcrVals != null) {
+        colors[0] = new byte[keepPts.size()];
+        colors[1] = new byte[keepPts.size()];
+        colors[2] = new byte[keepPts.size()];
+        if (colors.length == 4) colors[3] = new byte[keepPts.size()];
+     
+        for (int k=0; k<trcrVals.length; k++) {
+           float tval = keepVal.get(k);
+           trcrVals[k] = tval;
+        }
+
+        float[][] clrTbl = new float[colors.length][256];
+        BaseColorControl.initTableVis5D(clrTbl);
+
+        for (int i=0; i<trcrVals.length; i++) {
+           float tval = trcrVals[i];
+           if (tval > 1f) tval = 1f;
+           int ci = (int) (tval*256f);
+
+           colors[0][i] = (byte) (256f * clrTbl[0][ci]);
+           colors[1][i] = (byte) (256f * clrTbl[1][ci]);
+           colors[2][i] = (byte) (256f * clrTbl[2][ci]);
+           if (colors.length == 4) colors[3][i] = (byte) (256f * clrTbl[3][ci]);
+        }
+     }
      
      latlonalt[2] = altToZ.scaleValues(latlonalt[2]);
      
@@ -2009,7 +2681,17 @@ public class TrajectoryManager {
      for (int i=0; i<latlonalt.length; i++) {
        System.arraycopy(latlonalt[i], 0, fltVals[i], 0, fltVals[i].length);
      }
-     float[][] xyz = dspCoordSys.toReference(fltVals);    
+     float[][] xyz = dspCoordSys.toReference(fltVals);
+     
+     int tSize = keepTime.size();
+     double[] timeVals = null;
+     if (tSize > 0) {
+       timeVals = new double[tSize];
+     }
+     for (int k=0; k<tSize; k++) {
+       timeVals[k] = keepTime.get(k);
+     }
+     times[0] = timeVals;
      
      return xyz;
   }
@@ -2056,4 +2738,45 @@ class ListenForRemove implements ScalarMapListener, DisplayListener {
      TrajectoryManager.removeListeners.remove(theMap);
    }
      
+}
+
+class NoneInterpolator implements Interpolator {
+   double x0;
+   double x1;
+   double x2;
+   float[] values0;
+   float[] values1;
+   float[] values2;
+   int numSpatialPts;
+
+   public NoneInterpolator(int numSpatialPts) {
+      this.numSpatialPts = numSpatialPts;
+   }
+
+   public void interpolate(double xt, float[] interpValues) {
+      if (xt == x0) {
+         System.arraycopy(values0, 0, interpValues, 0, numSpatialPts);
+      }
+      else if (xt == x1) {
+         System.arraycopy(values1, 0, interpValues, 0, numSpatialPts);
+      }
+      else if (xt == x2) {
+         System.arraycopy(values2, 0, interpValues, 0, numSpatialPts);               
+      }
+      return;
+   }
+
+   public void next(double x0, double x1, double x2, float[] values0, float[] values1, float[] values2) {
+      this.x0 = x0;
+      this.x1 = x1;
+      this.x2 = x2;
+      this.values0 = values0;
+      this.values1 = values1;
+      this.values2 = values2;
+      return;
+   }
+
+   public void update(boolean[] needed) {
+      return;
+   }
 }

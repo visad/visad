@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2018 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -25,7 +25,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import visad.*;
 import visad.data.mcidas.*;
