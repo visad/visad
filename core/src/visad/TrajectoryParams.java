@@ -84,6 +84,7 @@ public class TrajectoryParams {
   boolean terrainFollowEnabled = true;
   boolean trcrStreamingEnabled = false;
   boolean saveTracerLocations = false;
+  boolean trajDoIntrp = true;
   
   int trajForm = LINE;
   float cylWidth = 0.00014f;
@@ -133,6 +134,7 @@ public class TrajectoryParams {
     this.trcrStreamingEnabled = params.getTracerStreamingEnabled();
     this.saveTracerLocations = params.getSaveTracerLocations();
     this.timeStepScaleFactor = params.getTimeStepScaleFactor();
+    this.trajDoIntrp = params.getTrajDoIntrp();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -386,6 +388,14 @@ public class TrajectoryParams {
      this.timeStepScaleFactor = fac;
   }
   
+  public boolean getTrajDoIntrp() {
+     return this.trajDoIntrp;
+  }
+  
+  public void setTrajDoIntrp(boolean yesno) {
+     this.trajDoIntrp = yesno;
+  }
+  
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
@@ -446,6 +456,9 @@ public class TrajectoryParams {
       else  if (this.timeStepScaleFactor != trajParams.timeStepScaleFactor) {
          return false;
       }
+      else  if (this.trajDoIntrp != trajParams.trajDoIntrp) {
+         return false;
+      }      
     }
     return true;
   }
