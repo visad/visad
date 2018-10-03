@@ -763,6 +763,7 @@ public class TrajectoryManager {
        }
        File file = new File(filename);
        if (!file.exists()) {
+         System.out.println("Specified terrain file does not exist: "+filename);
          return null;
        }
        FileInputStream fis = new FileInputStream(file);
