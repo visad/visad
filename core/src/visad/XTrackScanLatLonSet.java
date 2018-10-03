@@ -124,9 +124,9 @@ public class XTrackScanLatLonSet extends GriddedLatLonSet {
         GriddedLatLonSet scanSet = scanSets[lastSetIdx];
         gxgy = scanSet.valueToGrid(lonlat, guess_set);
       
-        if (gxgy[0][0] == Float.NaN || gxgy[1][0] == Float.NaN) {
-           int gx_set = scanSet.lgxy[0];
-           int gy_set = scanSet.lgxy[1];
+        if (Float.isNaN(gxgy[0][0]) || Float.isNaN(gxgy[1][0])) {
+           int gx_set = guess_set[0];
+           int gy_set = guess_set[1];
            if (gy_set == 0) {
               lastSetIdx -= 1;
               guess_set[0] = gx_set;
