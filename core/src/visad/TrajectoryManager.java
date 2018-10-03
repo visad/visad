@@ -2498,6 +2498,11 @@ public class TrajectoryManager {
              trajParams.setZStartSkip(Integer.valueOf(propStr.trim()));
           }
           
+          propStr = prop.getProperty("ZStartIndex");
+          if (propStr != null) {
+             trajParams.setZStartIndex(Integer.valueOf(propStr.trim()));
+          }
+          
           propStr = prop.getProperty("TrajForm");
           if (propStr != null) {
              propStr = propStr.trim();
