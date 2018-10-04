@@ -155,7 +155,7 @@ public class XTrackScanLatLonSet extends GriddedLatLonSet {
         }
         else {
            grid[0][i] = gxgy[0][0];
-           grid[1][i] = (lastSetIdx-1)*linesPerScan + gxgy[1][0];
+           grid[1][i] = (lastSetIdx > 0) ? (lastSetIdx-1)*linesPerScan + gxgy[1][0] : gxgy[1][0];
            lgxy[0] = scanSet.lgxy[0];
            lgxy[1] = scanSet.lgxy[1] + (lastSetIdx-1)*linesPerScan;
            break;
