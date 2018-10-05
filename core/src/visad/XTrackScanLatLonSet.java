@@ -1,13 +1,40 @@
+//
+// XTrackScanLatLonSet
+//
+
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2018 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
 package visad;
 
 /**
  *
  * @author rink
+ * 
+ * Specialized extension to GriddedLatLonSet for a contiguous collection of spatially overlapping sets
+ * wherein samples of an individual set are spatially coherent (they pass the consistency test: no bow-ties).
+ * Examples are MODIS and VIIRS whose granules are comprised of multiple scans, each with a fixed number of
+ * detectors, and perpendicular to the polar orbit track. Its primary purpose is to override valueToGrid.
+ * 
  */
 public class XTrackScanLatLonSet extends GriddedLatLonSet {
    
@@ -17,21 +44,26 @@ public class XTrackScanLatLonSet extends GriddedLatLonSet {
    
    int lastSetIdx;
    
-   public XTrackScanLatLonSet(MathType type, float[][] samples, int lengthX, int lengthY, int linesPerScan) throws VisADException {
-      super(type, samples, lengthX, lengthY, null, null, null, false, false);
+   public XTrackScanLatLonSet(MathType type, float[][] samples, int XTrackLen, int TrackLen, int linesPerScan) throws VisADException {
+      super(type, samples, XTrackLen, TrackLen, null, null, null, false, false);
+      
+      if ((TrackLen % linesPerScan) != 0) {
+         throw new VisADException("There must be an intergral number of scans with detectorsPerScan: "+linesPerScan+" per "
+                 + "TrackLen: "+TrackLen);
+      }
       
       this.linesPerScan = linesPerScan;
-      numOfScans = lengthY/linesPerScan;
+      numOfScans = TrackLen/linesPerScan;
       scanSets = new GriddedLatLonSet[numOfScans];
-      int scanLen = linesPerScan*lengthX;
+      int scanLen = linesPerScan*XTrackLen;
       
       for (int k=0; k<numOfScans; k++) {
-         float[] scanLonArray = new float[linesPerScan*lengthX];
-         float[] scanLatArray = new float[linesPerScan*lengthX];         
+         float[] scanLonArray = new float[linesPerScan*XTrackLen];
+         float[] scanLatArray = new float[linesPerScan*XTrackLen];         
          System.arraycopy(lons, k*scanLen, scanLonArray, 0, scanLen);
          System.arraycopy(lats, k*scanLen, scanLatArray, 0, scanLen);
          
-         scanSets[k] = new GriddedLatLonSet(RealTupleType.SpatialEarth2DTuple, new float[][] {scanLonArray, scanLatArray}, lengthX, linesPerScan);
+         scanSets[k] = new GriddedLatLonSet(RealTupleType.SpatialEarth2DTuple, new float[][] {scanLonArray, scanLatArray}, XTrackLen, linesPerScan);
       }
    }
    
@@ -120,8 +152,20 @@ public class XTrackScanLatLonSet extends GriddedLatLonSet {
       lonlat[latI][0] = targetLat;
       float[][] gxgy;
       
+      /* Should never exceed numOfScans */   
       int cnt = 0;
+      
+      /* Used to detect infinite stepping back and forth between consecutive scans.
+         This may happen if the target falls in a gap between two adjacent scans,
+         for example, near MODIS, VIIRS Nadir. In this situation, NaN is returned but
+         may consider other options in the future.
+      */
       int dir = 0;
+      
+      /* Beginnig with lastSetIdx start walking through the GriddedLatLonSet to find grid
+         cell which contains the target. If none found, use last test position (must be
+         on an edge) as guess position for the adjacent scan.
+      */
       while ((lastSetIdx >= 0 && lastSetIdx < numOfScans) && cnt < numOfScans) {
          
         GriddedLatLonSet scanSet = scanSets[lastSetIdx];
