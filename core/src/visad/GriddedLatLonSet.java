@@ -537,16 +537,16 @@ public class GriddedLatLonSet extends Gridded2DSet {
                   offGrid = !insideTriangle(gg, CC, LL, DD, tt);
              }
              else if (gy == 0) {
-                  offGrid = !insideTriangle(gg, LL, UU, RR, tt);
+                  offGrid = !(insideTriangle(gg, CC, UU, LL, tt) || insideTriangle(gg, CC, RR, UU, tt));
              }
              else if (gy == TrackLen-1) {
-                  offGrid = !insideTriangle(gg, LL, DD, RR, tt);
+                  offGrid = !(insideTriangle(gg, CC, LL, DD, tt) || insideTriangle(gg, CC, DD, RR, tt));
              }
              else if (gx == 0) {
-                  offGrid = !insideTriangle(gg, UU, RR, DD, tt);
+                  offGrid = !(insideTriangle(gg, CC, UU, RR, tt) || insideTriangle(gg, CC, DD, RR, tt));
              }
              else if (gx == LengthX-1) {
-                  offGrid = !insideTriangle(gg, UU, LL, DD, tt);               
+                  offGrid = !(insideTriangle(gg, CC, UU, LL, tt) || insideTriangle(gg, CC, DD, LL, tt));                  
              }
              
              if (!offGrid) {
@@ -633,6 +633,13 @@ public class GriddedLatLonSet extends Gridded2DSet {
   
    
    public static boolean insideTriangle(float[] v0, float[] v1, float[] v2, float[] pt) {
+      /* Eventhough chance of this happening is small (that the incoming target would fall on a domain point)*/
+      if ((pt[0] == v0[0] && pt[1] == v0[1] && pt[2] == v0[2]) ||
+          (pt[0] == v1[0] && pt[1] == v1[1] && pt[2] == v1[2]) ||
+          (pt[0] == v2[0] && pt[1] == v2[1] && pt[2] == v2[2])) {
+         return true;
+      }
+      
       float[] triNorm = TrajectoryManager.AxB(new float[] {v1[0]-v0[0], v1[1]-v0[1], v1[2]-v0[2]}, new float[] {v2[0]-v0[0], v2[1]-v0[1], v2[2]-v0[2]}, true);
       
       double[] coeffs = TrajectoryManager.getPlaneCoeffsFromNormalAndPoint(new double[] {(float)triNorm[0], (float)triNorm[1], (float)triNorm[2]}, new double[]{(float)v0[0], (float)v0[1], (float)v0[2]});
