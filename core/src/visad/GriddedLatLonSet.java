@@ -262,7 +262,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
     * their respective Earth coordinates.
     * @param value (Longitude, Latitude) 
     * @param guess Integer grid coordinate. Is replaced by last valid grid located
-    * the search. If null, center points of domain is used as guess.
+    * by the search. If null, center point of domain is used as guess.
     * @return Fractional grid coordinates for incoming values
     * @throws visad.VisADException 
     */  
