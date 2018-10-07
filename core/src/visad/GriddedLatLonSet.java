@@ -29,8 +29,13 @@ package visad;
 import java.io.*;
 
 /**
-   GriddedLatLonSet represents a finite set of samples of R^2.<P>
-*/
+ * 
+ * @author rink
+ * 
+ * GriddedLatLonSet represents a finite set of samples with a 2D grid topology on the surface
+ * of the Earth mapped to R^2: (Longitude, Latitude) or (Latitude, Longitude). This class
+ * exists primarily to override valueToGrid and gridToValue.
+ */
 public class GriddedLatLonSet extends Gridded2DSet {
 
   int LengthX, LengthY, TrackLen, latI, lonI;
@@ -46,7 +51,7 @@ public class GriddedLatLonSet extends Gridded2DSet {
       null errors, CoordinateSystem and Units are defaults from type */
   public GriddedLatLonSet(MathType type, float[][] samples, int lengthX, int lengthY)
          throws VisADException {
-    this(type, samples, lengthX, lengthY, null, null, null, false, false);
+    this(type, samples, lengthX, lengthY, null, null, null, false);
   }
 
   /** a 2-D set whose topology is a lengthX x lengthY grid;
@@ -59,23 +64,14 @@ public class GriddedLatLonSet extends Gridded2DSet {
   public GriddedLatLonSet(MathType type, float[][] samples, int lengthX, int lengthY,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    this(type, samples, lengthX, lengthY, coord_sys, units, errors,
-         true, true);
+    this(type, samples, lengthX, lengthY, coord_sys, units, errors, false);
   }
 
   public GriddedLatLonSet(MathType type, float[][] samples, int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
-    this(type, samples, lengthX, lengthY, coord_sys, units, errors,
-         copy, true);
-  }
-
-  public GriddedLatLonSet(MathType type, float[][] samples, int lengthX, int lengthY,
-               CoordinateSystem coord_sys, Unit[] units,
-               ErrorEstimate[] errors, boolean copy, boolean test)
-               throws VisADException {
-    super(type, samples, lengthX, lengthY, coord_sys, units, errors, copy, test);
+    super(type, samples, lengthX, lengthY, coord_sys, units, errors, copy, false);
     
     LowX = Low[0];
     HiX = Hi[0];
@@ -136,15 +132,17 @@ public class GriddedLatLonSet extends Gridded2DSet {
        System.arraycopy(lons, lons0.length, lons1, 0, lons1.length);
        System.arraycopy(lats, lats0.length, lats1, 0, lats1.length);
 
-       granules[0] = new GriddedLatLonSet(type, new float[][] {lons0, lats0}, LengthX, TrackLen0, coord_sys, units, errors, copy, test);
-       granules[1] = new GriddedLatLonSet(type, new float[][] {lons1, lats1}, LengthX, TrackLen1, coord_sys, units, errors, copy, test);
+       granules[0] = new GriddedLatLonSet(type, new float[][] {lons0, lats0}, LengthX, TrackLen0, coord_sys, units, errors, copy);
+       granules[1] = new GriddedLatLonSet(type, new float[][] {lons1, lats1}, LengthX, TrackLen1, coord_sys, units, errors, copy);
     }
 
   }
 
 
-  /** transform an array of non-integer grid coordinates to an array
-      of values in R^DomainDimension */
+  /** transform an array of non-integer grid coordinates to an array of values in (Longitude, Latitude).
+   *  Returns nearest neighbor if the cell which contains the grid coordinate straddles
+   *  the dateline or prime meridian.
+   */
   public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != ManifoldDimension) {
       throw new SetException("Gridded2DSet.gridToValue: grid dimension " +
@@ -258,6 +256,16 @@ public class GriddedLatLonSet extends Gridded2DSet {
     return valueToGrid(value, null);
   }
   
+  /** transform an array of values in R^2 (Longitude, Latitude) to an array
+    * of non-integer grid coordinates by walking the grid from guess to incoming
+    * target values by minimizing the angle between vectors from Earth center to the
+    * their respective Earth coordinates.
+    * @param value (Longitude, Latitude) 
+    * @param guess Integer grid coordinate. Is replaced by last valid grid located
+    * the search. If null, center points of domain is used as guess.
+    * @return Fractional grid coordinates for incoming values
+    * @throws visad.VisADException 
+    */  
   @Override
   public synchronized float[][] valueToGrid(float[][] value, int[] guess) throws VisADException {
      

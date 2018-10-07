@@ -31,9 +31,10 @@ package visad;
  * @author rink
  * 
  * Specialized extension to GriddedLatLonSet for a contiguous collection of spatially overlapping sets
- * wherein samples of an individual set are spatially coherent (they pass the consistency test: no bow-ties).
+ * wherein it's trusted that samples of an individual set are spatially coherent (non-degenerative: no bow-ties).
  * Examples are MODIS and VIIRS whose granules are comprised of multiple scans, each with a fixed number of
- * detectors, and perpendicular to the polar orbit track. Its primary purpose is to override valueToGrid.
+ * detectors, and perpendicular to the polar orbit track, but may overlap when navigated to the Earth's surface.
+ * The primary purpose of this class is to override valueToGrid.
  * 
  */
 public class XTrackScanLatLonSet extends GriddedLatLonSet {
@@ -45,7 +46,7 @@ public class XTrackScanLatLonSet extends GriddedLatLonSet {
    int lastSetIdx;
    
    public XTrackScanLatLonSet(MathType type, float[][] samples, int XTrackLen, int TrackLen, int linesPerScan) throws VisADException {
-      super(type, samples, XTrackLen, TrackLen, null, null, null, false, false);
+      super(type, samples, XTrackLen, TrackLen, null, null, null, false);
       
       if ((TrackLen % linesPerScan) != 0) {
          throw new VisADException("There must be an intergral number of scans with detectorsPerScan: "+linesPerScan+" per "
