@@ -1,12 +1,8 @@
 package visad.util;
 
-import Jama.Matrix;
-import Jama.LUDecomposition;
 import java.util.Arrays;
 
-public class CubicInterpolator implements Interpolator {
-
-      private LUDecomposition solver;
+public class LinearInterpolator implements Interpolator {
 
       private double[][] solution = null;
 
@@ -23,11 +19,11 @@ public class CubicInterpolator implements Interpolator {
       private float[] values0_save = null;
 
       private int numSpatialPts = 1;
-
+      
       private boolean[] needed = null;
       private boolean[] computed = null;
       
-      public CubicInterpolator(int numSpatialPts) {
+      public LinearInterpolator(int numSpatialPts) {
          this.numSpatialPts = numSpatialPts;
          this.solution = new double[4][numSpatialPts];
          this.needed = new boolean[numSpatialPts];
@@ -36,22 +32,8 @@ public class CubicInterpolator implements Interpolator {
          Arrays.fill(computed, false);
       }
 
-      private void buildSolver() {
-         double x0_p3 = x0*x0*x0;
-         double x1_p3 = x1*x1*x1;
 
-         double x0_p2 = x0*x0;
-         double x1_p2 = x1*x1;
-
-         Matrix coeffs = new Matrix(new double[][]
-              { {x0_p3, x0_p2, x0, 1},
-                {x1_p3, x1_p2, x1, 1},
-                {3*x0_p2, 2*x0, 1, 0},
-                {3*x1_p2, 2*x1, 1, 0}}, 4, 4);
-
-         solver = new LUDecomposition(coeffs);         
-      }
-
+   @Override
       public void interpolate(double xt, float[] interpValues) {
          java.util.Arrays.fill(interpValues, Float.NaN);
          
@@ -59,10 +41,11 @@ public class CubicInterpolator implements Interpolator {
             if (!computed[k]) { // don't need to interp at these locations, at this time
                 continue;
             }
-            interpValues[k] = (float) cubic_poly(xt, solution[0][k], solution[1][k], solution[2][k], solution[3][k]);
+            interpValues[k] = (float) (solution[0][k]*xt + solution[1][k]);
          }
       }
 
+   @Override
       public void next(double x0, double x1, double x2, float[] values0, float[] values1, float[] values2) {
          this.x0 = x0;
          this.x1 = x1;
@@ -77,9 +60,9 @@ public class CubicInterpolator implements Interpolator {
          this.values0_save = values0;
          Arrays.fill(computed, false);
          
-         buildSolver();
       }
  
+   @Override
       public void update(boolean[] needed) {
           java.util.Arrays.fill(this.needed, false);
           for (int k=0; k<numSpatialPts; k++) {
@@ -103,38 +86,12 @@ public class CubicInterpolator implements Interpolator {
             double y0 = values0[k];
             double y1 = values1[k];
             
-            if (values0_last == null) {
-               D1_0 = (values1[k] - values0[k])/(x1 - x0);
-            }
-            else {
-               D1_0 = (values1[k] - values0_last[k])/(x1 - x0_last);
-            }
-            D1_1 = (values2[k] - values0[k])/(x2 - x0);
             
-            double[] sol = getSolution(y0, y1, D1_0, D1_1);
-            solution[0][k] = sol[0];
-            solution[1][k] = sol[1];
-            solution[2][k] = sol[2];
-            solution[3][k] = sol[3];
+            solution[0][k] = (y1 - y0)/(x1 - x0);
+            solution[1][k] = y0 - solution[0][k]*x0;
             
             computed[k] = true;
          }
       }
       
-      private double[] getSolution(double y0, double y1, double D1_0, double D1_1) {
-        Matrix constants = new Matrix(new double[][]
-             { {y0}, {y1}, {D1_0}, {D1_1} }, 4, 1);
-
-        double[][] solution = (solver.solve(constants)).getArray();
-
-        return new double[] {solution[0][0], solution[1][0], solution[2][0], solution[3][0]};
-      }
-
-      public static double cubic_poly_D1(double x, double a, double b, double c) {
-         return 3*a*x*x + 2*b*x + c;
-      }
-
-      public static double cubic_poly(double x, double a, double b, double c, double d) {
-         return a*x*x*x + b*x*x + c*x + d;
-      }
   }
