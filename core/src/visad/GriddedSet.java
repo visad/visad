@@ -202,7 +202,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
           if (type.equals(RealTupleType.LatitudeLongitudeTuple) || type.equals(RealTupleType.SpatialEarth2DTuple)) {
             return new GriddedLatLonSet(type, samples,
                                         lengths[0], lengths[1],
-                                        coord_sys, units, errors, copy, test);
+                                        coord_sys, units, errors, copy);
           }
           else {
             return new Gridded2DSet(type, samples,
