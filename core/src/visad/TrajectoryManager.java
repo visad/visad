@@ -564,6 +564,8 @@ public class TrajectoryManager {
 
        } // inner time loop (time interpolation)
        
+       preClean();
+       
        values0_last = values0;
        values0 = values1;
        values1 = values2;
@@ -680,6 +682,22 @@ public class TrajectoryManager {
       }
     }
   }
+
+  /* Remove trajectories from list:
+     That have less that one complete pair. This may occur with a Trajectory initialized
+     close to the grid edge and subsequently finds itself offgrid after one step.
+   */
+  public void preClean() {
+    ArrayList<Trajectory> newList = new ArrayList<Trajectory>();
+    Iterator<Trajectory> iter = trajectories.iterator();
+    while (iter.hasNext() ) {
+      Trajectory traj = iter.next();
+      if (traj.npairs > 0) {
+        newList.add(traj);
+      }
+    }
+    trajectories = newList;
+  }
   
   /* Remove trajectories from list:
        (1) That have left the grid (marked offGrid).
@@ -763,6 +781,7 @@ public class TrajectoryManager {
        }
        File file = new File(filename);
        if (!file.exists()) {
+         System.out.println("Specified terrain file does not exist: "+filename);
          return null;
        }
        FileInputStream fis = new FileInputStream(file);
@@ -1821,21 +1840,49 @@ public class TrajectoryManager {
             strips[strpCnt++] = (numSides+1)*2;
           }
           
-          float vFac = (float) (cylWidth/0.01);
-          float[] vertex = new float[3];
-          vertex[0] = pt1[0] + uvecPath[0]*0.006f*vFac;
-          vertex[1] = pt1[1] + uvecPath[1]*0.006f*vFac;
-          vertex[2] = pt1[2] + uvecPath[2]*0.006f*vFac;
-          
-          // build cone here. add to coneArray
-          makeCone(traj.last_circleXYZ, vertex, clr0, coneCoords, coneColors, coneNormals, coneIdx);
+          // build cone here. Add to coneArray
+          if (traj.npairs > 0) { // Keep just in case. PreClean should remove Trajectories with npairs=0
+            float vFac = (float) (cylWidth/0.01);
+            float[] vertex = new float[3];
+            vertex[0] = pt1[0] + uvecPath[0]*0.006f*vFac;
+            vertex[1] = pt1[1] + uvecPath[1]*0.006f*vFac;
+            vertex[2] = pt1[2] + uvecPath[2]*0.006f*vFac;
+            makeCone(traj.last_circleXYZ, vertex, clr0, coneCoords, coneColors, coneNormals, coneIdx);
+          }
         }
+        
+//        float[] tmpCoords = new float[idx[0]*3];
+//        float[] tmpNormals = new float[idx[0]*3];
+//        byte[] tmpColors = new byte[idx[0]*clrDim];
+//        int[] tmpStrips = new int[strpCnt];
+//        System.arraycopy(coords, 0, tmpCoords, 0, tmpCoords.length);
+//        System.arraycopy(normals, 0, tmpNormals, 0, tmpNormals.length);
+//        System.arraycopy(newColors, 0, tmpColors, 0, tmpColors.length);
+//        System.arraycopy(strips, 0, tmpStrips, 0, tmpStrips.length);
+//        
+//        array.coordinates = tmpCoords;
+//        array.normals = tmpNormals;
+//        array.colors = tmpColors;
+//        array.vertexCount = idx[0];
+//        array.stripVertexCounts = tmpStrips;
         
         array.coordinates = coords;
         array.normals = normals;
         array.colors = newColors;
-        array.vertexCount = coords.length/3;
+        array.vertexCount = idx[0];
         array.stripVertexCounts = strips;
+        
+//        tmpCoords = new float[coneIdx[0]*3];
+//        tmpNormals = new float[coneIdx[0]*3];
+//        tmpColors = new byte[coneIdx[0]*clrDim];
+//        System.arraycopy(coneCoords, 0, tmpCoords, 0, tmpCoords.length);
+//        System.arraycopy(coneNormals, 0, tmpNormals, 0, tmpNormals.length);
+//        System.arraycopy(coneColors, 0, tmpColors, 0, tmpColors.length);
+//        
+//        coneArray.coordinates = tmpCoords;
+//        coneArray.normals = tmpNormals;
+//        coneArray.colors = tmpColors;
+//        coneArray.vertexCount = coneIdx[0];
         
         coneArray.coordinates = coneCoords;
         coneArray.normals = coneNormals;
@@ -2496,6 +2543,11 @@ public class TrajectoryManager {
           propStr = prop.getProperty("ZStartSkip");
           if (propStr != null) {
              trajParams.setZStartSkip(Integer.valueOf(propStr.trim()));
+          }
+          
+          propStr = prop.getProperty("ZStartIndex");
+          if (propStr != null) {
+             trajParams.setZStartIndex(Integer.valueOf(propStr.trim()));
           }
           
           propStr = prop.getProperty("TrajForm");

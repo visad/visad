@@ -7,7 +7,6 @@ package visad;
 
 import java.util.ArrayList;
 import java.rmi.RemoteException;
-import javax.media.j3d.*;
 
 
 public class FixGeomSizeAppearance implements ControlListener {
