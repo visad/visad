@@ -173,20 +173,25 @@ public class Trajectory {
            if (terrain != null) {
              adjustFlowAtTerrain(terrain, color_values);
            }
-        }    
+        }
         
-        addPair(startPts, stopPts, startColor, stopColor);
+        if (indices[0] == null) {
+           offGrid = true;
+        }
+        else {
+           addPair(startPts, stopPts, startColor, stopColor);
 
-        uVecPath[0] = stopPts[0] - startPts[0];
-        uVecPath[1] = stopPts[1] - startPts[1];
-        uVecPath[2] = stopPts[2] - startPts[2];
+           uVecPath[0] = stopPts[0] - startPts[0];
+           uVecPath[1] = stopPts[1] - startPts[1];
+           uVecPath[2] = stopPts[2] - startPts[2];
 
-        float mag = (float) Math.sqrt(uVecPath[0]*uVecPath[0] + uVecPath[1]*uVecPath[1] + uVecPath[2]*uVecPath[2]);
-        uVecPath[0] /= mag;
-        uVecPath[1] /= mag;
-        uVecPath[2] /= mag;
-        
-        update();
+           float mag = (float) Math.sqrt(uVecPath[0]*uVecPath[0] + uVecPath[1]*uVecPath[1] + uVecPath[2]*uVecPath[2]);
+           uVecPath[0] /= mag;
+           uVecPath[1] /= mag;
+           uVecPath[2] /= mag;
+
+           update();
+        }
      }
 
   }
@@ -400,23 +405,30 @@ public class Trajectory {
            }
         }
         
- 
-        addPair(startPts, stopPts, startColor, stopColor);
+        if (indices[0] == null) {
+           offGrid = true;
+        }
+        else {
+           addPair(startPts, stopPts, startColor, stopColor);
 
-        uVecPath[0] = stopPts[0] - startPts[0];
-        uVecPath[1] = stopPts[1] - startPts[1];
-        uVecPath[2] = stopPts[2] - startPts[2];
+           uVecPath[0] = stopPts[0] - startPts[0];
+           uVecPath[1] = stopPts[1] - startPts[1];
+           uVecPath[2] = stopPts[2] - startPts[2];
 
-        float mag = (float) Math.sqrt(uVecPath[0]*uVecPath[0] + uVecPath[1]*uVecPath[1] + uVecPath[2]*uVecPath[2]);
-        uVecPath[0] /= mag;
-        uVecPath[1] /= mag;
-        uVecPath[2] /= mag;
-        
-        update();
+           float mag = (float) Math.sqrt(uVecPath[0]*uVecPath[0] + uVecPath[1]*uVecPath[1] + uVecPath[2]*uVecPath[2]);
+           uVecPath[0] /= mag;
+           uVecPath[1] /= mag;
+           uVecPath[2] /= mag;
+
+           update();
+        }
      }
 
   }
   
+  /*
+    Add start/stop pair segment to the TrajectoryManager. 
+   */
   private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
 
      indexes[npairs] = trajMan.getCoordinateCount();
@@ -435,6 +447,9 @@ public class Trajectory {
      }     
   }
   
+  /* 
+    Advance forecast (stop) point location, color and intrp info to the start for the next displacement interval.
+  */
   private void update() throws VisADException {
      
      startPts[0] = stopPts[0];
