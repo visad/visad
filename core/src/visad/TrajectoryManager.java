@@ -143,6 +143,8 @@ public class TrajectoryManager {
   
   double timeStepScaleFactor;
   
+  boolean conserveColor;
+  
   //- Listener per FlowControl for ProjectionControl events to auto resize tracer geometry.
   public static HashMap<FlowControl, ControlListener> scaleChangeListeners = new HashMap<FlowControl, ControlListener>();
   
@@ -184,6 +186,7 @@ public class TrajectoryManager {
       startPointType = trajParams.getStartType();
       saveTracerLocations = trajParams.getSaveTracerLocations();
       timeStepScaleFactor = trajParams.getTimeStepScaleFactor();
+      conserveColor = trajParams.getConserveColor();
       
       this.altToZ = altToZ;
       if (terrainFollowEnabled) {
@@ -2514,6 +2517,11 @@ public class TrajectoryManager {
           propStr = prop.getProperty("SaveTracerLocations");
           if (propStr != null) {
             trajParams.setSaveTracerLocations(Boolean.valueOf(propStr.trim()));             
+          }
+          
+          propStr = prop.getProperty("ConserveColor");
+          if (propStr != null) {
+            trajParams.setConserveColor(Boolean.valueOf(propStr.trim()));             
           }
           
           propStr = prop.getProperty("NumIntrpPts");

@@ -77,6 +77,8 @@ public class Trajectory {
   
   static float[][] circle;
   
+  boolean conserveColor = false;
+  
   public Trajectory(TrajectoryManager trajMan, float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor, double initialTime) {
     startPts[0] = startX;
     startPts[1] = startY;
@@ -97,6 +99,7 @@ public class Trajectory {
     
     this.initialTime = initialTime;
     this.trajMan = trajMan;
+    this.conserveColor = trajMan.conserveColor;
   }
   
   public void forward(FlowInfo info, float[][] flow_values, byte[][] color_values, GriddedSet spatial_set, FlatField terrain, int direction, float timeStep)
@@ -133,11 +136,13 @@ public class Trajectory {
            intrpFlow[1] += weights[0][j]*(direction)*del[1][0];
            intrpFlow[2] += weights[0][j]*(direction)*del[2][0];              
 
-           intrpClr[0] += weights[0][j]*ShadowType.byteToFloat(color_values[0][idx]);
-           intrpClr[1] += weights[0][j]*ShadowType.byteToFloat(color_values[1][idx]);
-           intrpClr[2] += weights[0][j]*ShadowType.byteToFloat(color_values[2][idx]);
-           if (clrDim == 4) {
-             intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
+           if (!conserveColor) {
+             intrpClr[0] += weights[0][j]*ShadowType.byteToFloat(color_values[0][idx]);
+             intrpClr[1] += weights[0][j]*ShadowType.byteToFloat(color_values[1][idx]);
+             intrpClr[2] += weights[0][j]*ShadowType.byteToFloat(color_values[2][idx]);
+             if (clrDim == 4) {
+               intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
+             }
            }
 
            //markGrid[idx] = true;
@@ -148,11 +153,21 @@ public class Trajectory {
         stopPts[1] = startPts[1] + intrpFlow[1];
         stopPts[2] = startPts[2] + intrpFlow[2];
 
-        stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
-        stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
-        stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
-        if (clrDim == 4) {
-          stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+        if (!conserveColor) {
+          stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
+          stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
+          stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
+          if (clrDim == 4) {
+            stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+          }
+        }
+        else {
+          stopColor[0] = startColor[0];
+          stopColor[1] = startColor[1];
+          stopColor[2] = startColor[2];
+          if (clrDim == 4) {
+            stopColor[3] = startColor[3];
+          }           
         }
         
         // need to do terrain adjust here
@@ -385,23 +400,34 @@ public class Trajectory {
            if (terrain != null) {
              adjustFlowAtTerrain(terrain, color_values);
            }
-        }            
-        if (indices[0] != null) {
-           for (int j=0; j<indices[0].length; j++) {
-              int idx = indices[0][j];
-              intrpClr[0] += weights[0][j]*ShadowType.byteToFloat(color_values[0][idx]);
-              intrpClr[1] += weights[0][j]*ShadowType.byteToFloat(color_values[1][idx]);
-              intrpClr[2] += weights[0][j]*ShadowType.byteToFloat(color_values[2][idx]);
-              if (clrDim == 4) {
-                intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
-              }
-           }
+        }
         
-           stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
-           stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
-           stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
-           if (clrDim == 4) {
-              stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+        if (indices[0] != null) {
+           if (!conserveColor) {
+             for (int j=0; j<indices[0].length; j++) {
+               int idx = indices[0][j];
+               intrpClr[0] += weights[0][j]*ShadowType.byteToFloat(color_values[0][idx]);
+               intrpClr[1] += weights[0][j]*ShadowType.byteToFloat(color_values[1][idx]);
+               intrpClr[2] += weights[0][j]*ShadowType.byteToFloat(color_values[2][idx]);
+               if (clrDim == 4) {
+                 intrpClr[3] += weights[0][j]*ShadowType.byteToFloat(color_values[3][idx]);
+               }
+             }
+        
+             stopColor[0] = ShadowType.floatToByte(intrpClr[0]);
+             stopColor[1] = ShadowType.floatToByte(intrpClr[1]);
+             stopColor[2] = ShadowType.floatToByte(intrpClr[2]);
+             if (clrDim == 4) {
+               stopColor[3] = ShadowType.floatToByte(intrpClr[3]);
+             }
+           }
+           else {
+             stopColor[0] = startColor[0];
+             stopColor[1] = startColor[1];
+             stopColor[2] = startColor[2];
+             if (clrDim == 4) {
+              stopColor[3] = startColor[3];
+             }             
            }
         }
         
