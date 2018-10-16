@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
+import visad.data.DataCacheManager;
 import visad.data.text.TextAdapter;
 import visad.util.Interpolator;
 
@@ -210,7 +211,7 @@ public class TrajectoryManager {
          tracerLocations = new FieldImpl(ftype, anim1DdomainSet);
       }
 
-      byte[][] color_values = info.color_values;
+      byte[][] color_values = info.getColorValues();
       if (info.trajColors != null) color_values = info.trajColors;
       clrDim = color_values.length;
 
@@ -246,7 +247,7 @@ public class TrajectoryManager {
       if (startPts == null) { //get from domain set
         float[][] vec;
         if (true) {
-           float[][] flowVals = convertFlowUnit(info.flow_values, info.flow_units);
+           float[][] flowVals = convertFlowUnit(info.getFlowValues(), info.flow_units);
            vec = ShadowType.adjustFlowToEarth(info.which, flowVals, spatial_set0.getSamples(false), 1f, renderer);
         }
         startPts = new float[3][];
@@ -405,7 +406,7 @@ public class TrajectoryManager {
        VisADGeometryArray array = null;
        VisADGeometryArray[] arrays = null;
        FlowInfo info = flowInfoList.get(i);
-       byte[][] color_values = info.color_values;
+       byte[][] color_values = info.getColorValues();
        Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
        GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set);
 
@@ -456,18 +457,18 @@ public class TrajectoryManager {
 
        if (k == 0) {
          flwInfo = flowInfoList.get(i);
-         values0 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+         values0 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);
 
          flwInfo = flowInfoList.get(i+direction*1);
-         values1 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+         values1 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);
          
          flwInfo = flowInfoList.get(i+direction*2);
-         values2 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);         
+         values2 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);         
        }
 
        if (k < dataDomainLength-3) {
          flwInfo = flowInfoList.get(i+direction*3);
-         values3 = convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+         values3 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);
        }
              
        if (values0_last != null) {
