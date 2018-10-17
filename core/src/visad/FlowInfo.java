@@ -1,6 +1,6 @@
 package visad;
 
-import visad.*;
+import visad.data.DataCacheManager;
 
 public class FlowInfo {
 
@@ -18,8 +18,29 @@ public class FlowInfo {
   public DataRenderer renderer;
   public int which;
   public byte[][] trajColors;
+  Object flowObjId;
+  Object colorObjId;
+  boolean useCache;
 
   public FlowInfo() {
+  }
+  
+  float[][] getFlowValues() {
+     if (useCache) {
+       return DataCacheManager.getCacheManager().getFloatArray2D(flowObjId);
+     }
+     else {
+       return flow_values;
+     }
+  }
+  
+  byte[][] getColorValues() {
+     if (useCache) {
+       return DataCacheManager.getCacheManager().getByteArray2D(colorObjId);
+     }
+     else {
+       return color_values;
+     }
   }
 }
 
