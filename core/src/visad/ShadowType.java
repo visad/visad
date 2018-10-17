@@ -32,6 +32,7 @@ import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.ArrayList;
+import visad.data.DataCacheManager;
 
 import visad.util.HersheyFont;
 
@@ -174,6 +175,8 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   public boolean trajectory1 = false;
   public boolean trajectory2 = false;
   protected ArrayList<FlowInfo> flowInfoList = new ArrayList<FlowInfo>();
+  public boolean cacheTrajFlow1 = false;
+  public boolean cacheTrajFlow2 = false;
 
   /** makeContour, manifoldDimension == 2 */
   int[] cnt = { 0 };
@@ -2151,6 +2154,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               if (trajectory1) {
                  ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
                  flowScale[k] = 1f;
+                 cacheTrajFlow1 = false; // need to check FlowControl
               }
             }
             if (k == 1) {
@@ -2167,6 +2171,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               if (trajectory2) {
                  ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
                  flowScale[k] = 1f;
+                 cacheTrajFlow2 = false; // need to check FlowControl
               }
             }
           }
@@ -2816,7 +2821,16 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     flwInfo.renderer = renderer;
     flwInfo.which = which;
     flwInfo.trajColors = trajColors;
+    flwInfo.useCache = false;
     flowInfoList.add(flwInfo);
+    
+    if ((which == 0 && cacheTrajFlow1) || (which == 1 && cacheTrajFlow2)){
+      flwInfo.useCache = true;
+      flwInfo.flowObjId = DataCacheManager.getCacheManager().addToCache(flow_values);
+      flwInfo.flow_values = null;
+      flwInfo.colorObjId = DataCacheManager.getCacheManager().addToCache(color_values);
+      flwInfo.color_values = null;
+    }
 
     return;
   }
