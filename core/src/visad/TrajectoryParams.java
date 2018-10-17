@@ -103,6 +103,8 @@ public class TrajectoryParams {
   InterpolationMethod interpMethod = InterpolationMethod.Cubic;
   
   double timeStepScaleFactor = 1;
+  
+  boolean conserveColor = false;
 
   public TrajectoryParams() {
   }
@@ -135,6 +137,7 @@ public class TrajectoryParams {
     this.saveTracerLocations = params.getSaveTracerLocations();
     this.timeStepScaleFactor = params.getTimeStepScaleFactor();
     this.trajDoIntrp = params.getTrajDoIntrp();
+    this.conserveColor = params.getConserveColor();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -396,6 +399,14 @@ public class TrajectoryParams {
      this.trajDoIntrp = yesno;
   }
   
+  public boolean getConserveColor() {
+     return this.conserveColor;
+  }
+  
+  public void setConserveColor(boolean yesno) {
+     this.conserveColor = yesno;
+  }
+  
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
@@ -458,7 +469,10 @@ public class TrajectoryParams {
       }
       else  if (this.trajDoIntrp != trajParams.trajDoIntrp) {
          return false;
-      }      
+      }
+      else if (this.conserveColor != trajParams.conserveColor) {
+         return false;
+      }
     }
     return true;
   }
