@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
-import visad.data.DataCacheManager;
 import visad.data.text.TextAdapter;
 import visad.util.Interpolator;
 
@@ -408,7 +407,7 @@ public class TrajectoryManager {
 
        VisADGeometryArray array = null;
        VisADGeometryArray[] arrays = null;
-       FlowInfo info = flowInfoList.get(i);
+       FlowInfo info = flowInfoList.get(0);
        byte[][] color_values = info.getColorValues();
        Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
        GriddedSet spatialSetTraj = makeSpatialSetTraj(spatial_set);
@@ -459,18 +458,18 @@ public class TrajectoryManager {
        FlowInfo flwInfo;
 
        if (k == 0) {
-         flwInfo = flowInfoList.get(i);
+         flwInfo = flowInfoList.get(0);
          values0 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);
 
-         flwInfo = flowInfoList.get(i+direction*1);
+         flwInfo = flowInfoList.get(1);
          values1 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);
          
-         flwInfo = flowInfoList.get(i+direction*2);
+         flwInfo = flowInfoList.get(2);
          values2 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);         
        }
 
        if (k < dataDomainLength-3) {
-         flwInfo = flowInfoList.get(i+direction*3);
+         flwInfo = flowInfoList.get(3);
          values3 = convertFlowUnit(flwInfo.getFlowValues(), flwInfo.flow_units);
        }
              

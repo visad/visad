@@ -90,7 +90,7 @@ public class TrajectoryParams {
   float cylWidth = 0.00014f;
   float ribbonWidthFac = 1f;
   int zStart = 0;
-  int zStartSkip = 0;
+  int zStartSkip = 4;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
