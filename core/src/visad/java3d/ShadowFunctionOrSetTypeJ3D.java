@@ -267,7 +267,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
 
       if (doTrajectory) {
-        post = true;
+        processTrajectory();
+        post = false;
       }
       else {
         post = false;
@@ -1357,7 +1358,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     return false;
   }
 
-  public void postProcessTraj() throws VisADException {
+  public void processTrajectory() throws VisADException {
     try {
       for (int k=0; k<numTrajFlowInMemory; k++) {
         int i = (trajTimeDir < 0) ? ((domainLength-1) - k) : k;
@@ -1375,7 +1376,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       and add to group; then clear AccumulationVector */
   public void postProcess(Object group) throws VisADException {
     if (doTrajectory) {
-      postProcessTraj();
+      processTrajectory();
       return;
     }
     
