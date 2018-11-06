@@ -458,6 +458,9 @@ public class TrajectoryParams {
       else if (this.method != trajParams.method) {
          return false;
       }
+      else if (this.interpMethod != trajParams.interpMethod) {
+         return false;
+      }
       else if (this.trcrStreamingEnabled != trajParams.trcrStreamingEnabled) {
          return false;
       }
