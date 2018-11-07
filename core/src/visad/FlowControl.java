@@ -199,6 +199,9 @@ public abstract class FlowControl extends Control {
    */
   public void enableTrajectory(boolean flag)
          throws VisADException, RemoteException {
+    if (flag == trajectoryEnabled) {
+      return;
+    }
     trajectoryEnabled = flag;
     if (trajectoryEnabled && streamlinesEnabled) {
       streamlinesEnabled = false;
@@ -219,11 +222,15 @@ public abstract class FlowControl extends Control {
     if (tparms == null) {
        throw new VisADException("TrajectoryParams cannot be null");
     }
+    else if (flag == trajectoryEnabled) {
+       setTrajectoryParams(tparms);
+       return;
+    }
+    trajParams = new TrajectoryParams(tparms);
     trajectoryEnabled = flag;
     if (trajectoryEnabled && streamlinesEnabled) {
       streamlinesEnabled = false;
     }
-    trajParams = new TrajectoryParams(tparms);
     changeControl(true);
   }  
 
@@ -318,13 +325,22 @@ public abstract class FlowControl extends Control {
   }
 
   public TrajectoryParams getTrajectoryParams() {
-    return trajParams;
+    return new TrajectoryParams(trajParams);
   }
 
-  public void setTrajectoryParams(TrajectoryParams trajParams)
+  public void setTrajectoryParams(TrajectoryParams tParams)
          throws VisADException, RemoteException {
-    this.trajParams = new TrajectoryParams(trajParams);
-    changeControl(true);
+    if (tParams == null) {
+      throw new VisADException("TrajectoryParams can't be null");
+    }
+    else if (trajParams.equals(tParams)) {
+      System.out.println("Incominimg = current params: Render not triggered");
+      return;
+    }
+    this.trajParams = new TrajectoryParams(tParams);
+    if (trajectoryEnabled) {
+      changeControl(true);
+    }
   }
 
   /**
