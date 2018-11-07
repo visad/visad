@@ -479,5 +479,31 @@ public class TrajectoryParams {
     }
     return true;
   }
+  
+  public String toString() {
+      String str = "trajVisibilityTimeWindow: "+trajVisibilityTimeWindow+"\n"+
+      "trajRefreshInterval: "+trajRefreshInterval+"\n"+
+      "numIntrpPts: "+numIntrpPts+"\n"+
+      "startSkip: "+startSkip+"\n"+
+      "zStart: "+zStart+"\n"+
+      "zStartSkip: "+zStartSkip+"\n"+
+      "smoothParams: "+smoothParams+"\n"+
+      "trajForm: "+trajForm+"\n"+
+      "forward: "+forward+"\n"+
+      "direction: "+direction+"\n"+
+      "markerEnabled: "+markerEnabled+"\n"+
+      "cylWidth: "+cylWidth+"\n"+
+      "ribbonWidthFac: "+ribbonWidthFac+"\n"+
+      "terrainFollowEnabled: "+terrainFollowEnabled+"\n"+
+      "method: "+method+"\n"+
+      "interpMethod: "+interpMethod+"\n"+
+      "trcrStreamingEnabled: "+trcrStreamingEnabled+"\n"+
+      "saveTracerLocations: "+saveTracerLocations+"\n"+
+      "timeStepScaleFactor: "+timeStepScaleFactor+"\n"+
+      "trajDoIntrp: "+trajDoIntrp+"\n"+
+      "conserveColor: "+conserveColor;
+      
+      return str;
+  }
 
 }
