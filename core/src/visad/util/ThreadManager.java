@@ -122,13 +122,17 @@ public class ThreadManager {
    * @param max 
    */
   public static void setGlobalMaxThreads(int max) {
+    System.out.println("ThreadManager.setGlobalMaxThreads: "+max);
     ThreadManager.maxThreads = max;
   }
 
+  public static int getGlobalMaxThreads() {
+     return maxThreads;
+  }
 
-    public void debug(String msg) {
+  public void debug(String msg) {
 
-    }
+  }
 
 
   /**
