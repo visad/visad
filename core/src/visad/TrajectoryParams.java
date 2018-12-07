@@ -476,6 +476,29 @@ public class TrajectoryParams {
       else if (this.conserveColor != trajParams.conserveColor) {
          return false;
       }
+      else if (this.startPoints != null) {
+         if (trajParams.startPoints == null) {
+            return false;
+         }
+         else if (this.startPoints[0] != null && trajParams.startPoints[0] != null) {
+            if (!java.util.Arrays.equals(this.startPoints[0], trajParams.startPoints[0])) {
+               return false;
+            }
+         }
+         else if (this.startPoints[1] != null && trajParams.startPoints[1] != null) {
+            if (!java.util.Arrays.equals(this.startPoints[1], trajParams.startPoints[1])) {
+               return false;
+            }
+         }
+         else if (this.startPoints[2] != null && trajParams.startPoints[2] != null) {
+            if (!java.util.Arrays.equals(this.startPoints[2], trajParams.startPoints[2])) {
+               return false;
+            }
+         }
+      }
+      else if (trajParams.startPoints != null) {
+         return false;
+      }
     }
     return true;
   }
