@@ -64,6 +64,12 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   TrajectoryParams trajParams;
   ScalarMap altitudeToDisplayZ;
   CoordinateSystem dspCoordSys;
+  float[] value_array;
+  float[] default_values;
+  Data data;
+  DataRenderer renderer;
+  int trajTimeDir;
+  private final int numTrajFlowInMemory = 4;
   
   
   List<BranchGroup> branches = null;
@@ -127,7 +133,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     DataDisplayLink[] link_s = renderer.getLinks();
     DataDisplayLink link = link_s[0];
     Vector scalarMaps = link.getSelectedMapVector();
-
+    
+    this.value_array = value_array;
+    this.default_values = default_values;
+    this.data = data;
+    this.renderer = renderer;
     
     // only determine if it's an animation if non-terminal. isTerminal will
     // only be determined if there are scalar maps - defaults to false
@@ -183,6 +193,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             doTrajectory = true;
             trajParams = flowCntrl.getTrajectoryParams();
             trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
+            trajTimeDir = trajParams.getDirection();
             break;
           }
           else {
@@ -247,9 +258,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
           final BranchGroup node = (BranchGroup) swit.getChild(i);
           threadManager.addRunnable(new ThreadManager.MyRunnable() {
                   public void run()  throws Exception {
-                      recurseRange(branch, sample,
-                                   value_array, default_values, renderer);
                       if (!doTrajectory) {
+                        recurseRange(branch, sample, value_array, default_values, renderer);
                         node.addChild(branch);          
                       }
                   }
@@ -257,8 +267,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
 
       if (doTrajectory) {
-        post = true;
-        threadManager.runSequentially();
+        processTrajectory();
+        post = false;
       }
       else {
         post = false;
@@ -1348,9 +1358,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     return false;
   }
 
-  public void postProcessTraj() throws VisADException {
+  public void processTrajectory() throws VisADException {
     try {
-       doTrajectory();
+      for (int k=0; k<numTrajFlowInMemory; k++) {
+        int i = (trajTimeDir < 0) ? ((domainLength-1) - k) : k;
+        final BranchGroup branch = (BranchGroup) branches.get(i);
+        final Data sample  = ((Field) data).getSample(i);
+        recurseRange(branch, sample, value_array, default_values, renderer);
+      }
+      doTrajectory();
     } catch (Exception e) {
        e.printStackTrace();
     }
@@ -1360,7 +1376,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       and add to group; then clear AccumulationVector */
   public void postProcess(Object group) throws VisADException {
     if (doTrajectory) {
-      postProcessTraj();
+      processTrajectory();
       return;
     }
     
@@ -1443,7 +1459,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     for (int k=0; k<computeLength; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
-      FlowInfo info = flowInfoList.get(i);
+      FlowInfo info = flowInfoList.get(0);
       
       arrays = trajMan.computeTrajectories(k, timeAccum, times, timeSteps);
       if (trajMan.getNumberOfTrajectories() > 0) {
@@ -1493,6 +1509,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         addToGroup(auxBrnch, arrays[1], mode, info.constant_alpha, info.constant_color);  
         ((BranchGroup)switB.getChild(i)).addChild(auxBrnch);
       }      
+
+      int dat_idx = i + direction*numTrajFlowInMemory;
+      if ((direction > 0 && dat_idx < computeLength) || (direction < 0 && dat_idx >= 0)) {
+        final BranchGroup obj = (BranchGroup) branches.get(dat_idx);
+        final Data sample  = ((Field) data).getSample(dat_idx);
+        recurseRange(obj, sample, value_array, default_values, renderer);
+        flowInfoList.remove(0);
+      }
       
     } //---  domain length (time steps) outer time loop  -------------------------
         
@@ -1515,5 +1539,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
     }
     
+    // Clear the intermediate FlowInfo results now that visualization has been created.
+    Range.getAdaptedShadowType().getFlowInfo().clear();
   }
 }
