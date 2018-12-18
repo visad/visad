@@ -324,11 +324,11 @@ public abstract class FlowControl extends Control {
     return trajectoryEnabled;
   }
 
-  public TrajectoryParams getTrajectoryParams() {
+  public synchronized TrajectoryParams getTrajectoryParams() {
     return new TrajectoryParams(trajParams);
   }
 
-  public void setTrajectoryParams(TrajectoryParams tParams)
+  public synchronized void setTrajectoryParams(TrajectoryParams tParams)
          throws VisADException, RemoteException {
     if (tParams == null) {
       throw new VisADException("TrajectoryParams can't be null");

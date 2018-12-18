@@ -125,10 +125,13 @@ public class ThreadManager {
     ThreadManager.maxThreads = max;
   }
 
+  public static int getGlobalMaxThreads() {
+     return maxThreads;
+  }
 
-    public void debug(String msg) {
+  public void debug(String msg) {
 
-    }
+  }
 
 
   /**
