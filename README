@@ -45,6 +45,7 @@ for each ant file for more information.
 Building the Distribution
 -------------------------
 Run the following commands:
+        
 	git clone https://github.com/visad/visad.git
 	cd visad
 	ant dist

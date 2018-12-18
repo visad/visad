@@ -90,7 +90,7 @@ public class TrajectoryParams {
   float cylWidth = 0.00014f;
   float ribbonWidthFac = 1f;
   int zStart = 0;
-  int zStartSkip = 0;
+  int zStartSkip = 4;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -458,6 +458,9 @@ public class TrajectoryParams {
       else if (this.method != trajParams.method) {
          return false;
       }
+      else if (this.interpMethod != trajParams.interpMethod) {
+         return false;
+      }
       else if (this.trcrStreamingEnabled != trajParams.trcrStreamingEnabled) {
          return false;
       }
@@ -473,8 +476,57 @@ public class TrajectoryParams {
       else if (this.conserveColor != trajParams.conserveColor) {
          return false;
       }
+      else if (this.startPoints != null) {
+         if (trajParams.startPoints == null) {
+            return false;
+         }
+         else if (this.startPoints[0] != null && trajParams.startPoints[0] != null) {
+            if (!java.util.Arrays.equals(this.startPoints[0], trajParams.startPoints[0])) {
+               return false;
+            }
+         }
+         else if (this.startPoints[1] != null && trajParams.startPoints[1] != null) {
+            if (!java.util.Arrays.equals(this.startPoints[1], trajParams.startPoints[1])) {
+               return false;
+            }
+         }
+         else if (this.startPoints[2] != null && trajParams.startPoints[2] != null) {
+            if (!java.util.Arrays.equals(this.startPoints[2], trajParams.startPoints[2])) {
+               return false;
+            }
+         }
+      }
+      else if (trajParams.startPoints != null) {
+         return false;
+      }
     }
     return true;
+  }
+  
+  public String toString() {
+      String str = "trajVisibilityTimeWindow: "+trajVisibilityTimeWindow+"\n"+
+      "trajRefreshInterval: "+trajRefreshInterval+"\n"+
+      "numIntrpPts: "+numIntrpPts+"\n"+
+      "startSkip: "+startSkip+"\n"+
+      "zStart: "+zStart+"\n"+
+      "zStartSkip: "+zStartSkip+"\n"+
+      "smoothParams: "+smoothParams+"\n"+
+      "trajForm: "+trajForm+"\n"+
+      "forward: "+forward+"\n"+
+      "direction: "+direction+"\n"+
+      "markerEnabled: "+markerEnabled+"\n"+
+      "cylWidth: "+cylWidth+"\n"+
+      "ribbonWidthFac: "+ribbonWidthFac+"\n"+
+      "terrainFollowEnabled: "+terrainFollowEnabled+"\n"+
+      "method: "+method+"\n"+
+      "interpMethod: "+interpMethod+"\n"+
+      "trcrStreamingEnabled: "+trcrStreamingEnabled+"\n"+
+      "saveTracerLocations: "+saveTracerLocations+"\n"+
+      "timeStepScaleFactor: "+timeStepScaleFactor+"\n"+
+      "trajDoIntrp: "+trajDoIntrp+"\n"+
+      "conserveColor: "+conserveColor;
+      
+      return str;
   }
 
 }
