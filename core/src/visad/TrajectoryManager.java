@@ -82,6 +82,8 @@ public class TrajectoryManager {
   public static final int TRACER_POINT = TrajectoryParams.TRACER_POINT;
   
   public static final String PPOP_TRAJECTORY_START_POINTS_FILE = "visad.trajectory.startPointsFile";
+  public static final String PPOP_TRAJECTORY_START_POINTS_FILE_1 = "visad.trajectory.startPointsFile1";
+  public static final String PPOP_TRAJECTORY_START_POINTS_FILE_2 = "visad.trajectory.startPointsFile2";
   public static final String PROP_TRAJECTORY_PARAM_FILE_1 = "visad.trajectory.paramFile1";
   public static final String PROP_TRAJECTORY_PARAM_FILE_2 = "visad.trajectory.paramFile2";
   public static final String PROP_TRAJECTORY_TERRAIN_FILE = "visad.trajectory.terrainFile";
@@ -229,7 +231,7 @@ public class TrajectoryManager {
       
       if (startPts == null) {
         try {
-          startPts = getStartPointsFromFile(renderer, altToZ, startClrs, tmp);
+          startPts = getStartPointsFromFile(renderer, altToZ, startClrs, tmp, info.which);
           startTimes = tmp[0];
         }
         catch (Exception e) {
@@ -2633,11 +2635,21 @@ public class TrajectoryManager {
      return trajParams;
   }
   
-  public float[][] getStartPointsFromFile(DataRenderer renderer, ScalarMap altToZ, byte[][] colors, double[][] times) throws VisADException, RemoteException {
+  public float[][] getStartPointsFromFile(DataRenderer renderer, ScalarMap altToZ, byte[][] colors, double[][] times, int which) throws VisADException, RemoteException {
      String filename = null;
+     String filename1 = null;
+     String filename2 = null;
      
      try {
        filename = System.getProperty(PPOP_TRAJECTORY_START_POINTS_FILE, null);
+         if (filename == null) {
+         if (which == 0) {
+           filename = System.getProperty(PPOP_TRAJECTORY_START_POINTS_FILE_1, null);
+         }
+         else if (which == 1) {
+           filename = System.getProperty(PPOP_TRAJECTORY_START_POINTS_FILE_2, null);         
+         }
+       }
      }
      catch (java.lang.SecurityException exc) {
        exc.printStackTrace();        
