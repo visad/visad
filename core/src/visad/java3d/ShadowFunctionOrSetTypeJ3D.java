@@ -1474,7 +1474,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
       
       GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
-      mode.setPointSize(5f, false);
 
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
         avHandler.setNoneVisibleIndex(i);
