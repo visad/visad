@@ -334,7 +334,7 @@ public abstract class FlowControl extends Control {
       throw new VisADException("TrajectoryParams can't be null");
     }
     else if (trajParams.equals(tParams)) {
-      System.out.println("Incominimg = current params: Render not triggered");
+      System.out.println("Incoming = current params: Render not triggered");
       return;
     }
     this.trajParams = new TrajectoryParams(tParams);
