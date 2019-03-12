@@ -2214,7 +2214,7 @@ public class TrajectoryManager {
     float[] normals;
     int numPts;
     int numVerts;
-
+    
     float[] allCoords = new float[3*2*6*numTrajs];
     byte[] allColors = new byte[3*2*6*numTrajs];
 
@@ -2493,6 +2493,12 @@ public class TrajectoryManager {
             float fac = Float.valueOf(propStr.trim());
             trajParams.setCylinderWidth(trajParams.getCylinderWidth()*fac);
           }
+          
+          propStr = prop.getProperty("TracerSize");
+          if (propStr != null) {
+            float fac = Float.valueOf(propStr.trim());
+            trajParams.setMarkerSize(fac);
+          }          
           
           propStr = prop.getProperty("RibbonWidthFactor");
           if (propStr != null) {
