@@ -449,6 +449,9 @@ public class TrajectoryParams {
       else if (this.cylWidth != trajParams.cylWidth) {
         return false;
       }
+      else if (this.markerSize != trajParams.markerSize) {
+         return false;
+      }
       else if (this.ribbonWidthFac != trajParams.ribbonWidthFac) {
         return false;
       }
