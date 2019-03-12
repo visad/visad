@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
+import com.sun.j3d.utils.geometry.Sphere;
 import visad.*;
 import visad.util.ThreadManager;
 
@@ -1460,11 +1461,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
       FlowInfo info = flowInfoList.get(0);
+      GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
       
       arrays = trajMan.computeTrajectories(k, timeAccum, times, timeSteps);
       if (trajMan.getNumberOfTrajectories() > 0) {
         if (trajForm == TrajectoryManager.TRACER_POINT) {
           trcrArray = trajMan.makePointGeometry();
+          mode.setPointSize(mode.getPointSize()*trcrSize, false);
         }
         else {
           achrArrays = new ArrayList<float[]>();
@@ -1473,8 +1476,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         }
       }
       
-      GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
-
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
         avHandler.setNoneVisibleIndex(i);
         timeAccum = 0.0;
