@@ -38,6 +38,12 @@ import java.util.Vector;
 import java.rmi.*;
 
 import java.awt.image.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import javax.swing.filechooser.FileSystemView;
+import javax.vecmath.Vector3d;
+import visad.util.Util;
 
 
 /**
@@ -1411,6 +1417,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     float trcrSize = trajParams.getMarkerSize();
     double trajRefreshInterval = trajParams.getTrajRefreshInterval();
     int direction = trajParams.getDirection();
+    int tracerType = trajParams.getTracerType();
     
     DataRenderer renderer = getLink().getRenderer();
     ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
@@ -1423,6 +1430,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     TrajectoryManager trajMan = new TrajectoryManager(renderer, trajParams, flowInfoList, dataDomainLength, times[0], altitudeToDisplayZ, dspCoordSys, (Gridded1DSet)anim1DdomainSet);
     
     trcrEnabled = (trcrEnabled && (trajForm == TrajectoryManager.LINE)) && trajForm != TrajectoryManager.POINT;
+    
+    // Force the tracer to be displayed for this Trajectory Form
     if (trajForm == TrajectoryManager.TRACER || trajForm == TrajectoryManager.TRACER_POINT) {
       trcrEnabled = true;
     }
@@ -1432,7 +1441,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       trajMan.setListener(pCntrl, listener, flowCntrl);
       listener.lock();
     }
-    double[] dspScale = TrajectoryManager.getScale(mouseBehav, pCntrl); // current dispaly scale
+
+    Transform3D trans = new Transform3D(pCntrl.getMatrix());
+    Vector3d vec = new Vector3d();
+    trans.getScale(vec);
+    double[] dspScale = new double[] {vec.x, vec.y, vec.z};
     double scale = dspScale[0];
     
     trajMan.initCleanUp(flowMap, flowCntrl, pCntrl, display);
@@ -1455,26 +1468,37 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             ((trajParams.getInterpolationMethod() == TrajectoryParams.InterpolationMethod.None) || !trajParams.getTrajDoIntrp())) {
       computeLength = dataDomainLength;
     }
-    
+        
+    VisADTriangleStripArray sphere = Util.makeSphere(0.015f);
+        
     for (int k=0; k<computeLength; k++) {
       int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
       
       FlowInfo info = flowInfoList.get(0);
+      GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
       
       arrays = trajMan.computeTrajectories(k, timeAccum, times, timeSteps);
       if (trajMan.getNumberOfTrajectories() > 0) {
-        if (trajForm == TrajectoryManager.TRACER_POINT) {
-          trcrArray = trajMan.makePointGeometry();
-        }
-        else {
-          achrArrays = new ArrayList<float[]>();
-          trcrArray = trajMan.makeTracerGeometry(achrArrays, direction, trcrSize, dspScale, true);
-          trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));
-        }
+        
+         achrArrays = new ArrayList<float[]>();
+         switch (tracerType) {
+            case TrajectoryParams.SPHERE:
+               trcrArray = trajMan.makeTracerGeometry(achrArrays, sphere, trcrSize, dspScale);
+               trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));
+               break;
+            case TrajectoryParams.DOT:
+               trcrArray = trajMan.makePointGeometry();
+               mode.setPointSize(mode.getPointSize()*trcrSize, false);
+               break;
+            case TrajectoryParams.ARROW:
+               trcrArray = trajMan.makeTracerGeometryArrow(achrArrays, direction, trcrSize, dspScale, true);
+               trcrArray = TrajectoryManager.scaleGeometry(trcrArray, achrArrays, (float)(1.0/scale));         
+               break;
+            default:
+               break;
+         }
       }
       
-      GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
-
       if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
         avHandler.setNoneVisibleIndex(i);
         timeAccum = 0.0;
@@ -1528,8 +1552,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     
     if (trajParams.getSaveTracerLocations()) {
       try {
-        java.io.FileOutputStream fos = new java.io.FileOutputStream("/Users/rink/TracerLocations.ser");
-        java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(fos);
+        FileSystemView fsv = FileSystemView.getFileSystemView();
+        File homeDir = fsv.getHomeDirectory();
+        FileOutputStream fos = new FileOutputStream(new File(homeDir, "TracerLocations.ser"));
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(trajMan.tracerLocations);
         fos.close();
       }

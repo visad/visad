@@ -105,6 +105,12 @@ public class TrajectoryParams {
   double timeStepScaleFactor = 1;
   
   boolean conserveColor = false;
+  
+  public static final int ARROW = 7;    // shadable direction marker
+  public static final int SPHERE = 8;   // shadable ball
+  public static final int DOT = 9;      // graphical point 
+  
+  int tracerType = DOT;  //Default
 
   public TrajectoryParams() {
   }
@@ -138,6 +144,7 @@ public class TrajectoryParams {
     this.timeStepScaleFactor = params.getTimeStepScaleFactor();
     this.trajDoIntrp = params.getTrajDoIntrp();
     this.conserveColor = params.getConserveColor();
+    this.tracerType = params.getTracerType();
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
@@ -407,6 +414,14 @@ public class TrajectoryParams {
      this.conserveColor = yesno;
   }
   
+  public void setTracerType(int type) {
+     this.tracerType = type;
+  }
+  
+  public int getTracerType() {
+     return this.tracerType;
+  }
+  
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof TrajectoryParams)) {
       return false;
@@ -449,6 +464,9 @@ public class TrajectoryParams {
       else if (this.cylWidth != trajParams.cylWidth) {
         return false;
       }
+      else if (this.markerSize != trajParams.markerSize) {
+         return false;
+      }
       else if (this.ribbonWidthFac != trajParams.ribbonWidthFac) {
         return false;
       }
@@ -474,6 +492,9 @@ public class TrajectoryParams {
          return false;
       }
       else if (this.conserveColor != trajParams.conserveColor) {
+         return false;
+      }
+      else if (this.tracerType != trajParams.tracerType) {
          return false;
       }
       else if (this.startPoints != null) {
@@ -524,6 +545,7 @@ public class TrajectoryParams {
       "saveTracerLocations: "+saveTracerLocations+"\n"+
       "timeStepScaleFactor: "+timeStepScaleFactor+"\n"+
       "trajDoIntrp: "+trajDoIntrp+"\n"+
+      "tracerType: "+tracerType+"\n"+
       "conserveColor: "+conserveColor;
       
       return str;
