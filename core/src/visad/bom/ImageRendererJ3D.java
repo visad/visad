@@ -56,6 +56,7 @@ import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.Gridded1DDoubleSet;
+import visad.Gridded2DSet;
 import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
@@ -75,6 +76,7 @@ import visad.java3d.ShadowTypeJ3D;
 import visad.java3d.VisADBranchGroup;
 import visad.java3d.VisADImageNode;
 import visad.util.Delay;
+import visad.util.Util;
 
 /**
    ImageRendererJ3D is the VisAD class for fast loading of images
@@ -424,32 +426,65 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
                 useLinearTexture = (invCS.getInvertedCoordinateSystem()).equals(dataCoordinateSystem);
         }
 
-        /** if useLinearTexture is true at this point, it's true for the first image of a sequence with numimages > 1.  We'll
-            have to assume that byRef will apply until below is resolved.
+        /* If useLinearTexture is true at this point, it's true for the first image of a sequence with numimages > 1. However, the transformations
+           from Reference to Display must be identical to one another for all images in the sequence for byRef to be applicable.
+           There's no guarantee that equal CoordinateSystems describe the same transformation. Additionally, such transforms may not be analytically
+           specified, but only sampled at the domain points. For high resolution imagery, at test of equality for each point could incur a 
+           substantial performance hit (one of the main motivations of this custom renderer). 
+           So below, we test 5 points: the four corners and center.
+           Further consideration: how much slop to allow? For example GOES-16/17 are reference on a fixed grid, but earlier series were not.
+           Should we allow a few image pixels offset from image to image?
          */
 
-        /** more consideration/work needed here.  CoordinateSystems might be equal even if they aren't the same transform (i,j) -> (lon,lat)
-        if (!useLinearTexture) { //If DisplayCoordinateSystem != DataCoordinateSystem
+        if (useLinearTexture) { //If DisplayCoordinateSystem != DataCoordinateSystem
                 if (num_images > 1) { //Its an animation
+                        Gridded2DSet domSet = (Gridded2DSet) fltField.getDomainSet();
                         int lengths[] = ((visad.GriddedSet) fltField.getDomainSet()).getLengths();
                         int data_width = lengths[0];
                         int data_height = lengths[1];
-                        for (int i = 1; i < num_images; i++) {//Playing safe: go down the full sequence to find if the full set is Geostaionary or NOT
-                                FlatField ff = (FlatField) field.getSample(i); //Quicker Approach would be to just compare only the first two images in the sequence. But that may not be safe.
+                        
+                        // Determine reference coordinate (likely Earth) system locations of the four corners and center of domain
+                        float[][] grid = new float[][] {{0,data_width-1,data_width-1,0,data_width/2},{0,0,data_height-1,data_height-1,data_height/2}};
+                        float[][] gridVal = domSet.gridToValue(grid);
+                        float[][] lonlat0 = dataCoordinateSystem.toReference(gridVal);
+                        
+                        
+                        for (int i = 1; i < num_images; i++) {
+                                FlatField ff = (FlatField) field.getSample(i);
                                 CoordinateSystem dcs = ff.getDomainCoordinateSystem();
                                 // dcs might be cached
                                 if (dcs instanceof CachingCoordinateSystem) {
                                         dcs = ((CachingCoordinateSystem) dcs).getCachedCoordinateSystem();
                                 }
-                                int[] lens = ((visad.GriddedSet) ff.getDomainSet()).getLengths();
-                                if (lens[0] != data_width || lens[1] != data_height || ( (dcs != null) && (dataCoordinateSystem != null) && !dcs.equals(dataCoordinateSystem))) {
+                                domSet = (Gridded2DSet) ff.getDomainSet();
+                                int[] lens = domSet.getLengths();
+
+                               
+                                if (lens[0] != data_width || lens[1] != data_height) {
                                         useLinearTexture = false;
                                         break;
+                                }
+                                else {
+                                        gridVal = domSet.gridToValue(grid);
+                                        float[][] lonlat = dcs.toReference(gridVal);
+                                        for (int k=0; k<grid[0].length;k++) {
+                                            float lon0 = lonlat0[0][k];
+                                            float lat0 = lonlat0[1][k];
+                                            float lon = lonlat[0][k];
+                                            float lat = lonlat[1][k];
+                                            if (Float.isNaN(lon0) && Float.isNaN(lon) && Float.isNaN(lat0) && Float.isNaN(lat)) {
+                                               continue;
+                                            }
+                                            if (!Util.isApproximatelyEqual(lon0, lon) || !Util.isApproximatelyEqual(lat0, lat)) {
+                                               useLinearTexture = false;
+                                               break;
+                                            }  
+                                        }
                                 }
                         }
                 }
         }
-        */
+
         return useLinearTexture;
   }
 
