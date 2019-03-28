@@ -70,7 +70,6 @@ import visad.ShadowFunctionOrSetType;
 import visad.VisADError;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
-import visad.georef.LongitudeLatitudeInterpCS;
 import visad.java3d.DefaultRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.ShadowTypeJ3D;
