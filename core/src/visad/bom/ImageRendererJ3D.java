@@ -70,6 +70,7 @@ import visad.ShadowFunctionOrSetType;
 import visad.VisADError;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
+import visad.georef.LongitudeLatitudeInterpCS;
 import visad.java3d.DefaultRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.ShadowTypeJ3D;
@@ -370,7 +371,12 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   private VisADImageNode imagesNode = null;
 
   private boolean lastByRef = false;
-
+  
+  private boolean forceUseByRef = false;
+  
+  public void forceUseByRef(boolean yesno) {
+     forceUseByRef = yesno;
+  }
 
   public static boolean isByRefUsable(DataDisplayLink link, ShadowType shadow) throws VisADException, RemoteException {
         ShadowFunctionOrSetType shadowType = (ShadowFunctionOrSetType) shadow.getAdaptedShadowType();
@@ -437,6 +443,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
          */
 
         if (useLinearTexture) { //If DisplayCoordinateSystem != DataCoordinateSystem
+//                RealTupleType dataCoordSysRef = dataCoordinateSystem.getReference();
+//                boolean isEarthRef = (dataCoordSysRef.equals(RealTupleType.LatitudeLongitudeTuple) || dataCoordSysRef.equals(RealTupleType.SpatialEarth2DTuple));
+                
                 if (num_images > 1) { //Its an animation
                         Gridded2DSet domSet = (Gridded2DSet) fltField.getDomainSet();
                         int lengths[] = ((visad.GriddedSet) fltField.getDomainSet()).getLengths();
@@ -594,7 +603,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     DataDisplayLink link = Links[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
     boolean doByRef = false;
-    if (isByRefUsable(link, type) && ShadowType.byReference) {
+    if ((isByRefUsable(link, type) && ShadowType.byReference) || forceUseByRef) {
       doByRef = true;
       type = new ShadowImageByRefFunctionTypeJ3D(link.getData().getType(), link, null, 
                      ((ShadowFunctionOrSetType)type.getAdaptedShadowType()).getInheritedValues(),
