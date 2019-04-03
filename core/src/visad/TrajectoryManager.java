@@ -862,17 +862,7 @@ public class TrajectoryManager {
     
     return tffld;
   }
-  
-  public static double[] getScale(MouseBehavior mouseBehav, ProjectionControl pCntrl) {
-    double[] matrix = pCntrl.getMatrix();
-    double[] rot = new double[3];
-    double[] trans = new double[3];
-    double[] scale = new double[3];
-
-    mouseBehav.instance_unmake_matrix(rot, scale, trans, matrix);
-    return scale;     
-  }
-  
+    
   public void getStartPointsFromDomain(int trajForm, int skip, int zstart, int zskip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs, float[][] flowValues, float ribbonWidthFac) throws VisADException {
       int manifoldDim = spatial_set.getManifoldDimension();
       int[] lens = spatial_set.getLengths();
@@ -1181,14 +1171,25 @@ public class TrajectoryManager {
   }
   
   public static VisADGeometryArray scaleGeometry(VisADGeometryArray array, ArrayList<float[]> anchors, float scale) {
+     VisADGeometryArray scldArray = null;
      int nShapes = anchors.size();
      int numVertsPerShape = array.vertexCount/nShapes;
 
-     VisADGeometryArray scldArray = new VisADTriangleArray();
-     scldArray.coordinates = new float[3*array.vertexCount];
-     scldArray.colors = array.colors;
-     scldArray.normals = array.normals;
-     scldArray.vertexCount = array.vertexCount;
+     if (array instanceof VisADTriangleStripArray) {
+       scldArray = new VisADTriangleStripArray();
+       scldArray.coordinates = new float[3*array.vertexCount];
+       scldArray.colors = array.colors;
+       scldArray.normals = array.normals;
+       scldArray.vertexCount = array.vertexCount;
+       ((VisADTriangleStripArray)scldArray).stripVertexCounts = ((VisADTriangleStripArray)array).stripVertexCounts;
+     }
+     else {
+       scldArray = new VisADTriangleArray();
+       scldArray.coordinates = new float[3*array.vertexCount];
+       scldArray.colors = array.colors;
+       scldArray.normals = array.normals;
+       scldArray.vertexCount = array.vertexCount;
+     }
 
      for (int k=0; k<nShapes; k++) {
         float[] ancrPt = anchors.get(k);
@@ -2205,16 +2206,73 @@ public class TrajectoryManager {
      
      return array;
   }
-
-  public VisADGeometryArray makeTracerGeometry(ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
+ 
+  public VisADGeometryArray makeTracerGeometry(ArrayList<float[]> anchors, VisADTriangleStripArray tsarray, float trcrSize, double[] scale) {
     int numTrajs = trajectories.size();
-    VisADGeometryArray array = null;
+    VisADTriangleStripArray array = new VisADTriangleStripArray();
+    
+    float[] coords = tsarray.coordinates;
+    float[] normals = tsarray.normals;
+    int[] stripVertexCounts = tsarray.stripVertexCounts;
+
+    int numVerts = coords.length/3;
+    int numStrips = stripVertexCounts.length;
+               
+    float[] allCoords = new float[3*numVerts*numTrajs];
+    float[] allNormals = new float[3*numVerts*numTrajs];
+    int[] allStrips = new int[numTrajs*numStrips];
+    byte[] allColors = new byte[3*numVerts*numTrajs];
+
+    
+    for (int k=0; k<numTrajs; k++) {
+      Trajectory traj = trajectories.get(k);
+      float xpos = traj.startPts[0];
+      float ypos = traj.startPts[1];
+      float zpos = traj.startPts[2];
+      
+      int idx = k*3*numVerts;
+      
+      for (int i=0; i<numVerts; i++) {
+        int t = 3*i;
+        
+        allCoords[idx] = trcrSize*coords[t] + xpos;
+        allCoords[idx+1] = ((float)(scale[0]/scale[1]))*trcrSize*coords[t+1] + ypos;
+        allCoords[idx+2] = ((float)(scale[0]/scale[2]))*trcrSize*coords[t+2] + zpos;
+        
+        allNormals[idx] = normals[t];
+        allNormals[idx+1] = normals[t+1];
+        allNormals[idx+2] = normals[t+2];
+        
+        allColors[idx] = traj.startColor[0];
+        allColors[idx+1] = traj.startColor[1];
+        allColors[idx+2] = traj.startColor[2];
+        
+        idx += 3;
+      }
+      System.arraycopy(stripVertexCounts, 0, allStrips, k*numStrips, numStrips);
+      
+      float[] anchrPts = new float[] {xpos, ypos, zpos};
+      anchors.add(anchrPts);       
+    }
+    
+    array.coordinates = allCoords;
+    array.colors = allColors;
+    array.normals = allNormals;
+    array.vertexCount = numVerts*numTrajs;
+    array.stripVertexCounts = allStrips;
+    
+    return array;
+  }
+
+  public VisADGeometryArray makeTracerGeometryArrow(ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
+    int numTrajs = trajectories.size();
+    VisADGeometryArray array;
     float[] coords;
     byte[] colors;
     float[] normals;
     int numPts;
     int numVerts;
-
+    
     float[] allCoords = new float[3*2*6*numTrajs];
     byte[] allColors = new byte[3*2*6*numTrajs];
 
@@ -2493,6 +2551,12 @@ public class TrajectoryManager {
             float fac = Float.valueOf(propStr.trim());
             trajParams.setCylinderWidth(trajParams.getCylinderWidth()*fac);
           }
+          
+          propStr = prop.getProperty("TracerSize");
+          if (propStr != null) {
+            float fac = Float.valueOf(propStr.trim());
+            trajParams.setMarkerSize(fac);
+          }          
           
           propStr = prop.getProperty("RibbonWidthFactor");
           if (propStr != null) {

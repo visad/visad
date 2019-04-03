@@ -86,6 +86,9 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import com.sun.j3d.utils.geometry.Sphere;
+import javax.media.j3d.TriangleStripArray;
+import visad.VisADTriangleStripArray;
 
 
 /**
@@ -1092,6 +1095,28 @@ public class Util {
 	public static long unsignedByteToLong(byte b) {
 		return (long) b & 0xFF;
 	}
+        
+        /**
+         * Make the VisAD equivalent geometry for a sphere from Java3D
+         * @param radius
+         * @return VisADGeometryArray
+         */
+        public static VisADTriangleStripArray makeSphere(float radius) {
+             Sphere sphere = new Sphere(radius);
+             float[] coords = new float[3*sphere.getNumVertices()];
+             float[] normls = new float[coords.length];
+             TriangleStripArray geom = (TriangleStripArray)sphere.getShape().getGeometry();
+             int numStrips = geom.getNumStrips();
+             int[] stripVertexCounts = new int[numStrips];
+             geom.getStripVertexCounts(stripVertexCounts);
+             geom.getCoordinates(0, coords);
+             geom.getNormals(0, normls);
+             VisADTriangleStripArray tsarray = new VisADTriangleStripArray();
+             tsarray.coordinates = coords;
+             tsarray.normals = normls;
+             tsarray.stripVertexCounts = stripVertexCounts;
+             return tsarray;
+        }
 
 }
 
