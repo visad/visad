@@ -45,6 +45,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import com.sun.j3d.utils.universe.SimpleUniverse;
+import java.util.Iterator;
 
 
 /**
@@ -158,6 +159,15 @@ public class VisADCanvasJ3D extends Canvas3D {
                                         (Object[])null);
         wProp = (Integer)propertiesMap.get("textureWidthMax");
         hProp = (Integer)propertiesMap.get("textureHeightMax");
+        /*
+        Iterator iter = propertiesMap.keySet().iterator();
+        System.out.println("----------------------------------------------------------");
+        while (iter.hasNext()) {
+           Object key = iter.next();
+           System.out.println(key+":  "+propertiesMap.get(key));
+           System.out.println("----------------------------------------------------------");
+        }
+        */
       }
       catch (Exception exc) {
       }
