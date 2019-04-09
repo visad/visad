@@ -55,5 +55,75 @@ public class VisADTriangleArray extends VisADGeometryArray {
     merge(arrays, array);
     return array;
   }
+  
+  /**
+   * No specific implementation for adjustLongitude in VisADTriangleArray, so convert to
+   * a VisADTriangleStripArray with nstrips = ntris, each with a vertex count = 3.
+   * Convert back to a VisADTriangleArray.
+   * 
+   * @param renderer
+   * @return
+   * @throws VisADException 
+   */
+  public VisADGeometryArray adjustLongitude(DataRenderer renderer)
+         throws VisADException {
+
+     VisADTriangleStripArray tsa = new VisADTriangleStripArray();
+     tsa.coordinates = coordinates;
+     tsa.normals = normals;
+     tsa.colors = colors;
+     tsa.vertexCount = vertexCount;
+     tsa.vertexFormat = vertexFormat;
+     
+     int[] stripVertexCounts = new int[vertexCount/3];
+     java.util.Arrays.fill(stripVertexCounts, 3);
+     tsa.stripVertexCounts = stripVertexCounts;
+     
+     tsa = (VisADTriangleStripArray) tsa.adjustLongitude(renderer);
+     VisADTriangleArray ta = new VisADTriangleArray();
+     
+     ta.coordinates = tsa.coordinates;
+     ta.normals = tsa.normals;
+     ta.colors = tsa.colors;
+     ta.vertexCount = tsa.vertexCount;
+     ta.vertexFormat = tsa.vertexFormat;
+     
+     return ta;
+  }
+  
+  /**
+   * No specific implementation for adjustSeam in VisADTriangleArray, so convert to
+   * a VisADTriangleStripArray with nstrips = ntris, each with a vertex count = 3.
+   * Convert back to a VisADTriangleArray.
+   * 
+   * @param renderer
+   * @return
+   * @throws VisADException 
+   */
+  public VisADGeometryArray adjustSeam(DataRenderer renderer)
+         throws VisADException {
+
+     VisADTriangleStripArray tsa = new VisADTriangleStripArray();
+     tsa.coordinates = coordinates;
+     tsa.normals = normals;
+     tsa.colors = colors;
+     tsa.vertexCount = vertexCount;
+     tsa.vertexFormat = vertexFormat;
+     
+     int[] stripVertexCounts = new int[vertexCount/3];
+     java.util.Arrays.fill(stripVertexCounts, 3);
+     tsa.stripVertexCounts = stripVertexCounts;
+     
+     tsa = (VisADTriangleStripArray) tsa.adjustSeam(renderer);
+     VisADTriangleArray ta = new VisADTriangleArray();
+     
+     ta.coordinates = tsa.coordinates;
+     ta.normals = tsa.normals;
+     ta.colors = tsa.colors;
+     ta.vertexCount = tsa.vertexCount;
+     ta.vertexFormat = tsa.vertexFormat;
+     
+     return ta;
+  }
 }
 
