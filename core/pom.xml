@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>edu.wisc.ssec</groupId>
+		<artifactId>pom-visad</artifactId>
+		<version>2.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>visad</artifactId>
+
+	<name>VisAD</name>
+
+	<dependencies>
+		<!--
+		HACK: To build, VisAD requires several dependencies. While they are present
+		in the distribution in the deps/ folder, they cannot be compiled because
+		the dods dependency requires thredds, which is not included. Hence, to
+		actually build the core, we must instead link against the precompiled
+		version of the dependencies: lib/visaddeps.jar.
+
+		To make VisAD properly reusable as a dependency in downstream projects, it
+		must migrate to using real Maven artifacts for all its dependencies, rather
+		than using this system scoped local JAR file. See <dependencies> below.
+		-->
+		<dependency>
+			<groupId>visad</groupId>
+			<artifactId>visaddeps</artifactId>
+			<version>${project.version}</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/visaddeps.jar</systemPath>
+		</dependency>
+
+		<!--
+		NB: The following list of dependencies include some possibilities for
+		replacing the current deps/ folder. However, the versions do not coincide
+		with what is currently in deps/ folder: Most of the artifacts below are
+		many years newer than the old versions of the source upon which VisAD
+		currently depends. In many cases, externalizing each of these components
+		will require updating the core VisAD source code to use the newer APIs.
+		-->
+		<!--
+		<dependency>
+			<groupId>edu.ucar</groupId>
+			<artifactId>opendap</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>gnu.getopt</groupId>
+			<artifactId>java-getopt</artifactId>
+			<version>1.0.13</version>
+		</dependency>
+		<dependency>
+			<groupId>gnu-regexp</groupId>
+			<artifactId>gnu-regexp</artifactId>
+			<version>1.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>gov.nasa.gsfc.heasarc</groupId>
+			<artifactId>nom-tam-fits</artifactId>
+			<version>1.13.1</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.grinder</groupId>
+			<artifactId>grinder-httpclient</artifactId>
+			<version>3.11</version>
+		</dependency>
+		-->
+
+		<!-- Java 3D dependencies -->
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>j3dcore</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>j3dutils</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>vecmath</artifactId>
+		</dependency>
+
+		<!-- Test scope dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

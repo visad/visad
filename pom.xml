@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>9.2.0</version>
+	</parent>
+
+	<groupId>edu.wisc.ssec</groupId>
+	<artifactId>pom-visad</artifactId>
+	<version>2.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>VisAD Projects</name>
+	<description>A Java component library for interactive and collaborative visualization and analysis of numerical data.</description>
+	<url>http://www.visad.wisc.edu/</url>
+	<inceptionYear>1996</inceptionYear>
+	<organization>
+		<name>The SSEC Visualization Project</name>
+		<url>http://www.ssec.wisc.edu/~billh/vis.html</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GNU Lesser General Public License v3+</name>
+			<url>http://www.gnu.org/licenses/lgpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Bill Hibbard</name>
+			<email>bh@ssec.wisc.edu</email>
+			<organization>Space Science and Engineering Center, University of Wisconsin-Madison</organization>
+			<organizationUrl>http://www.ssec.wisc.edu/</organizationUrl>
+			<roles>
+				<role>founder</role>
+			</roles>
+			<timezone>-6</timezone>
+		</developer>
+		<developer>
+			<name>Tom Rink</name>
+			<email>rink@ssec.wisc.edu</email>
+			<organization>Space Science and Engineering Center, University of Wisconsin-Madison</organization>
+			<organizationUrl>http://www.ssec.wisc.edu/</organizationUrl>
+			<roles>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<name>Curtis Rueden</name>
+			<url>http://loci.wisc.edu/people/curtis-rueden</url>
+			<organization>UW-Madison LOCI</organization>
+			<organizationUrl>http://loci.wisc.edu/</organizationUrl>
+			<timezone>-6</timezone>
+			<properties><id>ctrueden</id></properties>
+		</contributor>
+		<contributor><name>Dave Glowacki</name></contributor>
+		<contributor><name>Steve Emmerson</name></contributor>
+		<contributor><name>Tom Whittaker</name></contributor>
+		<contributor><name>Don Murray</name></contributor>
+		<contributor><name>Tommy Jasmin</name></contributor>
+		<contributor><name>Bruce Flynn</name></contributor>
+		<contributor><name>Jeff McWhirter</name></contributor>
+		<contributor><name>Jonathan Beavers</name></contributor>
+		<contributor><name>Yuan Ho</name></contributor>
+		<contributor><name>Jano Kianicka</name></contributor>
+		<contributor><name>Mike Hiley</name></contributor>
+		<contributor><name>Rick Kohrs</name></contributor>
+		<contributor><name>Julien Chastang</name></contributor>
+		<contributor><name>John Lalande</name></contributor>
+	</contributors>
+
+	<mailingLists>
+		<mailingList>
+			<name>VisAD</name>
+			<subscribe>https://mailman.unidata.ucar.edu/mailman/listinfo/visad</subscribe>
+			<unsubscribe>https://mailman.unidata.ucar.edu/mailman/listinfo/visad</unsubscribe>
+			<post>visad@unidata.ucar.edu</post>
+			<archive>http://mailman.unidata.ucar.edu/mailing_lists/archives/visad/</archive>
+		</mailingList>
+	</mailingLists>
+
+	<modules>
+		<module>core</module>
+		<module>examples</module>
+	</modules>
+
+	<scm>
+		<connection>scm:git:git://github.com/visad/visad</connection>
+		<developerConnection>scm:git:git@github.com:visad/visad</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/visad/visad</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/visad/visad/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>None</system>
+	</ciManagement>
+
+	<properties>
+		<!--
+		NB: The org.scijava:j3dcore and org.scijava:j3dutils dependencies
+		require Java 7; hence, VisAD requires Java 7.
+		-->
+		<scijava.jvm.version>1.7</scijava.jvm.version>
+	</properties>
+
+	<repositories>
+		<!--
+		NB: Some of the dependencies (commented out in core/pom.xml <dependencies>)
+		are not present on Maven Central, but only on Unidata's Maven repository.
+		To use them, this block would need to be uncommented.
+		-->
+		<!--
+		<repository>
+			<id>unidata-releases</id>
+			<name>UNIDATA Releases</name>
+			<url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
+		</repository>
+		-->
+	</repositories>
+
+	<build>
+		<sourceDirectory>${project.basedir}/src</sourceDirectory>
+	</build>
+</project>
