@@ -28,6 +28,7 @@ package visad.java3d;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -88,6 +89,7 @@ import visad.VisADException;
 import visad.VisADLineArray;
 import visad.VisADRay;
 import visad.VisADTriangleArray;
+import visad.util.OBJWriter;
 import visad.util.Util;
 
 /**
@@ -362,6 +364,12 @@ public abstract class DisplayRendererJ3D
       } else {
       }
       //    }
+  }
+  
+  public void write(File file) throws Exception {
+     OBJWriter writer = new OBJWriter(file);
+     writer.writeNode(non_direct);
+     writer.close();
   }
 
   public BranchGroup getRoot() {
