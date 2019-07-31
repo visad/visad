@@ -796,6 +796,9 @@ public abstract class ActionImpl implements Action, Runnable {
   public void setName(String name) {
     Name = name;
   }
-
+  
+  public void queue(Runnable runnable) {
+     pool.queue(runnable);
+  }
+  
 }
-

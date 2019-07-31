@@ -60,6 +60,7 @@ import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4d;
 
 import visad.AxisScale;
+import visad.CellImpl;
 import visad.ColorAlphaControl;
 import visad.ColorControl;
 import visad.ContourControl;
@@ -85,6 +86,9 @@ import visad.RendererSourceListener;
 import visad.ScalarMap;
 import visad.ShapeControl;
 import visad.TextControl;
+import visad.ThingImpl;
+import visad.ThingReference;
+import visad.ThingReferenceImpl;
 import visad.VisADException;
 import visad.VisADLineArray;
 import visad.VisADRay;
@@ -207,6 +211,9 @@ public abstract class DisplayRendererJ3D
   private Object modelClip = null;
   private boolean[] modelClipEnables =
     {false, false, false, false, false, false};
+  
+  private boolean saveSceneToFile = false;
+  private File theSaveFile;
 
   public DisplayRendererJ3D () {
     super();
@@ -366,7 +373,48 @@ public abstract class DisplayRendererJ3D
       //    }
   }
   
-  public void write(File file) throws Exception {
+  public void saveSceneToFile(File file) {
+     saveSceneToFile = true;
+     theSaveFile = file;
+     while (getWaitFlag()) {
+        
+     }
+     try {
+       write(file);
+     }
+     catch (Exception exc) {
+       exc.printStackTrace();
+     }
+  }
+  
+  public synchronized void saveSceneToFile2(final File file) throws VisADException, RemoteException {
+//     CellImpl writeCell = new CellImpl() {
+//        public void doAction() {
+//           try {
+//             write(file);
+//           }
+//           catch (Exception e) {
+//             e.printStackTrace();
+//           }           
+//        }
+//     };
+//     ThingReferenceImpl writeThing = new ThingReferenceImpl("obj write");
+//     writeCell.addReference(writeThing);
+     
+     Runnable writeFile = new Runnable() {
+        public void run() {
+           try {
+             write(file);
+           }
+           catch (Exception e) {
+             e.printStackTrace();
+           }
+        }        
+     };
+     getDisplay().queue(writeFile);
+  }
+  
+  private void write(File file) throws Exception {
      OBJWriter writer = new OBJWriter(file);
      writer.writeNode(non_direct);
      writer.close();
