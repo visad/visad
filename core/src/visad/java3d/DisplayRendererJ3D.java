@@ -212,9 +212,6 @@ public abstract class DisplayRendererJ3D
   private boolean[] modelClipEnables =
     {false, false, false, false, false, false};
   
-  private boolean saveSceneToFile = false;
-  private File theSaveFile;
-
   public DisplayRendererJ3D () {
     super();
   }
@@ -373,21 +370,14 @@ public abstract class DisplayRendererJ3D
       //    }
   }
   
-  public void saveSceneToFile(File file) {
-     saveSceneToFile = true;
-     theSaveFile = file;
-     while (getWaitFlag()) {
-        
-     }
-     try {
-       write(file);
-     }
-     catch (Exception exc) {
-       exc.printStackTrace();
-     }
-  }
-  
-  public synchronized void saveSceneToFile2(final File file) throws VisADException, RemoteException {
+  /**
+   * Save scene to Waveform Object formatted file.
+   * @param file
+   * @throws VisADException
+   * @throws RemoteException 
+   */  
+  public void saveSceneToFile(final File file) throws VisADException, RemoteException {
+// This way doesn't require a change to the api: see getDisplay().queue() below.
 //     CellImpl writeCell = new CellImpl() {
 //        public void doAction() {
 //           try {

@@ -797,8 +797,14 @@ public abstract class ActionImpl implements Action, Runnable {
     Name = name;
   }
   
+  /**
+   * Add a user Runnable to the thread pool
+   * @param runnable 
+   */
   public void queue(Runnable runnable) {
-     pool.queue(runnable);
+     if (pool != null) {
+       pool.queue(runnable);
+     }
   }
   
 }

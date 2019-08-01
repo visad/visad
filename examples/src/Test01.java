@@ -138,7 +138,7 @@ public class Test01
     System.out.println("writing scene to file");
     try {
     java.io.File file = new java.io.File("/Users/rink/Desktop/scene.obj");
-    ((visad.java3d.DisplayRendererJ3D)test.dspRenderer).saveSceneToFile2(file);
+    ((visad.java3d.DisplayRendererJ3D)test.dspRenderer).saveSceneToFile(file);
     }
     catch (Exception e) {
     }
