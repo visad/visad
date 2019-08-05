@@ -28,6 +28,7 @@ package visad;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 
 import java.rmi.RemoteException;
 
@@ -227,6 +228,14 @@ public abstract class DisplayRenderer
    * @return The current image being displayed.
    */
   public abstract BufferedImage getImage();
+  
+  /**
+   * Save scene to Waveform Object formatted file.
+   * @param file
+   * @throws VisADException
+   * @throws RemoteException 
+   */  
+  public abstract void saveSceneToFile(File file) throws VisADException, RemoteException;
 
   /**
    * Set an axis scale.

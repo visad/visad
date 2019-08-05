@@ -329,6 +329,10 @@ public abstract class DisplayRendererJ2D
       notify();
     }
   }
+  
+  public void saveSceneToFile(File file) throws VisADException, RemoteException {
+    throw new UnimplementedException("");
+  }
 
   public VisADGroup getCursorOnBranch() {
     return cursor_on;
