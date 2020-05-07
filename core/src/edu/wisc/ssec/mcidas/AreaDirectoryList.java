@@ -38,9 +38,7 @@ import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import edu.wisc.ssec.mcidas.adde.AddeURLConnection;
-
-/** 
+/**
  * AreaDirectoryList interface for McIDAS 'area' file format image data.
  * Provides access to a list of one or more AreaDirectoy objects.
  *
@@ -175,9 +173,7 @@ public class AreaDirectoryList
 
     dirs = new ArrayList();
     int numBytes = 
-      (isADDE) 
-        ? ((AddeURLConnection) urlc).getInitialRecordSize() 
-        : AreaFile.AD_DIRSIZE;
+       AreaFile.AD_DIRSIZE;
     while (numBytes > 0) {
       try {
         dir = new int[AreaFile.AD_DIRSIZE];
