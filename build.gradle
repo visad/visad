@@ -1,0 +1,113 @@
+plugins {
+    // Apply the java-library plugin to add support for Java Library
+    id 'java-library'
+    id 'maven-publish'
+}
+
+ext {
+    // Used to publish Maven artifacts to Unidata's Nexus repository, https://artifacts.unidata.ucar.edu
+    NEXUS_USERNAME_KEY = 'nexus.username'
+    NEXUS_PASSWORD_KEY = 'nexus.password'
+
+    gitUrl = "https://github.com/lesserwhirls/visad/tree/ncj"
+
+    // timestamp for the build
+    buildTimestamp = Instant.now().toString()
+    buildDate = buildTimestamp.split("T")[0].replace("-", "")
+    def cmd = "git rev-parse --short HEAD"
+    def proc = cmd.execute()
+    revision = proc.text.trim()
+
+}
+
+// Matches Maven's "project.description".
+description = "A subset of McIDAS packages from VisAD for use by cdm-mcidas."
+
+// Matches Maven's "project.groupId". Used in MANIFEST.MF for "Implementation-Vendor-Id".
+group = "edu.wisc.ssec"
+
+// Matches Maven's "project.version". Used in MANIFEST.MF for "Implementation-Version".
+// This package, nor it's parent jar visad, isn't really versioned by SSEC
+// We'll assign a version using the build date, as defined in ext
+//version = buildDate // use this for releases
+version = buildDate + '-SNAPSHOT' // use this for snapshots
+
+
+sourceSets {
+    main.java.srcDirs = ['core/src']
+    main.resources.srcDirs = ['core/resources']
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+ext {
+    // Used to publish Maven artifacts to Unidata's Nexus repository, https://artifacts.unidata.ucar.edu
+    NEXUS_USERNAME_KEY = 'nexus.username'
+    NEXUS_PASSWORD_KEY = 'nexus.password'
+
+    gitUrl = "https://github.com/lesserwhirls/visad/tree/ncj"
+
+    // timestamp for the build
+    buildTimestamp = Instant.now().toString()
+    buildDate = buildTimestamp.split("T")[0].replace("-", "")
+    def cmd = "git rev-parse --short HEAD"
+    def proc = cmd.execute()
+    revision = proc.text.trim()
+
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': "${-> project.name}",
+                'Implementation-Version': "${-> project.version + ' (git commit: ' + project.revision + ')'}",
+                'Implementation-Vendor-Id': 'edu.wisc.ssec',
+                'Implementation-Vendor': 'UW/SSEC',
+                'Implementation-URL': "${-> project.gitUrl}",
+                'Created-By': "Gradle $gradle.gradleVersion",
+                'Build-Jdk': JavaVersion.current(),
+                'Built-On': buildTimestamp,
+                'Built-By': System.properties['user.name']
+    }
+}
+
+publishing {
+    publications {
+        publishSlim(MavenPublication) {
+            pom {
+                description = "${-> project.description}"
+                url = "${-> project.gitUrl}"
+                licenses {
+                    license {
+                        // This name is the SPDX identifier
+                        name = 'LGPL-2.0-or-later'
+                        url = 'https://www.gnu.org/licenses/old-licenses/lgpl-2.0.en.html'
+                    }
+                }
+                scm {
+                    url = "${-> project.gitUrl}"
+                }
+            }
+            from components.java
+        }
+    }
+
+     repositories {
+         maven {
+             credentials {
+                 username project.hasProperty(NEXUS_USERNAME_KEY) ? project.property(NEXUS_USERNAME_KEY) : ''
+                 password project.hasProperty(NEXUS_PASSWORD_KEY) ? project.property(NEXUS_PASSWORD_KEY) : ''
+             }
+             def releasesRepoUrl = "https://artifacts.unidata.ucar.edu/repository/unidata-releases/"
+             def snapshotsRepoUrl = "https://artifacts.unidata.ucar.edu/repository/unidata-snapshots/"
+             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+         }
+    }
+}
