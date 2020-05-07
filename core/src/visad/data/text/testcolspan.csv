@@ -1,9 +1,0 @@
-##
-##This is an example of using the fixed values 
-##
-
-(index) -> (Longitude,Latitude,Time,SPD,DIR,TD,T)
-Longitude[unit="degrees west"],Latitude[unit="deg"],Time[fmt="yyyy-MM-dd HH:mm:ss z" colspan="2"],SPD[unit="m/s"],DIR[unit="deg"],TD[unit="celsius"],T[unit="celsius"]
-40,110,2007-02-20, 11:00:00 MST  ,0.0,0.0,8.9,13.3
-50,100,2007-02-20, 12:00:00 MST  ,0.0,0.0,11.9,15.0
-50,110,2007-02-20, 11:00:00 MST  ,10.8,230.0,-1.1,6.7
