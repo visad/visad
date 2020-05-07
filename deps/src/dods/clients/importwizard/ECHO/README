@@ -1,7 +1,0 @@
-To run the ECHOSearchWindow class, you need to compile following .java files:
-CollectionValids.java, DiscoveryQuery.java, DiscoverySearchPanel.java, ECHOSearchWindow.java, GranuleQuery.java, GranuleSearchPanel.java, PresentResult.java, QueryRequest.java, ResultValidsPanel.java, SOAPMessanger.java, SpatialQuery.java, TemporalQuery.java
-
-Commands are:
-
-javac dods/clients/importwizard/* (* stands for the file name)
-java dods.clients.importwizard.ECHOSearchWindow
