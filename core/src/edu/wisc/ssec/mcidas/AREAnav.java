@@ -26,6 +26,11 @@ MA 02111-1307, USA
 
 package edu.wisc.ssec.mcidas;
 
+import static java.lang.Class.forName;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * The AREAnav is the superclass for AREA file navigation modules.
  * When used with AreaFile class, set up like this:
@@ -627,7 +632,21 @@ public abstract class AREAnav
                 anav = new SINUnav(navBlock);
                 break;
             case LALO:
-                anav = new LALOnav(navBlock, auxBlock);
+                String laloNavClassName = "edu.wisc.ssec.mcidas.LALOnav";
+                try {
+                    Class<?> clazz = forName(laloNavClassName);
+                    Constructor<?> constructor = clazz.getConstructor(navBlock.getClass(), auxBlock.getClass());
+                    Object obj = constructor.newInstance(navBlock, auxBlock);
+                    if (obj instanceof AREAnav) {
+                        anav = (AREAnav) obj;
+                    }
+                } catch (ClassNotFoundException | NoSuchMethodException e) {
+                    e.printStackTrace();
+                    throw new McIDASException("The full VisAD jar is needed to read files that use Radar (RECT) type nav.");
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                    throw new McIDASException("Unable to create a new instance of" + laloNavClassName + " via reflection. Check to make sure the version of visad you are using supports this class.");
+                }
                 break;
             case KALP:
                 anav = new KALPnav(navBlock);
