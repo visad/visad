@@ -30,8 +30,8 @@ group = "edu.wisc.ssec"
 // Matches Maven's "project.version". Used in MANIFEST.MF for "Implementation-Version".
 // This package, nor it's parent jar visad, isn't really versioned by SSEC
 // We'll assign a version using the build date, as defined in ext
-version = buildDate + "-2"// use this for releases
-//version = buildDate + '-SNAPSHOT' // use this for snapshots
+//version = buildDate // use this for releases
+version = buildDate + '-SNAPSHOT' // use this for snapshots
 
 
 sourceSets {
