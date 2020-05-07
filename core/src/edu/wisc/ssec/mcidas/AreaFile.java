@@ -51,9 +51,6 @@ import java.net.URLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
-
-
 /**
  * AreaFile interface with McIDAS 'area' file format image data.
  *
@@ -333,19 +330,6 @@ public class AreaFile implements java.io.Serializable {
   public AreaFile(String source) throws AreaFileException {
 
     imageSource = source;
-    if (imageSource.startsWith("adde://") &&
-        (imageSource.endsWith("image?") ||
-         imageSource.endsWith("imagedata?"))) {
-
-      GetAreaGUI gag = new GetAreaGUI((Frame)null, true, "Get data", false,
-                                      true);
-      gag.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          imageSource = e.getActionCommand();
-        }
-      });
-      gag.show();
-    }
 
     // try as a disk file first
     try {
