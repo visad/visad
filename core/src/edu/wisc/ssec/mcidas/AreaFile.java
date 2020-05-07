@@ -400,10 +400,7 @@ public class AreaFile implements java.io.Serializable {
   /**
    * create an <code>AreaFile</code> that allows reading of McIDAS 'area'
    * file format image data from a <code>URL</code> with a protocol of either
-   * <code>file</code> or <code>ADDE</code>.  See
-   * {@link edu.wisc.ssec.mcidas.adde.AddeURLConnection} for more information on
-   * constructing ADDE urls.
-   *
+   * <code>file</code> or <code>ADDE</code>.
    *
    * @param url
    * @exception AreaFileException if file cannot be opened
