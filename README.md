@@ -1,3 +1,5 @@
+# visad-mcidas-slim
+
 This is a fork of the [visad library](https://github.com/visad/visad) for use with the `cdm-mcidas` artifact from the netCDF-Java project.
 The intent is to produce a slim version the `edu.wisc.ssec.mcidas` package that contains what is needed for `the ucar.nc2.iosp.mcidas.AreaServiceProvider` and `ucar.nc2.iosp.mcidas.McIDASGridServiceProvider` IOSPs.
 These classes use no third party dependencies.
@@ -25,3 +27,7 @@ artifactId: `visad-mcidas-slim`
 As `visad` itself does not appear to be versioned, this artifact is versioned using the calendar date associated with the build of the artifact and has the form `yyyyMMdd`.
 
 As the case with `visad`, this library is released under the terms of the GNU Library General Public License, Version 2, June 1991.
+
+## Release History
+
+Release 20200507 :  Based on visad commit [b01355c](https://github.com/visad/visad/commit/b01355c650768ce6459d271df82fd88588c22ead)
