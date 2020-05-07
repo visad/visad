@@ -31,9 +31,6 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import edu.wisc.ssec.mcidas.adde.AddeURLException;
-
-
 /**
  * Utility class for creating <code>AreaFile</code> instances. This class
  * handles subsetting local files using urls whereas the <code>AreaFile</code>
@@ -195,11 +192,9 @@ public final class AreaFileFactory {
    * </p>
    * @return an initialized, possibly subsetted, instance
    * @throws AreaFileException on any error constructing the instance.
-   * @throws AddeURLException If the source is a URL and the query string is
-   *  not formatted correctly.
    */
   public static final AreaFile getAreaFileInstance(final String src)
-          throws AreaFileException, AddeURLException {
+          throws AreaFileException {
 
     // handle the special "pop up a gui" case for adde://image?
     if (src.startsWith("adde://") &&
@@ -229,8 +224,7 @@ public final class AreaFileFactory {
    *
    * <p>A url appropriate for creating an instance will have a protocol of
    * either <code>adde</code> for remote ADDE data or <code>file</code> for
-   * files on the local disk. Information on consructing ADDE urls can be found
-   * in the {@link edu.wisc.ssec.mcidas.adde.AddeURLConnection} class.</p>
+   * files on the local disk.</p>
    *
    * <p>A local file url may either be a standard file url such as
    * file:///&lt;absolute file path&gt; or it may specify subsetting
@@ -257,11 +251,9 @@ public final class AreaFileFactory {
    * @param url - the url as described above
    * @return an initialized, possibly subsetted, instance
    * @throws AreaFileException on any error constructing the instance.
-   * @throws AddeURLException if the query string is not a valid ADDE query
-   *  stirng.
    */
   public static final AreaFile getAreaFileInstance(final URL url)
-          throws AddeURLException, AreaFileException {
+          throws AreaFileException {
 
     // it's a local file, investigate further
     if (url.getProtocol().equalsIgnoreCase("file")) {
@@ -282,7 +274,7 @@ public final class AreaFileFactory {
           query = url.toURI().getQuery(); // URI queries are decoded
         }
         catch (URISyntaxException e) {
-          throw new AddeURLException("URL decoding failed", e);
+          //throw new AddeURLException("URL decoding failed", e);
         }
       }
       if (query != null) {
@@ -339,7 +331,7 @@ public final class AreaFileFactory {
             startLine = Integer.parseInt(vals[0]);
             startElem = Integer.parseInt(vals[1]);
             if (vals.length >= 3 && !vals[2].equalsIgnoreCase("a")) {
-              throw new AddeURLException("Image and earth types are not currenly supported");
+              //throw new AddeURLException("Image and earth types are not currenly supported");
             }
             availableLines -= startLine;
             availableEles -= startElem;
@@ -429,11 +421,9 @@ public final class AreaFileFactory {
    * @param source  source file or ADDE url
    * @param outputFile  name of the output file
    * @throws AreaFileException on any error constructing the instance.
-   * @throws AddeURLException If the source is a URL and the query string is
-   *  not formatted correctly.
    */
   public static void copyAreaFile(String source, String outputFile)
-          throws AddeURLException, AreaFileException {
+          throws AreaFileException {
     copyAreaFile(source, outputFile, false);
   }
 
@@ -443,12 +433,10 @@ public final class AreaFileFactory {
    * @param outputFile  name of the output file
    * @param verbose  true to print out status messages
    * @throws AreaFileException on any error constructing the instance.
-   * @throws AddeURLException If the source is a URL and the query string is
-   *  not formatted correctly.
    */
   public static void copyAreaFile(String source, String outputFile,
                                   boolean verbose)
-          throws AddeURLException, AreaFileException {
+          throws AreaFileException {
     AreaFile area = getAreaFileInstance(source);
     area.save(outputFile, verbose);
   }
