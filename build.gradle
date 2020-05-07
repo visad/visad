@@ -2,6 +2,7 @@ plugins {
     // Apply the java-library plugin to add support for Java Library
     id 'java-library'
     id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 ext {
@@ -21,7 +22,7 @@ ext {
 }
 
 // Matches Maven's "project.description".
-description = "A subset of McIDAS packages from VisAD for use by cdm-mcidas."
+description = "A subset of the McIDAS package from VisAD"
 
 // Matches Maven's "project.groupId". Used in MANIFEST.MF for "Implementation-Vendor-Id".
 group = "edu.wisc.ssec"
@@ -78,11 +79,18 @@ jar {
     }
 }
 
+shadowJar {
+    baseName 'visad-mcidas-slim-ucar-ns'
+    classifier ''
+    // relocate the edu.wisc.ssec.mcidas package to ucar.mcidas
+    relocate 'edu.wisc.ssec.mcidas', 'ucar.mcidas'
+}
+
 publishing {
     publications {
         publishSlim(MavenPublication) {
             pom {
-                description = "${-> project.description}"
+                description = "${-> project.description}" + '.'
                 url = "${-> project.gitUrl}"
                 licenses {
                     license {
@@ -96,6 +104,24 @@ publishing {
                 }
             }
             from components.java
+        }
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+            artifactId = 'visad-mcidas-slim-ucar-ns'
+            pom {
+                description = "${-> project.description}" + ' for use by cdm-mcidas (edu.wisc.ssec.mcidas package relocated to ucar.mcidas).'
+                url = "${-> project.gitUrl}"
+                licenses {
+                    license {
+                        // This name is the SPDX identifier
+                        name = 'LGPL-2.0-or-later'
+                        url = 'https://www.gnu.org/licenses/old-licenses/lgpl-2.0.en.html'
+                    }
+                }
+                scm {
+                    url = "${-> project.gitUrl}"
+                }
+            }
         }
     }
 
