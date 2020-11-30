@@ -293,7 +293,7 @@ public class AddePointURL extends AddeDatasetURL {
     if (test != null) {
       int num = max;
       if (test.equalsIgnoreCase(ALL)) {
-        num = 99999;
+        num = 999999;
       }
       else {
         try {
