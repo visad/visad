@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2020 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2021 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
 
@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 /*
 This code was modified from the original Fortran code on the
-McIDAS system.  The code in this file is Copyright(C) 2020 by Tom
+McIDAS system.  The code in this file is Copyright(C) 2021 by Tom
 Whittaker & Don Murray.  It is designed to be used with the VisAD system
 for interactive analysis and visualization of numerical data.
 */
