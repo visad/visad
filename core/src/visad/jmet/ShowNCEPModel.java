@@ -4,7 +4,7 @@
 
 /*
 
-The software in this file is Copyright(C) 2020 by Tom Whittaker.
+The software in this file is Copyright(C) 2021 by Tom Whittaker.
 It is designed to be used with the VisAD system for interactive
 analysis and visualization of numerical data.
 
