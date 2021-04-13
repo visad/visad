@@ -32,6 +32,7 @@ import visad.util.AnimationWidget;
 public class Test03
   extends UISkeleton
 {
+  DisplayRenderer dspRenderer;
   public Test03() { }
 
   public Test03(String[] args)
@@ -45,6 +46,7 @@ public class Test03
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    dspRenderer = dpys[0].getDisplayRenderer();
     return dpys;
   }
 
@@ -140,6 +142,19 @@ public class Test03
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    new Test03(args);
+    Test03 test = new Test03(args);
+    try {
+       Thread.currentThread().sleep(15000);
+    }
+    catch (InterruptedException e) {
+    }
+    System.out.println("writing scene to file");
+    try {
+    java.io.File file = new java.io.File("/Users/rink/Desktop/scene.obj");
+    ((visad.java3d.DisplayRendererJ3D)test.dspRenderer).saveSceneToFile(file);
+    }
+    catch (Exception e) {
+    }
+
   }
 }

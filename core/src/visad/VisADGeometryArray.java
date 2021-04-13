@@ -78,8 +78,12 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       side of the seam) */
   public VisADGeometryArray adjustLongitudeBulk(DataRenderer renderer)
          throws VisADException {
+    /* TDR (2019-04-09): logic for bulk=true may haphazardly generate some artifacts so
+       follow with adjustSeam. TODO: dig into this, but punt for now.
+     */
     float[] lons = getLongitudes(renderer, true); // bulk = true
-    return this;
+    return adjustSeam(renderer);
+    //return this;
   }
 
   /** split any vectors or triangles crossing crossing longitude

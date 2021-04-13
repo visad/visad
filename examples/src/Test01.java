@@ -39,7 +39,8 @@ public class Test01
 {
   ScalarMap map1color = null;
   ScalarMap map1contour = null;
-  static int size3d = 6;
+  static int size3d = 48;
+  DisplayRenderer dspRenderer;
 
   public Test01() { }
 
@@ -68,6 +69,7 @@ public class Test01
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    dspRenderer = dpys[0].getDisplayRenderer();
     return dpys;
   }
 
@@ -82,7 +84,7 @@ public class Test01
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);
 
-    FlatField grid3d = FlatField.makeField(grid_tuple, size3d, false);
+    FlatField grid3d = FlatField.makeField(grid_tuple, 64, false);
 
     ScalarMap lat_map = new ScalarMap(RealType.Latitude, Display.YAxis);
     dpys[0].addMap(lat_map);
@@ -127,6 +129,18 @@ public class Test01
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    new Test01(args);
+    Test01 test = new Test01(args);
+    try {
+       Thread.currentThread().sleep(15000);
+    }
+    catch (InterruptedException e) {
+    }
+    System.out.println("writing scene to file");
+    try {
+    java.io.File file = new java.io.File("/Users/rink/Desktop/scene.obj");
+    ((visad.java3d.DisplayRendererJ3D)test.dspRenderer).saveSceneToFile(file);
+    }
+    catch (Exception e) {
+    }
   }
 }

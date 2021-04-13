@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package edu.wisc.ssec.mcidas.adde;
 
 import java.io.DataInputStream;
-import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -327,7 +326,6 @@ public class AddeURLConnection extends URLConnection
   private final static int OBTEXT  = 105;
 
   private int numBytes = 0;
-  private int dataType = IMAGE;
 
   private byte[] binaryData = null;   // byte array to hold extra binary data
 
@@ -454,7 +452,7 @@ public class AddeURLConnection extends URLConnection
     else
     {
       throw new AddeURLException(
-          "Invalid or unsupported ADDE service= "+svc.toString() );
+          "Invalid or unsupported ADDE service");
     }
 
     if (LOGGER.isLoggable(Level.FINEST)) {
@@ -1231,7 +1229,7 @@ public class AddeURLConnection extends URLConnection
      */
     private StringBuffer decodeGDIRString(String uCmd) {
       StringBuffer buf = new StringBuffer();
-      String testString, tempString, lctestString;
+      String testString, lctestString;
       String groupString = null;
       String descrString = "ALL";
       String sizeString = " 999999 ";
@@ -1242,7 +1240,6 @@ public class AddeURLConnection extends URLConnection
       String lonString = null;
       String rowString = null;
       String colString = null;
-      String srcString = null;
       String skip = null;
 
       StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
@@ -1682,7 +1679,6 @@ public class AddeURLConnection extends URLConnection
         StringBuffer buf = new StringBuffer();
         String testString;
         String lctestString;
-        String tempString;
         String numString = "NUM=1";
         String dTimeString = "DTIME=96.0000";
         String traceString = "TRACE=0";
@@ -1815,7 +1811,6 @@ public class AddeURLConnection extends URLConnection
         StringBuffer buf = new StringBuffer();
         String testString;
         String lctestString;
-        String tempString;
         String numString = "NUM=1";
         String traceString = "TRACE=0";
         // Mandatory strings
@@ -2014,7 +2009,6 @@ public class AddeURLConnection extends URLConnection
         String groupString = null;
         String descrString = null;
         String maxString = "MAX=1";
-        String numString = "";
         // Options strings
         String posString = "POS=0";
         String traceString = "TRACE=0";
@@ -2115,7 +2109,7 @@ public class AddeURLConnection extends URLConnection
         // fudge the max string in case ALL is specified.  Some servers
         // don't handle all
         if (maxString.trim().equalsIgnoreCase("max=all")) {
-            maxString="MAX=99999";
+            maxString="MAX=999999";
         }
 
         // now create case sensitive command string
@@ -2200,7 +2194,6 @@ public class AddeURLConnection extends URLConnection
      */
     private String decodeSELECTString(String justTheSelectString) {
 
-        String testString = null;
         String entireSelectString = null;
         // String trimmedSelectString = null;
         String thisSelect = null;
@@ -2226,7 +2219,6 @@ public class AddeURLConnection extends URLConnection
             //
             StringTokenizer thisSelectToken = 
                 new StringTokenizer(thisSelect, " ");
-            int tokenCount = thisSelectToken.countTokens();
             thisSelect = new String(thisSelectToken.nextToken());
             if (LOGGER.isLoggable(Level.FINEST)) {
               LOGGER.finest("this Select = " + thisSelect);
@@ -2375,6 +2367,9 @@ public class AddeURLConnection extends URLConnection
       if (LOGGER.isLoggable(Level.FINEST)) {
         LOGGER.finest("normalized url = " + x);
       }
+      // TJJ Nov 2020
+      // In the GLM era, total point count can exceed 6 figures
+      x = x.replaceAll("MAX=99999", "MAX=999999");
       try {
           return new URL(x);
       } catch (Exception e) {}
