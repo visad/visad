@@ -123,7 +123,7 @@ public class AddePointDataReader {
     private int[][] oData = null;  // data returned from server as array of ints
     private Vector data = null;    // holds the obs
     private int numParams = 0;     // number of parameters
-    private boolean debug = false; // set to true for debugging
+    private boolean debug = true;  // set to true for debugging
     
     /**
      * creates an AddePointDataReader object that allows reading ADDE point
