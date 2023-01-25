@@ -1,7 +1,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2021 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2023 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
