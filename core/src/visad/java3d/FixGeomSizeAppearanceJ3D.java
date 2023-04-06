@@ -15,7 +15,7 @@ import visad.TrajectoryManager;
 import visad.ShadowType;
 import visad.FixGeomSizeAppearance;
 import visad.MouseBehavior;
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 
 public class FixGeomSizeAppearanceJ3D extends FixGeomSizeAppearance {

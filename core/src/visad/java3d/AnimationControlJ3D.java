@@ -30,11 +30,8 @@ import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.WakeupOnElapsedTime;
-import javax.vecmath.Point3d;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.Point3d;
 
 import visad.AnimationControl;
 import visad.AnimationSetControl;
@@ -650,6 +647,20 @@ public class AnimationControlJ3D extends AVControlJ3D
       }
 
     }
+
+    public void processStimulus(java.util.Iterator<WakeupCriterion> criteria) {
+      //do something?
+      try {
+        if (animate != null && animate.getOn()) {
+          takeStep();
+        }
+      } catch (VisADException v) {
+        throw new VisADError("Unable to take animation step", v);
+      } catch (RemoteException v) {
+        throw new VisADError("Unable to take animation step", v);
+      }
+      updateDwell();
+    }
   }
 
   /**
@@ -667,5 +678,5 @@ public class AnimationControlJ3D extends AVControlJ3D
   public void run() {
     steppingBehaviour.setEnable(true);
   }
-  
+
 }

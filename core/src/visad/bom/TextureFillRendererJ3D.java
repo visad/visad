@@ -29,7 +29,7 @@ package visad.bom;
 import visad.*;
 import visad.java3d.*;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import java.rmi.*;
 import java.io.IOException;

@@ -47,11 +47,11 @@ import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import javax.swing.*;
 
-import javax.vecmath.Color3f;
+import org.jogamp.vecmath.Color3f;
 
 
 
@@ -1125,7 +1125,10 @@ public class SceneGraphRenderer {
       Color3f color3f = new Color3f();
       colourAttr.getColor(color3f);
       colours = new Color[1];
-      Color color3 = color3f.get();
+      int var1 = Math.round(color3f.x * 255.0F);
+      int var2 = Math.round(color3f.y * 255.0F);
+      int var3 = Math.round(color3f.z * 255.0F);
+      Color color3 = new Color(var1,var2,var3);
       float[] colourComps = new float[4];
       colourComps = color3.getColorComponents(colourComps);
       colourComps[3] = 1.0f;

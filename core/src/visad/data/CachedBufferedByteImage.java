@@ -55,7 +55,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import javax.swing.*;
 

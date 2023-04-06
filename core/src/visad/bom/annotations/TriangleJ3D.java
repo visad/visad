@@ -184,7 +184,7 @@ public class TriangleJ3D implements ScreenAnnotation
   }
 
   /**
-   *  Make the TriangleJ3D into a {@link javax.media.j3d.Shape3D}.
+   *  Make the TriangleJ3D into a {@link org.jogamp.java3d.Shape3D}.
    *
    *  @param display  the VisAD display for this Triangle.
    *

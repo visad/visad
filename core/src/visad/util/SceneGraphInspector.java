@@ -10,20 +10,20 @@ import java.awt.event.ItemListener;
 import java.util.Arrays;
 import java.util.Enumeration;
 
-import javax.media.j3d.Bounds;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.Group;
-import javax.media.j3d.Node;
-import javax.media.j3d.OrderedGroup;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Switch;
-import javax.media.j3d.Text3D;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.View;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.OrderedGroup;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Switch;
+import org.jogamp.java3d.Text3D;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.View;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -142,9 +142,9 @@ public class SceneGraphInspector extends JPanel implements TreeSelectionListener
   private void createViewNodes(MyNode<View> viewNode) {
     
     cards.add(makeViewComponent(viewNode.getNode()), viewNode.getName());
-    Enumeration<Canvas3D> canvases = viewNode.getNode().getAllCanvas3Ds();
-    while (canvases.hasMoreElements()) {
-      Canvas3D canvas = canvases.nextElement();
+    java.util.Iterator canvases =  viewNode.getNode().getAllCanvas3Ds();
+    while (canvases.hasNext()) {
+      Canvas3D canvas = (Canvas3D)canvases.next();
       MyNode<Canvas3D> canvasNode = new MyNode<Canvas3D>(canvas);
       viewNode.add(canvasNode);
       cards.add(makeCanvasComponent(canvas), canvasNode.getName());
@@ -157,9 +157,9 @@ public class SceneGraphInspector extends JPanel implements TreeSelectionListener
     cards.add(makeNodeComponent(node), scene.getName());
     if (node instanceof Group) {
       Group group = (Group) node;
-      Enumeration<Node> children = group.getAllChildren();
-      while (children.hasMoreElements()) {
-        MyNode<Node> tnode = new MyNode<Node>(children.nextElement());
+      java.util.Iterator children = group.getAllChildren();
+      while (children.hasNext()) {
+        MyNode<Node> tnode = new MyNode<Node>((Node)children.next());
         scene.add(tnode);
         createSceneNodes(tnode);
       }

@@ -30,8 +30,8 @@ import visad.*;
 
 import java.rmi.*;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.*;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -150,7 +150,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
       throw new DisplayException("aspect array must be length = 3");
     }
     Transform3D transform = new Transform3D();
-    transform.setScale(new javax.vecmath.Vector3d(aspect[0], aspect[1], aspect[2]));
+    transform.setScale(new org.jogamp.vecmath.Vector3d(aspect[0], aspect[1], aspect[2]));
     double[] mult = new double[MATRIX3D_LENGTH];
     transform.get(mult);
     Transform3D mat = init();

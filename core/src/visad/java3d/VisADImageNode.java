@@ -2,23 +2,23 @@ package visad.java3d;
 import visad.*;
 import visad.data.CachedBufferedByteImage;
 
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.ImageComponent2D.Updater;
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Switch;
-import javax.media.j3d.BoundingSphere;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.ImageComponent2D.Updater;
+import org.jogamp.java3d.Behavior;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Switch;
+import org.jogamp.java3d.BoundingSphere;
 
-import javax.vecmath.Point3d;
+import org.jogamp.vecmath.Point3d;
 import java.awt.image.*;
 import java.awt.color.*;
 import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
-import javax.media.j3d.WakeupCriterion;
-import javax.media.j3d.WakeupOnElapsedFrames;
-import javax.media.j3d.WakeupOnElapsedTime;
-import javax.media.j3d.WakeupOnBehaviorPost;
+import org.jogamp.java3d.WakeupCriterion;
+import org.jogamp.java3d.WakeupOnElapsedFrames;
+import org.jogamp.java3d.WakeupOnElapsedTime;
+import org.jogamp.java3d.WakeupOnBehaviorPost;
 
 
 public class VisADImageNode {
@@ -148,4 +148,10 @@ class AnimateBehavior extends Behavior {
   public void setCurrent(int idx) {
     current = idx;
   }
+
+    public void processStimulus(java.util.Iterator<WakeupCriterion> criteria) {
+        //do something?
+        imageNode.update(current);
+        wakeupOn(wakeupC);
+    }
 }

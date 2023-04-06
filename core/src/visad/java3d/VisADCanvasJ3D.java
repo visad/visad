@@ -29,7 +29,7 @@ package visad.java3d;
 
 import visad.*;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -44,7 +44,7 @@ import java.awt.Graphics;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import com.sun.j3d.utils.universe.SimpleUniverse;
+import org.jogamp.java3d.utils.universe.SimpleUniverse;
 import java.util.Iterator;
 
 
@@ -129,7 +129,7 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   /**
    * Set up the texture properties from the GraphicsConfiguration
-   * @param c  GraphicsConfiguration
+   * @param
    */
   private void setTextureProperties() {
     //- see if we've already set this

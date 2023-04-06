@@ -5,9 +5,9 @@
  */
 package visad.java3d;
 
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.vecmath.Vector3f;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.vecmath.Vector3f;
 import visad.ProjectionControl;
 import visad.VisADGeometryArray;
 
@@ -51,9 +51,6 @@ public class FixedSizeTransform {
    *
    * @param trans
    * @param proj
-   * @param label_array
-   * @param f_array
-   * @param flag
    */
   FixedSizeTransform(TransformGroup trans, ProjectionControl proj, float[] anchr_vertex) {
     this.trans = trans;

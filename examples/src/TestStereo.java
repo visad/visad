@@ -24,7 +24,7 @@ import java.rmi.RemoteException;
 
 import visad.*;
 import java.awt.*;
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import visad.java3d.DisplayImplJ3D;
 

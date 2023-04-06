@@ -31,7 +31,7 @@ import java.rmi.RemoteException;
 import javax.swing.JFrame;
 
 // Java3D
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 // VisAD
 import visad.ConstantMap;

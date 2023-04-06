@@ -31,8 +31,8 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DisplayRendererJ3D;
 import visad.VisADException;
 
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Node;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Node;
 
 import java.util.Iterator;
 
@@ -85,7 +85,7 @@ public class ScreenAnnotatorJ3D extends ScreenAnnotator
 
 	/**
 	 * Traverses all the data objects and transforms them into
-	 * {@link javax.media.j3d.Shape3D} objects and adds them to a BranchGoup
+	 * {@link org.jogamp.java3d.Shape3D} objects and adds them to a BranchGoup
 	 * which it then attaches to the scene graph.
 	 * 
 	 * @throws VisADException

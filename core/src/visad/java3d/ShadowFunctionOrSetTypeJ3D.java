@@ -29,7 +29,7 @@ package visad.java3d;
 import visad.*;
 import visad.util.ThreadManager;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import javax.swing.filechooser.FileSystemView;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3d;
 import visad.util.Util;
 
 

@@ -26,7 +26,7 @@ import visad.*;
 import visad.java3d.*;
 import visad.java3d.DisplayImplJ3D;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 import java.io.IOException;
 
 // JFC packages

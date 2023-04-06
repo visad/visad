@@ -33,8 +33,8 @@ import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Group;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Group;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;

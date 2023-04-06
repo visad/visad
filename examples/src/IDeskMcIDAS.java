@@ -25,7 +25,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import visad.*;
 import visad.data.mcidas.*;

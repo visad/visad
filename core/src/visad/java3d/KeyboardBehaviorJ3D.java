@@ -32,14 +32,14 @@ import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.WakeupCondition;
-import javax.media.j3d.WakeupCriterion;
-import javax.media.j3d.WakeupOnAWTEvent;
-import javax.media.j3d.WakeupOr;
-import javax.vecmath.Point3d;
+import org.jogamp.java3d.Behavior;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.WakeupCondition;
+import org.jogamp.java3d.WakeupCriterion;
+import org.jogamp.java3d.WakeupOnAWTEvent;
+import org.jogamp.java3d.WakeupOr;
+import org.jogamp.vecmath.Point3d;
 
 import visad.DisplayEvent;
 import visad.DisplayImpl;
@@ -438,5 +438,28 @@ public class KeyboardBehaviorJ3D extends Behavior
         }
     }
     
+  }
+
+  public void processStimulus(java.util.Iterator<WakeupCriterion> criteria) {
+    //do something?
+    WakeupOnAWTEvent event;
+    WakeupCriterion genericEvent;
+    AWTEvent[] events;
+
+    while (  criteria.hasNext()) {
+      genericEvent = criteria.next();
+      if (genericEvent instanceof WakeupOnAWTEvent) {
+        event = (WakeupOnAWTEvent) genericEvent;
+        events = event.getAWTEvent();
+
+        //  Process each event
+        for (int i = 0; i < events.length; i++) {
+          if (events[i] instanceof KeyEvent)
+            processKeyEvent((KeyEvent)events[i]);
+        }
+      }
+      wakeupOn(wakeupCondition);
+    }
+
   }
 }

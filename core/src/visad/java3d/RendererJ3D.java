@@ -29,7 +29,7 @@ package visad.java3d;
 import visad.*;
 import visad.util.Delay;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 import java.util.*;
 import java.rmi.*;
@@ -296,9 +296,10 @@ System.out.println("doAction " + getDisplay().getName() + " " +
     synchronized (this) {
       if (branchNonEmpty[currentIndex]) {
         flush(branches[currentIndex]);
-        Enumeration ch = branches[currentIndex].getAllChildren();
-        while(ch.hasMoreElements()) {
-          BranchGroup b = (BranchGroup) ch.nextElement();
+        //Enumeration ch = (Enumeration) branches[currentIndex].getAllChildren();
+        java.util.Iterator ch = branches[currentIndex].getAllChildren();
+        while(ch.hasNext()) {
+          BranchGroup b = (BranchGroup) ch.next();
           b.detach();
         }
       }
@@ -308,9 +309,10 @@ System.out.println("doAction " + getDisplay().getName() + " " +
 
   public void flush(Group branch) {
     if (branches == null) return;
-    Enumeration ch = branch.getAllChildren();
-    while(ch.hasMoreElements()) {
-      Node n = (Node) ch.nextElement();
+    java.util.Iterator ch = branch.getAllChildren();
+    //Enumeration ch = (Enumeration) branch.getAllChildren();
+    while(ch.hasNext()) {
+      Node n = (Node) ch.next();
       if (n instanceof Group) {
         flush((Group) n);
       }

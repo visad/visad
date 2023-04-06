@@ -35,7 +35,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
-import javax.media.j3d.*;
+import org.jogamp.java3d.*;
 
 /**
    RubberBandBoxRendererJ3D is the VisAD class for direct

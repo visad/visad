@@ -31,8 +31,8 @@ import visad.*;
 import java.lang.reflect.*;
 import java.awt.event.*;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.*;
 
 import java.awt.*;
 import java.util.*;
@@ -260,9 +260,9 @@ public class MouseBehaviorJ3D extends Behavior
   public int[] getScreenCoords(double[] position) {
     if (getPixelLocationFromImagePlateMethod == null) {
       try {
-        Class canvas3DClass = Class.forName("javax.media.j3d.Canvas3D");
+        Class canvas3DClass = Class.forName("org.jogamp.java3d.Canvas3D");
         Class[] param =
-          {javax.vecmath.Point3d.class, javax.vecmath.Point2d.class};
+          {org.jogamp.vecmath.Point3d.class, org.jogamp.vecmath.Point2d.class};
         getPixelLocationFromImagePlateMethod =
           canvas3DClass.getMethod("getPixelLocationFromImagePlate", param);
         if (getPixelLocationFromImagePlateMethod == null) return null;
@@ -309,9 +309,9 @@ public class MouseBehaviorJ3D extends Behavior
   public double[] getPlateCoords(double[] position) {
     if (getPixelLocationFromImagePlateMethod == null) {
       try {
-        Class canvas3DClass = Class.forName("javax.media.j3d.Canvas3D");
+        Class canvas3DClass = Class.forName("org.jogamp.java3d.Canvas3D");
         Class[] param =
-          {javax.vecmath.Point3d.class, javax.vecmath.Point2d.class};
+          {org.jogamp.vecmath.Point3d.class, org.jogamp.vecmath.Point2d.class};
         getPixelLocationFromImagePlateMethod =
           canvas3DClass.getMethod("getPixelLocationFromImagePlate", param);
         if (getPixelLocationFromImagePlateMethod == null) return null;
@@ -813,6 +813,22 @@ verner 26%
 }
 
 */
-
+public void processStimulus(java.util.Iterator<WakeupCriterion> criteria) {
+  //do something?
+  while (  criteria.hasNext()) {
+    WakeupCriterion wakeup = (WakeupCriterion) criteria.next();
+    if (!(wakeup instanceof WakeupOnAWTEvent)) {
+      System.out.println("MouseBehaviorJ3D.processStimulus: non-" +
+              "WakeupOnAWTEvent");
+    }
+    else {
+      AWTEvent[] events = ((WakeupOnAWTEvent) wakeup).getAWTEvent();
+      for (int i=0; i<events.length; i++) {
+        helper.processEvent(events[i]);
+      }
+    }
+  }
+  setWakeup();
+}
 }
 
